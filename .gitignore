@@ -1,0 +1,8 @@
+*.DS_STORE
+*.iml
+.idea/
+out/
+
+.settings/
+*.iml
+*.iws
