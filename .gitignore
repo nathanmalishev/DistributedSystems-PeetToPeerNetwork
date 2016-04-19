@@ -6,3 +6,5 @@ out/
 .settings/
 *.iml
 *.iws
+
+META-INF/

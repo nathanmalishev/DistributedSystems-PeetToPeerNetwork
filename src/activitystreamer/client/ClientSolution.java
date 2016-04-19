@@ -1,8 +1,14 @@
 package activitystreamer.client;
 
+import activitystreamer.util.Settings;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.simple.JSONObject;
+
+import java.io.BufferedOutputStream;
+import java.io.OutputStreamWriter;
+import java.net.ServerSocket;
+import java.net.Socket;
 
 public class ClientSolution extends Thread {
 	private static final Logger log = LogManager.getLogger();
@@ -12,6 +18,7 @@ public class ClientSolution extends Thread {
 	/*
 	 * additional variables
 	 */
+    private Socket connection;
 	
 	// this is a singleton object
 	public static ClientSolution getInstance(){
@@ -25,6 +32,12 @@ public class ClientSolution extends Thread {
 		/*
 		 * some additional initialization
 		 */
+		try{
+			connection = new Socket(Settings.getLocalHostname(), Settings.getRemotePort());
+			System.out.print("connection started to server ");
+		}catch(Exception e){
+			System.out.print(e);
+		}
 
 		// open the gui
 		log.debug("opening the gui");
@@ -35,7 +48,16 @@ public class ClientSolution extends Thread {
 	
 	// called by the gui when the user clicks "send"
 	public void sendActivityObject(JSONObject activityObj){
-		
+//		try{
+//			BufferedOutputStream bos = new BufferedOutputStream(connection.
+//					getOutputStream());
+//			OutputStreamWriter osw = new OutputStreamWriter(bos, "US-ASCII");
+//			osw.write("This is where the message would go");
+//			osw.flush();
+//		}catch(Exception e){
+//			System.out.print(e);
+//		}
+
 	}
 	
 	// called by the gui when the user clicks disconnect
