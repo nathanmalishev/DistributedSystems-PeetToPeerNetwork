@@ -90,6 +90,9 @@ public class ControlSolution extends Control {
 		 * return true/false as appropriate
 		 */
 		
+		// RYANS DEBUG: RECEIVING MESSAGE FROM SERVER
+		log.debug("Message received: " + msg);
+		
 		return false;
 	}
 
@@ -105,6 +108,17 @@ public class ControlSolution extends Control {
 		 * do additional work here
 		 * return true/false as appropriate
 		 */
+
+		// RYANS DEBUG: SENDING MESSAGE TO SERVER
+		log.debug("Inside Activity....");
+		
+		for(Connection c : getConnections()){
+			
+			c.getOutwriter().println("Hello");
+			c.getOutwriter().flush();
+			log.debug("Sent message");
+		}
+		
 		
 		return false;
 	}

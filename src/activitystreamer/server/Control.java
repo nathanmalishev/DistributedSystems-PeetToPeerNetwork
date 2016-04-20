@@ -53,6 +53,9 @@ public class Control extends Thread {
 	 * Return true if the connection should close.
 	 */
 	public synchronized boolean process(Connection con,String msg){
+		
+		
+		
 		return true;
 	}
 	
