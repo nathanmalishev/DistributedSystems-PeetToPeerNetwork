@@ -6,7 +6,9 @@ import org.apache.logging.log4j.Logger;
 import org.json.simple.JSONObject;
 
 import java.io.BufferedOutputStream;
+import java.io.DataOutputStream;
 import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -14,7 +16,7 @@ public class ClientSolution extends Thread {
 	private static final Logger log = LogManager.getLogger();
 	private static ClientSolution clientSolution;
 	private TextFrame textFrame;
-	
+	private PrintWriter outwriter;
 	/*
 	 * additional variables
 	 */
@@ -48,16 +50,17 @@ public class ClientSolution extends Thread {
 	
 	// called by the gui when the user clicks "send"
 	public void sendActivityObject(JSONObject activityObj){
-//		try{
-//			BufferedOutputStream bos = new BufferedOutputStream(connection.
-//					getOutputStream());
-//			OutputStreamWriter osw = new OutputStreamWriter(bos, "US-ASCII");
-//			osw.write("This is where the message would go");
-//			osw.flush();
-//		}catch(Exception e){
-//			System.out.print(e);
-//		}
+		try{
+			DataOutputStream out = new DataOutputStream(connection.
+					getOutputStream());
+			outwriter = new PrintWriter(out,true);
+			outwriter.println("This is the client message");
+			outwriter.flush();
+			System.out.print("Message successfully sent");
 
+		}catch(Exception e){
+			System.out.print(e);
+		}
 	}
 	
 	// called by the gui when the user clicks disconnect

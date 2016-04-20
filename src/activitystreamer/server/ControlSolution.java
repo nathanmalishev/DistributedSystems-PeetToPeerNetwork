@@ -96,8 +96,7 @@ public class ControlSolution extends Control {
 		return false;
 	}
 
-	
-	
+
 	/*
 	 * Called once every few seconds
 	 * Return true if server should shut down, false otherwise
@@ -119,6 +118,7 @@ public class ControlSolution extends Control {
 			log.debug("Sent message");
 		}
 		
+
 		
 		return false;
 	}
