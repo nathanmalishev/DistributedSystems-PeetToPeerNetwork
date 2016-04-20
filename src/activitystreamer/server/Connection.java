@@ -85,4 +85,8 @@ public class Connection extends Thread {
 	public boolean isOpen() {
 		return open;
 	}
+	
+	public PrintWriter getOutwriter(){
+		return outwriter;
+	}
 }
