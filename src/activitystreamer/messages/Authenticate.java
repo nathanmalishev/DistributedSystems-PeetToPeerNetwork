@@ -3,7 +3,7 @@ package activitystreamer.messages;
 public class Authenticate extends JsonMessage {
 	
 	private String secret;
-	private String messageType = "AUTHENTICATE";
+	private String command = "AUTHENTICATE";
 
 
 	public Authenticate(String secret) {
@@ -14,8 +14,5 @@ public class Authenticate extends JsonMessage {
 		return secret;
 	}
 
-	public boolean respond() {
-		return RulesEngine.triggerAuthenticateAttempt(this);
-	}
-	
+
 }

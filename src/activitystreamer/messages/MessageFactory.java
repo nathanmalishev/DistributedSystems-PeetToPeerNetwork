@@ -16,7 +16,7 @@ public class MessageFactory {
         JsonMessage message = parser.fromJson(msg, JsonMessage.class);
 
         // Process accordingly
-        switch(message.getMessageType()){
+        switch(message.getCommand()){
 
             case "AUTHENTICATE" :
 

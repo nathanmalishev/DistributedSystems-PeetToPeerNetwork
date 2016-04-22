@@ -9,6 +9,7 @@ import org.apache.logging.log4j.Logger;
 import org.json.simple.JSONObject;
 
 import activitystreamer.util.Settings;
+import activitystreamer.messages.*;
 
 public class Control extends Thread {
 	private static final Logger log = LogManager.getLogger();
@@ -51,11 +52,8 @@ public class Control extends Thread {
 				Connection c = outgoingConnection(new Socket(Settings.getRemoteHostname(),Settings.getRemotePort()));
 				
 				// Send JSON Authenticate message
-				JSONObject authenticate = new JSONObject();
-				authenticate.put("command", "AUTHENTICATE");
-				authenticate.put("secret", Settings.getSecret());
-				
-				c.writeMsg(authenticate.toString());
+				Authenticate authenticateMsg = new Authenticate(Settings.getSecret());
+				c.writeMsg(authenticateMsg.toData());
 				
 			} catch (IOException e) {
 				log.error("failed to make connection to "+Settings.getRemoteHostname()+":"+Settings.getRemotePort()+" :"+e);
@@ -69,8 +67,6 @@ public class Control extends Thread {
 	 * Return true if the connection should close.
 	 */
 	public synchronized boolean process(Connection con,String msg){
-		
-		
 		
 		return true;
 	}

@@ -6,13 +6,11 @@ public class JsonMessage {
 
 	public static final String invalidMessageTypeError = "the message type was not recognised";
 
-	private String messageType;
+	private String command;
 	
-	public String getMessageType() {
-		return messageType;
+	public String getCommand() {
+		return command;
 	}
-
-	public JsonMessage respond() { return new InvalidMessage(invalidMessageTypeError); }
 
 	public String toData() {
 		Gson gson = new Gson();

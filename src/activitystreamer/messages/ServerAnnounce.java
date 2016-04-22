@@ -6,7 +6,7 @@ public class ServerAnnounce extends JsonMessage {
 	private int load;
 	private String hostname;
 	private String port;
-	private String messageType = "SERVER_ANNOUNCE";
+	private String command = "SERVER_ANNOUNCE";
 
 	public String getId() {
 		return id;
@@ -28,10 +28,6 @@ public class ServerAnnounce extends JsonMessage {
 		this.hostname = hostname;
 		this.port = port;
 
-	}
-
-	public JsonMessage respond() {
-		return RulesEngine.triggerServerAnnounceRead(this);
 	}
 	
 }

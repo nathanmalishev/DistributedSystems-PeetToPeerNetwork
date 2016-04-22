@@ -3,7 +3,7 @@ package activitystreamer.messages;
 
 public class InvalidMessage extends JsonMessage {
 
-    private String messageType = "INVALID_MESSAGE";
+    private String command = "INVALID_MESSAGE";
     private String info;
 
     public InvalidMessage(String info) {
@@ -11,9 +11,5 @@ public class InvalidMessage extends JsonMessage {
     }
 
     public String getInfo() { return info; }
-
-    public boolean respond() {
-        return RulesEngine.triggerInvalidMessageRead(this);
-    }
 
 }

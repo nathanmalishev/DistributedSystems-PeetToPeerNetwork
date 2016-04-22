@@ -1,85 +1,103 @@
 package activitystreamer.messages;
 
 import activitystreamer.server.Connection;
+import activitystreamer.server.ControlSolution;
 import activitystreamer.util.Settings;
+import org.apache.logging.log4j.Logger;
 
 public class RulesEngine {
 
+    private Logger log;
 
-    public static JsonMessage triggerResponse(JsonMessage msg, Connection con) {
+    public RulesEngine(Logger log) {
+        this.log = log;
+    }
+
+    public boolean triggerResponse(JsonMessage msg, Connection con) {
 
         // Process accordingly
-        switch(msg.getMessageType()){
+        switch(msg.getCommand()){
 
             case "AUTHENTICATE" :
 
-                triggerAuthenticateAttempt((Authenticate)msg, con);
+                return triggerAuthenticateAttempt((Authenticate)msg, con);
 
             case "AUTHENTICATION_FAIL" :
 
-                triggerAuthenticationFailRead((AuthenticationFail) msg, con);
+                return triggerAuthenticationFailRead((AuthenticationFail) msg, con);
 
             case "SERVER_ANNOUNCE" :
 
-                triggerServerAnnounceRead((ServerAnnounce)msg, con);
+                return triggerServerAnnounceRead((ServerAnnounce)msg, con);
 
             // --- Will be INVALID_MESSAGE ---
 
             case "INVALID_MESSAGE" :
-                triggerInvalidMessageRead((InvalidMessage)msg, con);
+                return triggerInvalidMessageRead((InvalidMessage)msg, con);
 
             default :
 
-                triggerInvalidMessage(con);
+                return triggerInvalidMessage(con);
 
         }
 
 
     }
 
-    public static boolean triggerServerAnnounceRead(ServerAnnounce msg, Connection con) {
 
+    /* Return True if the server is to be shut down */
+    public boolean triggerServerAnnounceRead(ServerAnnounce msg, Connection con) {
 
+        // ---- DEBUG ----
+        log.debug("Command: " + msg.getCommand());
+        log.debug("ID: " + msg.getId());
+        log.debug("Load: " + msg.getLoad());
+        log.debug("Hostname: " + msg.getHostname());
+        log.debug("Port: " + msg.getPort());
 
+        return false;
     }
 
-    public static boolean triggerAuthenticateAttempt(Authenticate msg, Connection con) {
+    public boolean triggerAuthenticateAttempt(Authenticate msg, Connection con) {
 
         // Check if secret is valid
-
-
-
         if(!msg.getSecret().equals(Settings.getSecret())){
 
             // If secret is invalid, send authentication fail message
 
             String info = AuthenticationFail.invalidMessageTypeError + msg.getSecret();
-
             JsonMessage response = new AuthenticationFail(info);
-
             con.writeMsg(response.toData());
 
             // Close the connection
-
             return true;
         }
 
         // Otherwise, do not close the connection
-
         return false;
+    }
+
+
+    /* Logs the information and returns true to indicate the connection will be closed */
+    public boolean triggerAuthenticationFailRead(AuthenticationFail msg, Connection con) {
+
+        // Display information on failed authentication
+
+        log.info("command : " + msg.getCommand());
+        log.info("info : " + msg.getInfo());
+
+        ControlSolution.getInstance().setTerm(true);
+
+        return true;
 
     }
 
-    public static boolean triggerAuthenticationFailRead(AuthenticationFail msg, Connection con) {
-
+    public boolean triggerInvalidMessageRead(InvalidMessage msg, Connection con) {
+        return false;
     }
 
-    public static boolean triggerInvalidMessageRead(InvalidMessage msg, Connection con) {
-
-    }
-
-    public static boolean triggerInvalidMessage(Connection con) {
-        
+    public boolean triggerInvalidMessage(Connection con) {
+        return false;
     }
 
 }

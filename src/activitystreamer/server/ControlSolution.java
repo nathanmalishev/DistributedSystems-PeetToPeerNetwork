@@ -19,10 +19,6 @@ public class ControlSolution extends Control {
 	
 	private static final Logger log = LogManager.getLogger();
 	
-	/*
-	 * additional variables as needed
-	 */
-	
 	// since control and its subclasses are singleton, we get the singleton this way
 	public static ControlSolution getInstance() {
 		if(control==null){
@@ -94,50 +90,11 @@ public class ControlSolution extends Control {
 	@Override
 	public synchronized boolean process(Connection con,String msg){
 		MessageFactory msgFactory = new MessageFactory();
+		RulesEngine rulesEngine = new RulesEngine(log);
 
 		JsonMessage receivedMessage = msgFactory.buildMessage(msg);
-		return receivedMessage.respond();
+		return rulesEngine.triggerResponse(receivedMessage, con);
 
-		if (replyMessage!= null) {
-
-			con.writeMsg(msgFactory.toData(replyMessage));
-
-		}
-
-		return false;
-
-		/* GSON Parser transforms JSON objects into instance of a class */
-		Gson parser = new Gson();
-
-		/* Determine what kind of message we need to process */
-		JsonMessage messageType = parser.fromJson(msg, JsonMessage.class);
-
-		// Process accordingly
-		switch(messageType.getCommand()){
-
-			case "AUTHENTICATE" :
-
-				Authenticate serverRequest = parser.fromJson(msg, Authenticate.class);
-				return readAuthenticate(serverRequest, con);
-
-			case "AUTHENTICATION_FAIL" :
-
-				AuthenticationFail failReply = parser.fromJson(msg, AuthenticationFail.class);
-				return readAuthenticationFail(failReply, con);
-
-			case "SERVER_ANNOUNCE" :
-
-				ServerAnnounce serverLoad = parser.fromJson(msg, ServerAnnounce.class);
-				return readServerAnnounce(serverLoad, con);
-
-			// --- Will be INVALID_MESSAGE ---
-			default :
-				break;
-
-		}
-
-
-		return false;
 	}
 
 
@@ -171,52 +128,6 @@ public class ControlSolution extends Control {
 		
 		return false;
 	}
-	
-	/*
-	 * Other methods as needed
-	 */
-	
-	/* Return True if the server is to be shut down */
-	public boolean readServerAnnounce(ServerAnnounce msg, Connection con){
-		
-		// ---- DEBUG ----
-		log.debug("Command: " + msg.getCommand());
-		log.debug("ID: " + msg.getId());
-		log.debug("Load: " + msg.getLoad());
-		log.debug("Hostname: " + msg.getHostname());
-		log.debug("Port: " + msg.getPort());
-		
-		// --- Need to actually store the loads of each server ---
-		
-		return false;
-	}
-	
-	/* Return True if the server is to be shut down */
-	public boolean readAuthenticate(Authenticate msg, Connection con){
-		
-		// Send AUTHENTICATION_FAIL
-		if(!msg.getSecret().equals(Settings.getSecret())){
 
-			JSONObject authenticationFail = new JSONObject();
-			authenticationFail.put("command", "AUTHENTICATION_FAIL");
-			authenticationFail.put("info", "the supplied secret is incorrect: "+msg.getSecret());
-			
-			con.writeMsg(authenticationFail.toString());
-			return true;				// Close connection
-		}
-		
-		return false;
-	}
-	
-	/* Logs the information and returns true to indicate the connection will be closed */
-	public boolean readAuthenticationFail(AuthenticationFail msg, Connection con){
 
-		// Display JSON Message
-		log.info("command : " + msg.getCommand());
-		log.info("info : " + msg.getInfo());
-		
-		setTerm(true);		// Terminate the Control
-		
-		return true;
-	}
 }	
