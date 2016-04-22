@@ -3,8 +3,6 @@ package activitystreamer.messages;
 // Need to change this so it is importing the one in our library
 import com.google.gson.Gson;
 
-
-
 public class MessageFactory {
 
     public JsonMessage buildMessage(String msg) {
@@ -32,6 +30,10 @@ public class MessageFactory {
 
                 ServerAnnounce serverAnnounceMessage = parser.fromJson(msg, ServerAnnounce.class);
                 return serverAnnounceMessage;
+
+            case "INVALID_MESSAGE" :
+                InvalidMessage invalidMessage = parser.fromJson(msg, InvalidMessage.class);
+                return invalidMessage;
 
             // --- Will be INVALID_MESSAGE ---
             default :
