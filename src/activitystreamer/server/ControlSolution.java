@@ -77,9 +77,9 @@ public class ControlSolution extends Control {
 	@Override
 	public void connectionClosed(Connection con){
 		super.connectionClosed(con);
-		/*
-		 * do additional things here
-		 */
+		
+		// Remove from list
+		if(getAuthServers().contains(con)) getAuthServers().remove(con);
 	}
 	
 	
@@ -94,7 +94,7 @@ public class ControlSolution extends Control {
 		RulesEngine rulesEngine = new RulesEngine(log);
 
 		JsonMessage receivedMessage = msgFactory.buildMessage(msg, log);
-
+		
 		return rulesEngine.triggerResponse(receivedMessage, con);
 
 	}
@@ -116,10 +116,9 @@ public class ControlSolution extends Control {
 		serverAnnounce.put("hostname", Settings.getLocalHostname());
 		serverAnnounce.put("port", Settings.getLocalPort());
 		
-		// Sends JSON Object to all its connections
-		for(Connection c : getConnections()){
-			
-			// --- Need to adjust to only send to the servers ---
+		// Sends JSON Object to Authorized Servers only
+		for(Connection c : getAuthServers()){
+
 			if(c.writeMsg(serverAnnounce.toString())){
 				log.info("Hostname: " + Settings.getLocalHostname() + " sending load");
 			}

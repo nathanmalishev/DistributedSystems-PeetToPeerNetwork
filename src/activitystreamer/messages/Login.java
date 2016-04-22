@@ -1,6 +1,5 @@
 package activitystreamer.messages;
 
-import sun.plugin2.message.Message;
 
 /**
  * Created by Jeames on 22/04/2016.

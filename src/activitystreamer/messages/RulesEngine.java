@@ -1,8 +1,10 @@
 package activitystreamer.messages;
 
 import activitystreamer.server.Connection;
+import activitystreamer.server.Control;
 import activitystreamer.server.ControlSolution;
 import activitystreamer.util.Settings;
+
 import org.apache.logging.log4j.Logger;
 
 public class RulesEngine {
@@ -66,14 +68,20 @@ public class RulesEngine {
 
             // If secret is invalid, send authentication fail message
 
-            String info = AuthenticationFail.invalidMessageTypeError + msg.getSecret();
+            String info = AuthenticationFail.invalidSecretTypeError + msg.getSecret();
             JsonMessage response = new AuthenticationFail(info);
             con.writeMsg(response.toData());
-
+            
+            // Add to unauthorized list
+            ControlSolution.getInstance().getUnauthServers().add(con);
+            
             // Close the connection
             return true;
         }
-
+        
+        // Add to authorized list
+        ControlSolution.getInstance().getAuthServers().add(con);
+        
         // Otherwise, do not close the connection
         return false;
     }
@@ -86,6 +94,10 @@ public class RulesEngine {
 
         log.info("command : " + msg.getCommand());
         log.info("info : " + msg.getInfo());
+        
+        // Remove from Authorized list, add to Unauthorized list
+        ControlSolution.getInstance().getAuthServers().remove(con);
+        ControlSolution.getInstance().getUnauthServers().add(con);
 
         ControlSolution.getInstance().setTerm(true);
 

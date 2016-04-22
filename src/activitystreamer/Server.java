@@ -2,6 +2,7 @@ package activitystreamer;
 
 
 import java.net.InetAddress;
+
 import java.net.UnknownHostException;
 
 import org.apache.commons.cli.CommandLine;

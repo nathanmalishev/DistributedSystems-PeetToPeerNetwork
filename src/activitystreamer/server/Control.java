@@ -32,6 +32,8 @@ public class Control extends Thread {
 	public Control() {
 		// initialize the connections array
 		connections = new ArrayList<Connection>();
+		authServers = new ArrayList<Connection>();
+		unauthServers = new ArrayList<Connection>();
 		// start a listener
 		try {
 			listener = new Listener();
@@ -57,6 +59,9 @@ public class Control extends Thread {
 				// Send JSON Authenticate message
 				Authenticate authenticateMsg = new Authenticate(Settings.getSecret());
 				c.writeMsg(authenticateMsg.toData());
+				
+				// Add to authorized connections
+				authServers.add(c);
 				
 			} catch (IOException e) {
 				log.error("failed to make connection to "+Settings.getRemoteHostname()+":"+Settings.getRemotePort()+" :"+e);
@@ -126,6 +131,7 @@ public class Control extends Thread {
 			connection.closeCon();
 		}
 		listener.setTerm(true);
+		
 	}
 	
 	public boolean doActivity(){
@@ -139,4 +145,13 @@ public class Control extends Thread {
 	public final ArrayList<Connection> getConnections() {
 		return connections;
 	}
+	
+	public final ArrayList<Connection> getAuthServers() {
+		return authServers;
+	}
+	
+	public final ArrayList<Connection> getUnauthServers() {
+		return unauthServers;
+	}
+	
 }

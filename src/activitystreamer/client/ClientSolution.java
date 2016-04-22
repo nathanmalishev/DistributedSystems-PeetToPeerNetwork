@@ -36,6 +36,9 @@ public class ClientSolution extends Thread {
 		 */
 		try{
 			connection = new Socket(Settings.getLocalHostname(), Settings.getRemotePort());
+			
+			// --- Send LOGIN message to the new connection ---
+			
 			System.out.print("connection started to server ");
 		}catch(Exception e){
 			System.out.print(e);
