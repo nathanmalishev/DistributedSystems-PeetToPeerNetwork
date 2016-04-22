@@ -6,6 +6,7 @@ import java.util.ArrayList;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.json.simple.JSONObject;
 
 import activitystreamer.util.Settings;
 
@@ -36,11 +37,26 @@ public class Control extends Thread {
 		}	
 	}
 	
+	/* Called when starting a server and connects to the provided remote host
+	 * if it is supplied.
+	 * To successfully connect the secret must match that of the given remote host.
+	 */
 	public void initiateConnection(){
+		
 		// make a connection to another server if remote hostname is supplied
 		if(Settings.getRemoteHostname()!=null){
+			
 			try {
-				outgoingConnection(new Socket(Settings.getRemoteHostname(),Settings.getRemotePort()));
+				// Establish a connection
+				Connection c = outgoingConnection(new Socket(Settings.getRemoteHostname(),Settings.getRemotePort()));
+				
+				// Send JSON Authenticate message
+				JSONObject authenticate = new JSONObject();
+				authenticate.put("command", "AUTHENTICATE");
+				authenticate.put("secret", Settings.getSecret());
+				
+				c.writeMsg(authenticate.toString());
+				
 			} catch (IOException e) {
 				log.error("failed to make connection to "+Settings.getRemoteHostname()+":"+Settings.getRemotePort()+" :"+e);
 				System.exit(-1);

@@ -93,12 +93,19 @@ public class Server {
 		if(cmd.hasOption("lh")){
 			Settings.setLocalHostname(cmd.getOptionValue("lh"));
 		}
-
+		
+		// Assign Random secret if we haven't been given one
 		if(cmd.hasOption("s")){
 			Settings.setSecret(cmd.getOptionValue("s"));
 		}
+		else{
+			Settings.setSecret(Settings.nextSecret());
+		}
 		
-		log.info("starting server");
+		// Assign Random ID to the server at startup
+		Settings.setId(Settings.nextSecret());
+		
+		log.info("starting server with secret: " + Settings.getSecret());
 		
 		
 		final ControlSolution c = ControlSolution.getInstance(); 

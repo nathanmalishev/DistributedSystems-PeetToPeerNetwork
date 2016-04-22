@@ -3,13 +3,23 @@ package activitystreamer.server;
 import java.io.IOException;
 import java.net.Socket;
 
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.json.simple.*;
+
+// Need to change this so it is importing the one in our library
+import com.google.gson.Gson;
+
+import activitystreamer.Authenticate;
+import activitystreamer.AuthenticationFail;
+import activitystreamer.JsonMessage;
+import activitystreamer.ServerAnnounce;
+import activitystreamer.util.Settings;
 
 
 
 public class ControlSolution extends Control {
+	
 	private static final Logger log = LogManager.getLogger();
 	
 	/*
@@ -33,6 +43,7 @@ public class ControlSolution extends Control {
 		
 		// check if we should initiate a connection and do so if necessary
 		initiateConnection();
+		
 		// start the server's activity loop
 		// it will call doActivity every few seconds
 		start();
@@ -85,14 +96,37 @@ public class ControlSolution extends Control {
 	 */
 	@Override
 	public synchronized boolean process(Connection con,String msg){
-		/*
-		 * do additional work here
-		 * return true/false as appropriate
-		 */
-
 		
-		// RYANS DEBUG: RECEIVING MESSAGE FROM SERVER
-		log.debug("Message received: " + msg);
+		/* GSON Parser transforms JSON objects into instance of a class */
+		Gson parser = new Gson();
+		
+		/* Determine what kind of message we need to process */
+		JsonMessage messageType = parser.fromJson(msg, JsonMessage.class);
+		
+		// Process accordingly
+		switch(messageType.getCommand()){
+			
+			case "AUTHENTICATE" :
+				
+				Authenticate serverRequest = parser.fromJson(msg, Authenticate.class);
+				return readAuthenticate(serverRequest, con);
+				
+			case "AUTHENTICATION_FAIL" :
+				
+				AuthenticationFail failReply = parser.fromJson(msg, AuthenticationFail.class);
+				return readAuthenticationFail(failReply, con);
+				
+			case "SERVER_ANNOUNCE" :
+				
+				ServerAnnounce serverLoad = parser.fromJson(msg, ServerAnnounce.class);
+				return readServerAnnounce(serverLoad, con);
+			
+			// --- Will be INVALID_MESSAGE ---
+			default :
+				break;
+			
+		}
+		
 
 		return false;
 	}
@@ -100,27 +134,31 @@ public class ControlSolution extends Control {
 
 	/*
 	 * Called once every few seconds
+	 * Servers announce their current load to all other servers
 	 * Return true if server should shut down, false otherwise
 	 */
 	@Override
 	public boolean doActivity(){
-		/*
-		 * do additional work here
-		 * return true/false as appropriate
-		 */
-
-
-		// RYANS DEBUG: SENDING MESSAGE TO SERVER
-		log.debug("Inside Activity....");
 		
+		// JSON Object contains info about each servers load
+		JSONObject serverAnnounce = new JSONObject();
+		serverAnnounce.put("command", "SERVER_ANNOUNCE");
+		serverAnnounce.put("id", Settings.getId());
+		serverAnnounce.put("load", new Integer(getConnections().size()));	
+		serverAnnounce.put("hostname", Settings.getLocalHostname());
+		serverAnnounce.put("port", Settings.getLocalPort());
+		
+		// Sends JSON Object to all its connections
 		for(Connection c : getConnections()){
 			
-			c.getOutwriter().println("Hello");
-			c.getOutwriter().flush();
-			log.debug("Sent message");
+			// --- Need to adjust to only send to the servers ---
+			if(c.writeMsg(serverAnnounce.toString())){
+				log.info("Hostname: " + Settings.getLocalHostname() + " sending load");
+			}
+			else{
+				log.info("Error sending load. Hostname: " + Settings.getLocalHostname());
+			}
 		}
-		
-
 		
 		return false;
 	}
@@ -129,5 +167,47 @@ public class ControlSolution extends Control {
 	 * Other methods as needed
 	 */
 	
+	/* Return True if the server is to be shut down */
+	public boolean readServerAnnounce(ServerAnnounce msg, Connection con){
+		
+		// ---- DEBUG ----
+		log.debug("Command: " + msg.getCommand());
+		log.debug("ID: " + msg.getId());
+		log.debug("Load: " + msg.getLoad());
+		log.debug("Hostname: " + msg.getHostname());
+		log.debug("Port: " + msg.getPort());
+		
+		// --- Need to actually store the loads of each server ---
+		
+		return false;
+	}
 	
-}
+	/* Return True if the server is to be shut down */
+	public boolean readAuthenticate(Authenticate msg, Connection con){
+		
+		// Send AUTHENTICATION_FAIL
+		if(!msg.getSecret().equals(Settings.getSecret())){
+
+			JSONObject authenticationFail = new JSONObject();
+			authenticationFail.put("command", "AUTHENTICATION_FAIL");
+			authenticationFail.put("info", "the supplied secret is incorrect: "+msg.getSecret());
+			
+			con.writeMsg(authenticationFail.toString());
+			return true;				// Close connection
+		}
+		
+		return false;
+	}
+	
+	/* Logs the information and returns true to indicate the connection will be closed */
+	public boolean readAuthenticationFail(AuthenticationFail msg, Connection con){
+
+		// Display JSON Message
+		log.info("command : " + msg.getCommand());
+		log.info("info : " + msg.getInfo());
+		
+		setTerm(true);		// Terminate the Control
+		
+		return true;
+	}
+}	
