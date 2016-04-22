@@ -10,10 +10,7 @@ import org.json.simple.*;
 // Need to change this so it is importing the one in our library
 import com.google.gson.Gson;
 
-import activitystreamer.Authenticate;
-import activitystreamer.AuthenticationFail;
-import activitystreamer.JsonMessage;
-import activitystreamer.ServerAnnounce;
+import activitystreamer.messages.*;
 import activitystreamer.util.Settings;
 
 
@@ -96,37 +93,49 @@ public class ControlSolution extends Control {
 	 */
 	@Override
 	public synchronized boolean process(Connection con,String msg){
-		
+		MessageFactory msgFactory = new MessageFactory();
+
+		JsonMessage receivedMessage = msgFactory.buildMessage(msg);
+		return receivedMessage.respond();
+
+		if (replyMessage!= null) {
+
+			con.writeMsg(msgFactory.toData(replyMessage));
+
+		}
+
+		return false;
+
 		/* GSON Parser transforms JSON objects into instance of a class */
 		Gson parser = new Gson();
-		
+
 		/* Determine what kind of message we need to process */
 		JsonMessage messageType = parser.fromJson(msg, JsonMessage.class);
-		
+
 		// Process accordingly
 		switch(messageType.getCommand()){
-			
+
 			case "AUTHENTICATE" :
-				
+
 				Authenticate serverRequest = parser.fromJson(msg, Authenticate.class);
 				return readAuthenticate(serverRequest, con);
-				
+
 			case "AUTHENTICATION_FAIL" :
-				
+
 				AuthenticationFail failReply = parser.fromJson(msg, AuthenticationFail.class);
 				return readAuthenticationFail(failReply, con);
-				
+
 			case "SERVER_ANNOUNCE" :
-				
+
 				ServerAnnounce serverLoad = parser.fromJson(msg, ServerAnnounce.class);
 				return readServerAnnounce(serverLoad, con);
-			
+
 			// --- Will be INVALID_MESSAGE ---
 			default :
 				break;
-			
+
 		}
-		
+
 
 		return false;
 	}
