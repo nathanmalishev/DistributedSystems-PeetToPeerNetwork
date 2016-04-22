@@ -1,47 +1,50 @@
 package activitystreamer.messages;
 
 // Need to change this so it is importing the one in our library
-import com.google.gson.Gson;
+import activitystreamer.server.Control;
+import com.google.gson.*;
+import org.apache.logging.log4j.Logger;
+import java.lang.reflect.*;
 
 public class MessageFactory {
 
-    public JsonMessage buildMessage(String msg) {
+    public JsonMessage buildMessage(String msg, Logger log) {
 
         /* GSON Parser transforms JSON objects into instance of a class */
         Gson parser = new Gson();
-
 		/* Determine what kind of message we need to process */
         JsonMessage message = parser.fromJson(msg, JsonMessage.class);
+        try {
+            // Process accordingly
+            switch (message.getCommand()) {
 
-        // Process accordingly
-        switch(message.getCommand()){
+                case "AUTHENTICATE":
+                    Gson authGson = new GsonBuilder().registerTypeAdapter(Authenticate.class, new EnforcedDeserializer<JsonMessage>(log)).create();
+                    Authenticate authMessage = authGson.fromJson(msg, Authenticate.class);
+                    return authMessage;
 
-            case "AUTHENTICATE" :
+                case "AUTHENTICATION_FAIL":
+                    Gson authFailGson = new GsonBuilder().registerTypeAdapter(AuthenticationFail.class, new EnforcedDeserializer<JsonMessage>(log)).create();
+                    AuthenticationFail authFailMessage = authFailGson.fromJson(msg, AuthenticationFail.class);
+                    return authFailMessage;
 
-                Authenticate authMessage = parser.fromJson(msg, Authenticate.class);
-                return authMessage;
+                case "SERVER_ANNOUNCE":
+                    Gson serverAnnounceGson =  new GsonBuilder().registerTypeAdapter(ServerAnnounce.class, new EnforcedDeserializer<JsonMessage>(log)).create();
+                    ServerAnnounce serverAnnounceMessage = serverAnnounceGson.fromJson(msg, ServerAnnounce.class);
+                    return serverAnnounceMessage;
 
-            case "AUTHENTICATION_FAIL" :
+                case "INVALID_MESSAGE":
+                    InvalidMessage invalidMessage = parser.fromJson(msg, InvalidMessage.class);
+                    return invalidMessage;
 
-                AuthenticationFail authFailMessage = parser.fromJson(msg, AuthenticationFail.class);
-                return authFailMessage;
+                default:
+                    return null;
 
-            case "SERVER_ANNOUNCE" :
-
-                ServerAnnounce serverAnnounceMessage = parser.fromJson(msg, ServerAnnounce.class);
-                return serverAnnounceMessage;
-
-            case "INVALID_MESSAGE" :
-                InvalidMessage invalidMessage = parser.fromJson(msg, InvalidMessage.class);
-                return invalidMessage;
-
-            // --- Will be INVALID_MESSAGE ---
-            default :
-                break;
-
+            }
+        } catch (JsonParseException e ) {
+            log.error(e);
+            return null;
         }
-
-        return null;
 
     }
 

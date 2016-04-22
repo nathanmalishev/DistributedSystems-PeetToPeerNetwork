@@ -6,7 +6,7 @@ public class JsonMessage {
 
 	public static final String invalidMessageTypeError = "the message type was not recognised";
 
-	private String command;
+	protected String command;
 	
 	public String getCommand() {
 		return command;

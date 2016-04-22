@@ -5,6 +5,7 @@ package activitystreamer.messages;
 import com.google.gson.*;
 import java.lang.reflect.*;
 import org.apache.logging.log4j.Logger;
+import java.util.*;
 
 class EnforcedDeserializer<JsonMessage> implements JsonDeserializer<JsonMessage>{
 
@@ -15,14 +16,20 @@ class EnforcedDeserializer<JsonMessage> implements JsonDeserializer<JsonMessage>
         }
 
         public JsonMessage deserialize(JsonElement msg, Type type, JsonDeserializationContext jdc) throws JsonParseException{
-
             Gson gson = new Gson();
             JsonMessage newMsg = gson.fromJson(msg, type);
 
             Field[] attributes = newMsg.getClass().getDeclaredFields();
 
-            for (Field f : attributes) {
+            ArrayList<String> attributeNames = new ArrayList<String>();
 
+            for (Field f : attributes) {
+                attributeNames.add(f.getName());
+            }
+
+            attributeNames.add("command");
+
+            for (Field f : attributes) {
                 try {
                     f.setAccessible(true);
                     if (f.get(newMsg) == null) {
@@ -35,11 +42,13 @@ class EnforcedDeserializer<JsonMessage> implements JsonDeserializer<JsonMessage>
                 }
             }
 
+            for ( Map.Entry<String, JsonElement> entry : msg.getAsJsonObject().entrySet() ) {
+                if (!attributeNames.contains(entry.getKey())) {
+                    throw new JsonParseException("Extra field");
+                }
 
-
-
+            }
             return newMsg;
-
         }
 
 }

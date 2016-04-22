@@ -89,10 +89,12 @@ public class ControlSolution extends Control {
 	 */
 	@Override
 	public synchronized boolean process(Connection con,String msg){
+
 		MessageFactory msgFactory = new MessageFactory();
 		RulesEngine rulesEngine = new RulesEngine(log);
 
-		JsonMessage receivedMessage = msgFactory.buildMessage(msg);
+		JsonMessage receivedMessage = msgFactory.buildMessage(msg, log);
+
 		return rulesEngine.triggerResponse(receivedMessage, con);
 
 	}

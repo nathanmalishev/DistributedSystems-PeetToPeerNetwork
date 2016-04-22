@@ -15,6 +15,11 @@ public class RulesEngine {
 
     public boolean triggerResponse(JsonMessage msg, Connection con) {
 
+        // If message factory returned null, means message was invalid
+        if (msg == null) {
+            return triggerInvalidMessage(con);
+        }
+
         // Process accordingly
         switch(msg.getCommand()){
 
@@ -30,15 +35,11 @@ public class RulesEngine {
 
                 return triggerServerAnnounceRead((ServerAnnounce)msg, con);
 
-            // --- Will be INVALID_MESSAGE ---
-
             case "INVALID_MESSAGE" :
                 return triggerInvalidMessageRead((InvalidMessage)msg, con);
 
             default :
-
                 return triggerInvalidMessage(con);
-
         }
 
 
@@ -97,6 +98,13 @@ public class RulesEngine {
     }
 
     public boolean triggerInvalidMessage(Connection con) {
+
+        String info = InvalidMessage.invalidMessageTypeError;
+
+        log.info(info);
+        JsonMessage response = new InvalidMessage(info);
+        con.writeMsg(response.toData());
+
         return false;
     }
 

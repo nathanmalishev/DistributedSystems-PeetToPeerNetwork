@@ -6,7 +6,6 @@ public class ServerAnnounce extends JsonMessage {
 	private int load;
 	private String hostname;
 	private String port;
-	private String command = "SERVER_ANNOUNCE";
 
 	public String getId() {
 		return id;
@@ -27,6 +26,7 @@ public class ServerAnnounce extends JsonMessage {
 		this.load = load;
 		this.hostname = hostname;
 		this.port = port;
+		this.command = "SERVER_ANNOUNCE";
 
 	}
 	
