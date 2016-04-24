@@ -4,13 +4,13 @@ import activitystreamer.util.Settings;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 
-import java.io.BufferedOutputStream;
-import java.io.DataOutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
+import javax.xml.soap.Text;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.text.ParseException;
 
 public class ClientSolution extends Thread {
 	private static final Logger log = LogManager.getLogger();
@@ -21,6 +21,9 @@ public class ClientSolution extends Thread {
 	 * additional variables
 	 */
     private Socket connection;
+	private BufferedReader inreader;
+	private DataInputStream in;
+	private JSONParser parser = new JSONParser();
 	
 	// this is a singleton object
 	public static ClientSolution getInstance(){
@@ -34,10 +37,17 @@ public class ClientSolution extends Thread {
 		/*
 		 * some additional initialization
 		 */
-		try{
+		try {
 			connection = new Socket(Settings.getLocalHostname(), Settings.getRemotePort());
+			/* for reading messages */
+			in = new DataInputStream(connection.getInputStream());
+			inreader = new BufferedReader(new InputStreamReader(in));
 
-			
+			/* For writting messages */
+			DataOutputStream out = new DataOutputStream(connection.
+					getOutputStream());
+			outwriter = new PrintWriter(out, true);
+
 			System.out.print("connection started to server ");
 		}catch(Exception e){
 			System.out.print(e);
@@ -53,12 +63,12 @@ public class ClientSolution extends Thread {
 	// called by the gui when the user clicks "send"
 	public void sendActivityObject(JSONObject activityObj){
 		try{
-			DataOutputStream out = new DataOutputStream(connection.
-					getOutputStream());
-			outwriter = new PrintWriter(out,true);
-			outwriter.println(textFrame.getInputText());
+			//FIXME: Server will not recieve messages from gui, unless
+			//new lines etc have been removed. Though this is in the lectures
+			//implementation of reading in the data.
+			outwriter.println(textFrame.getInputText().replaceAll("(\\r|\\n|\\t)", ""));
 			outwriter.flush();
-			System.out.print("Message successfully sent");
+			log.debug("Message successfully sent: " + textFrame.getInputText().replaceAll("(\\r|\\n|\\t)", ""));
 
 		}catch(Exception e){
 			System.out.print(e);
@@ -77,7 +87,16 @@ public class ClientSolution extends Thread {
 	// the client's run method, to receive messages
 	@Override
 	public void run(){
-		
+
+		try{
+			String msg = (inreader.readLine());
+			textFrame.setOutputText( (JSONObject) parser.parse(msg) );
+		}catch(Exception e){
+			log.error("connection "+Settings.socketAddress(connection)+ "" +
+					"closed with exception: "+e );
+
+		}
+
 		
 		
 	}
