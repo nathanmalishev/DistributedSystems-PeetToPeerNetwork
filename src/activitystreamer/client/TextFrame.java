@@ -33,7 +33,11 @@ public class TextFrame extends JFrame implements ActionListener {
 	private JButton sendButton;
 	private JButton disconnectButton;
 	private JSONParser parser = new JSONParser();
-	
+
+	public String getInputText() {
+		return inputText.getText();
+	}
+
 	public TextFrame(){
 		setTitle("ActivityStreamer Text I/O");
 		JPanel mainPanel = new JPanel();

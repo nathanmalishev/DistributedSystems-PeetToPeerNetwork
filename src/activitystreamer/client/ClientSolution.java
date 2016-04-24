@@ -56,7 +56,7 @@ public class ClientSolution extends Thread {
 			DataOutputStream out = new DataOutputStream(connection.
 					getOutputStream());
 			outwriter = new PrintWriter(out,true);
-			outwriter.println("This is the client message");
+			outwriter.println(textFrame.getInputText());
 			outwriter.flush();
 			System.out.print("Message successfully sent");
 
