@@ -1,9 +1,8 @@
-package activitystreamer.messages;
+package activitystreamer.server;
 
-import activitystreamer.server.Connection;
-import activitystreamer.server.Control;
-import activitystreamer.server.ControlSolution;
+import activitystreamer.messages.*;
 import activitystreamer.util.Settings;
+import java.util.*;
 
 import org.apache.logging.log4j.Logger;
 
@@ -37,7 +36,12 @@ public class RulesEngine {
 
                 return triggerServerAnnounceRead((ServerAnnounce)msg, con);
 
+            case "LOGIN" :
+
+                return triggerLoginRead((Login)msg, con);
+
             case "INVALID_MESSAGE" :
+
                 return triggerInvalidMessageRead((InvalidMessage)msg, con);
 
             default :
@@ -95,7 +99,7 @@ public class RulesEngine {
 
         log.info("command : " + msg.getCommand());
         log.info("info : " + msg.getInfo());
-        
+
         // Remove from Authorized list, add to Unauthorized list
         ControlSolution.getInstance().getAuthServers().remove(con);
         ControlSolution.getInstance().getUnauthConnections().add(con);
@@ -103,6 +107,40 @@ public class RulesEngine {
         return true;
 
     }
+
+    public boolean triggerLoginRead(Login msg, Connection con) {
+
+        if (isClient(msg) && isCorrectClientSecret(msg)) {
+
+            if (!ControlSolution.getInstance().getAuthClients().contains(con)) {
+                ControlSolution.getInstance().getAuthClients().add(con);
+            }
+            ControlSolution.getInstance().getUnauthConnections().remove(con);
+            return false;
+        }
+
+        return triggerLoginFailed(msg, con);
+    }
+
+    public boolean triggerLoginFailed(Login msg, Connection con) {
+
+        String info;
+
+        if (!isClient(msg)) {
+            info = LoginFailed.noMatchingUsernameError;
+        } else if (!isCorrectClientSecret(msg)) {
+            info = LoginFailed.incorrectSecretError;
+        } else {
+            info = LoginFailed.genericLoginFailedError;
+        }
+
+        log.info(info);
+        JsonMessage response = new LoginFailed(info);
+        con.writeMsg(response.toData());
+        return true;
+
+    }
+
 
     public boolean triggerInvalidMessageRead(InvalidMessage msg, Connection con) {
         return true;
@@ -117,8 +155,39 @@ public class RulesEngine {
         return true;
     }
 
+
+    /* --- Helper Methods --- */
+
     private boolean secretMatch(String secret) {
         return secret.equals(Settings.getSecret());
+    }
+
+    // Checks whether the username exists in the db
+    private boolean isClient(Login msg) {
+
+        HashMap<String, String> clientDB = ControlSolution.getInstance().getClientDB();
+
+        if (msg.isAnonymous()) {
+            return true;
+        } else if (clientDB.containsKey(msg.getUsername())){
+            return true;
+        }
+        return false;
+    }
+
+    private boolean isCorrectClientSecret(Login msg) {
+
+        HashMap<String, String> clientDB = ControlSolution.getInstance().getClientDB();
+        if (msg.isAnonymous()) {
+            return true;
+        } else if (clientDB.containsKey(msg.getUsername())){
+
+            if (clientDB.get(msg.getUsername()).equals(msg.getSecret())) {
+                return true;
+            }
+        }
+        return false;
+
     }
 
 }

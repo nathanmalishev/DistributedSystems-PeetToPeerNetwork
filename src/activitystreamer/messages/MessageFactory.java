@@ -33,6 +33,11 @@ public class MessageFactory {
                     ServerAnnounce serverAnnounceMessage = serverAnnounceGson.fromJson(msg, ServerAnnounce.class);
                     return serverAnnounceMessage;
 
+                case "LOGIN":
+                    Gson loginGson =  new GsonBuilder().registerTypeAdapter(Login.class, new EnforcedDeserializer<JsonMessage>(log)).create();
+                    Login loginMessage = loginGson.fromJson(msg, Login.class);
+                    return loginMessage;
+
                 case "INVALID_MESSAGE":
                     InvalidMessage invalidMessage = parser.fromJson(msg, InvalidMessage.class);
                     return invalidMessage;

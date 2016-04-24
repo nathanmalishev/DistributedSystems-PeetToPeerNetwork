@@ -3,6 +3,7 @@ package activitystreamer.server;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.*;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -13,15 +14,15 @@ import activitystreamer.messages.*;
 
 public class Control extends Thread {
 	private static final Logger log = LogManager.getLogger();
-	private static ArrayList<Connection> connections; // A list of all connections
-	private static ArrayList<Connection> authServers; // A list of authorized servers
-	private static ArrayList<Connection> authClients; // A list of logged in clients
-	private static ArrayList<Connection> unauthConnections; // A list of unauthorized connections
+	private ArrayList<Connection> connections; // A list of all connections
+	private ArrayList<Connection> authServers; // A list of authorized servers
+	private ArrayList<Connection> authClients; // A list of logged in clients
+	private ArrayList<Connection> unauthConnections; // A list of unauthorized connections
 															// (may be servers that havn't authorized or clients that havn't logged in)
+	private HashMap<String, String> clientDB;
 
-
-	private static boolean term=false;
-	private static Listener listener;
+	private boolean term=false;
+	private Listener listener;
 	
 	protected static Control control = null;
 
@@ -41,6 +42,8 @@ public class Control extends Thread {
 		return authClients;
 	}
 
+	public final HashMap<String, String> getClientDB() { return clientDB; }
+
 	public static Control getInstance() {
 		if(control==null){
 			control=new Control();
@@ -54,6 +57,7 @@ public class Control extends Thread {
 		unauthConnections = new ArrayList<Connection>();
 		authClients = new ArrayList<Connection>();
 		connections = new ArrayList<Connection>();
+		clientDB = new HashMap<String, String>();
 		// start a listener
 		try {
 			listener = new Listener();
