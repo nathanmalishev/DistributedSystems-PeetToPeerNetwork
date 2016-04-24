@@ -9,11 +9,8 @@ import org.apache.logging.log4j.Logger;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
-import javax.xml.soap.Text;
 import java.io.*;
-import java.net.ServerSocket;
 import java.net.Socket;
-import java.text.ParseException;
 
 
 
@@ -21,17 +18,13 @@ public class ClientSolution extends Thread {
 	private static final Logger log = LogManager.getLogger();
 	private static ClientSolution clientSolution;
 	private TextFrame textFrame;
-	private PrintWriter outwriter;
 	/*
 	 * additional variables
 	 */
 	public Connection myConnection;
-    private Socket connection;
-	private BufferedReader inreader;
-	private DataInputStream in;
 	private JSONParser parser = new JSONParser();
 	private RulesEngine rulesEngine;
-	
+	private Socket s;
 	// this is a singleton object
 	public static ClientSolution getInstance(){
 		if(clientSolution==null){
@@ -45,17 +38,8 @@ public class ClientSolution extends Thread {
 		 * some additional initialization
 		 */
 		try {
-			Socket s = new Socket(Settings.getLocalHostname(), Settings.getRemotePort());
+			s = new Socket(Settings.getLocalHostname(), Settings.getRemotePort());
 			myConnection =new Connection(s);
-//			connection = new Socket(Settings.getLocalHostname(), Settings.getRemotePort());
-//			/* for reading messages */
-//			in = new DataInputStream(connection.getInputStream());
-//			inreader = new BufferedReader(new InputStreamReader(in));
-//
-//			/* For writting messages */
-//			DataOutputStream out = new DataOutputStream(connection.
-//					getOutputStream());
-//			outwriter = new PrintWriter(out, true);
 
 			System.out.print("connection started to server ");
 		}catch(Exception e){
@@ -101,13 +85,10 @@ public class ClientSolution extends Thread {
 			myConnection.run();
 
 		}catch(Exception e){
-			log.error("connection "+Settings.socketAddress(connection)+ "" +
+			log.error("connection "+Settings.socketAddress(s)+ "" +
 					"closed with exception: "+e );
 
 		}
-
-		
-		
 	}
 
 	/*
