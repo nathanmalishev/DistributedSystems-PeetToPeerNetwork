@@ -1,5 +1,8 @@
 package activitystreamer.client;
 
+import activitystreamer.client.RulesEngine;
+import activitystreamer.messages.JsonMessage;
+import activitystreamer.messages.MessageFactory;
 import activitystreamer.util.Settings;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -12,6 +15,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.ParseException;
 
+
+
 public class ClientSolution extends Thread {
 	private static final Logger log = LogManager.getLogger();
 	private static ClientSolution clientSolution;
@@ -20,10 +25,12 @@ public class ClientSolution extends Thread {
 	/*
 	 * additional variables
 	 */
+	public Connection myConnection;
     private Socket connection;
 	private BufferedReader inreader;
 	private DataInputStream in;
 	private JSONParser parser = new JSONParser();
+	private RulesEngine rulesEngine;
 	
 	// this is a singleton object
 	public static ClientSolution getInstance(){
@@ -38,15 +45,17 @@ public class ClientSolution extends Thread {
 		 * some additional initialization
 		 */
 		try {
-			connection = new Socket(Settings.getLocalHostname(), Settings.getRemotePort());
-			/* for reading messages */
-			in = new DataInputStream(connection.getInputStream());
-			inreader = new BufferedReader(new InputStreamReader(in));
-
-			/* For writting messages */
-			DataOutputStream out = new DataOutputStream(connection.
-					getOutputStream());
-			outwriter = new PrintWriter(out, true);
+			Socket s = new Socket(Settings.getLocalHostname(), Settings.getRemotePort());
+			myConnection =new Connection(s);
+//			connection = new Socket(Settings.getLocalHostname(), Settings.getRemotePort());
+//			/* for reading messages */
+//			in = new DataInputStream(connection.getInputStream());
+//			inreader = new BufferedReader(new InputStreamReader(in));
+//
+//			/* For writting messages */
+//			DataOutputStream out = new DataOutputStream(connection.
+//					getOutputStream());
+//			outwriter = new PrintWriter(out, true);
 
 			System.out.print("connection started to server ");
 		}catch(Exception e){
@@ -66,8 +75,7 @@ public class ClientSolution extends Thread {
 			//FIXME: Server will not recieve messages from gui, unless
 			//new lines etc have been removed. Though this is in the lectures
 			//implementation of reading in the data.
-			outwriter.println(textFrame.getInputText().replaceAll("(\\r|\\n|\\t)", ""));
-			outwriter.flush();
+			myConnection.writeMsg(textFrame.getInputText().replaceAll("(\\r|\\n|\\t)", ""));
 			log.debug("Message successfully sent: " + textFrame.getInputText().replaceAll("(\\r|\\n|\\t)", ""));
 
 		}catch(Exception e){
@@ -81,6 +89,7 @@ public class ClientSolution extends Thread {
 		/*
 		 * other things to do
 		 */
+		myConnection.closeCon();
 	}
 	
 
@@ -89,8 +98,8 @@ public class ClientSolution extends Thread {
 	public void run(){
 
 		try{
-			String msg = (inreader.readLine());
-			textFrame.setOutputText( (JSONObject) parser.parse(msg) );
+			myConnection.run();
+
 		}catch(Exception e){
 			log.error("connection "+Settings.socketAddress(connection)+ "" +
 					"closed with exception: "+e );
@@ -104,5 +113,21 @@ public class ClientSolution extends Thread {
 	/*
 	 * additional methods
 	 */
-	
+
+	public boolean process(Connection con, String msg){
+
+		try{
+			textFrame.setOutputText( (JSONObject) parser.parse(msg) );
+		}catch(Exception e){
+
+		}
+
+		MessageFactory msgFactory = new MessageFactory();
+		rulesEngine = new RulesEngine(log);
+
+		JsonMessage receivedMessage = msgFactory.buildMessage(msg, log);
+		return rulesEngine.triggerResponse(receivedMessage, con);
+
+	}
+
 }
