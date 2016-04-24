@@ -56,9 +56,6 @@ public class ClientSolution extends Thread {
 	// called by the gui when the user clicks "send"
 	public void sendActivityObject(JSONObject activityObj){
 		try{
-			//FIXME: Server will not recieve messages from gui, unless
-			//new lines etc have been removed. Though this is in the lectures
-			//implementation of reading in the data.
 			myConnection.writeMsg(textFrame.getInputText().replaceAll("(\\r|\\n|\\t)", ""));
 			log.debug("Message successfully sent: " + textFrame.getInputText().replaceAll("(\\r|\\n|\\t)", ""));
 
