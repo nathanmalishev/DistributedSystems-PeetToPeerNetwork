@@ -94,7 +94,6 @@ public class ControlSolution extends Control {
 		RulesEngine rulesEngine = new RulesEngine(log);
 
 		JsonMessage receivedMessage = msgFactory.buildMessage(msg, log);
-		
 		return rulesEngine.triggerResponse(receivedMessage, con);
 
 	}
@@ -107,19 +106,13 @@ public class ControlSolution extends Control {
 	 */
 	@Override
 	public boolean doActivity(){
-		
-		// JSON Object contains info about each servers load
-		JSONObject serverAnnounce = new JSONObject();
-		serverAnnounce.put("command", "SERVER_ANNOUNCE");
-		serverAnnounce.put("id", Settings.getId());
-		serverAnnounce.put("load", new Integer(getConnections().size()));	
-		serverAnnounce.put("hostname", Settings.getLocalHostname());
-		serverAnnounce.put("port", Settings.getLocalPort());
-		
+
+		ServerAnnounce serverAnnounce = new ServerAnnounce(Settings.getId(), getConnections().size(), Settings.getLocalHostname(), String.valueOf(Settings.getLocalPort()));
+
 		// Sends JSON Object to Authorized Servers only
 		for(Connection c : getAuthServers()){
 
-			if(c.writeMsg(serverAnnounce.toString())){
+			if(c.writeMsg(serverAnnounce.toData())){
 				log.info("Hostname: " + Settings.getLocalHostname() + " sending load");
 			}
 			else{

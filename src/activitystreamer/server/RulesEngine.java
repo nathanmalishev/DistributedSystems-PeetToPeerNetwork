@@ -15,7 +15,6 @@ public class RulesEngine {
     }
 
     public boolean triggerResponse(JsonMessage msg, Connection con) {
-
         // If message factory returned null, means message was invalid
         if (msg == null) {
             return triggerInvalidMessage(con, InvalidMessage.invalidMessageTypeError);
@@ -83,6 +82,7 @@ public class RulesEngine {
             return triggerInvalidMessage(con, InvalidMessage.alreadyAuthenticatedError);
 
         } else {
+
             // Add to authorized list
             ControlSolution.getInstance().getAuthServers().add(con);
 
@@ -140,7 +140,6 @@ public class RulesEngine {
         return true;
 
     }
-
 
     public boolean triggerInvalidMessageRead(InvalidMessage msg, Connection con) {
         return true;
