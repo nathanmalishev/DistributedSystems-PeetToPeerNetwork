@@ -43,8 +43,6 @@ public class RulesEngine {
             default :
                 return triggerInvalidMessage(con, InvalidMessage.invalidMessageTypeError);
         }
-
-
     }
 
 
@@ -77,18 +75,16 @@ public class RulesEngine {
         } else if (ControlSolution.getInstance().getAuthServers().contains(con)) {
 
             // If this connection has already authorized, send invalid message
-            triggerInvalidMessage(con, InvalidMessage.alreadyAuthenticatedError);
             ControlSolution.getInstance().getUnauthConnections().add(con);
+            return triggerInvalidMessage(con, InvalidMessage.alreadyAuthenticatedError);
 
-            return true;
+        } else {
+            // Add to authorized list
+            ControlSolution.getInstance().getAuthServers().add(con);
 
+            // Otherwise, do not close the connection
+            return false;
         }
-        
-        // Add to authorized list
-        ControlSolution.getInstance().getAuthServers().add(con);
-        
-        // Otherwise, do not close the connection
-        return false;
     }
 
 
