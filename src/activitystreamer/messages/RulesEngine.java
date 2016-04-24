@@ -19,7 +19,7 @@ public class RulesEngine {
 
         // If message factory returned null, means message was invalid
         if (msg == null) {
-            return triggerInvalidMessage(con);
+            return triggerInvalidMessage(con, InvalidMessage.invalidMessageTypeError);
         }
 
         // Process accordingly
@@ -41,7 +41,7 @@ public class RulesEngine {
                 return triggerInvalidMessageRead((InvalidMessage)msg, con);
 
             default :
-                return triggerInvalidMessage(con);
+                return triggerInvalidMessage(con, InvalidMessage.invalidMessageTypeError);
         }
 
 
@@ -64,19 +64,24 @@ public class RulesEngine {
     public boolean triggerAuthenticateAttempt(Authenticate msg, Connection con) {
 
         // Check if secret is valid
-        if(!msg.getSecret().equals(Settings.getSecret())){
+        if(!secretMatch(msg.getSecret())){
 
             // If secret is invalid, send authentication fail message
 
             String info = AuthenticationFail.invalidSecretTypeError + msg.getSecret();
             JsonMessage response = new AuthenticationFail(info);
             con.writeMsg(response.toData());
-            
-            // Add to unauthorized list
-            ControlSolution.getInstance().getUnauthServers().add(con);
-            
+
             // Close the connection
             return true;
+        } else if (ControlSolution.getInstance().getAuthServers().contains(con)) {
+
+            // If this connection has already authorized, send invalid message
+            triggerInvalidMessage(con, InvalidMessage.alreadyAuthenticatedError);
+            ControlSolution.getInstance().getUnauthConnections().add(con);
+
+            return true;
+
         }
         
         // Add to authorized list
@@ -97,27 +102,27 @@ public class RulesEngine {
         
         // Remove from Authorized list, add to Unauthorized list
         ControlSolution.getInstance().getAuthServers().remove(con);
-        ControlSolution.getInstance().getUnauthServers().add(con);
-
-        ControlSolution.getInstance().setTerm(true);
+        ControlSolution.getInstance().getUnauthConnections().add(con);
 
         return true;
 
     }
 
     public boolean triggerInvalidMessageRead(InvalidMessage msg, Connection con) {
-        return false;
+        return true;
     }
 
-    public boolean triggerInvalidMessage(Connection con) {
-
-        String info = InvalidMessage.invalidMessageTypeError;
+    public boolean triggerInvalidMessage(Connection con, String info) {
 
         log.info(info);
         JsonMessage response = new InvalidMessage(info);
         con.writeMsg(response.toData());
 
-        return false;
+        return true;
+    }
+
+    private boolean secretMatch(String secret) {
+        return secret.equals(Settings.getSecret());
     }
 
 }

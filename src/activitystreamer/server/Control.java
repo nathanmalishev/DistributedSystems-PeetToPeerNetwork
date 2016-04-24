@@ -13,15 +13,34 @@ import activitystreamer.messages.*;
 
 public class Control extends Thread {
 	private static final Logger log = LogManager.getLogger();
-	private static ArrayList<Connection> connections;
-	private static ArrayList<Connection> authServers;
-	private static ArrayList<Connection> unauthServers;
+	private static ArrayList<Connection> connections; // A list of all connections
+	private static ArrayList<Connection> authServers; // A list of authorized servers
+	private static ArrayList<Connection> authClients; // A list of logged in clients
+	private static ArrayList<Connection> unauthConnections; // A list of unauthorized connections
+															// (may be servers that havn't authorized or clients that havn't logged in)
+
 
 	private static boolean term=false;
 	private static Listener listener;
 	
 	protected static Control control = null;
-	
+
+	public final ArrayList<Connection> getConnections() {
+		return connections;
+	}
+
+	public final ArrayList<Connection> getAuthServers() {
+		return authServers;
+	}
+
+	public final ArrayList<Connection> getUnauthConnections() {
+		return unauthConnections;
+	}
+
+	public final ArrayList<Connection> getAuthClients() {
+		return authClients;
+	}
+
 	public static Control getInstance() {
 		if(control==null){
 			control=new Control();
@@ -30,10 +49,11 @@ public class Control extends Thread {
 	}
 	
 	public Control() {
-		// initialize the connections array
-		connections = new ArrayList<Connection>();
+		// initialize the connections arrays
 		authServers = new ArrayList<Connection>();
-		unauthServers = new ArrayList<Connection>();
+		unauthConnections = new ArrayList<Connection>();
+		authClients = new ArrayList<Connection>();
+		connections = new ArrayList<Connection>();
 		// start a listener
 		try {
 			listener = new Listener();
@@ -83,7 +103,12 @@ public class Control extends Thread {
 	 * The connection has been closed by the other party.
 	 */
 	public synchronized void connectionClosed(Connection con){
-		if(!term) connections.remove(con);
+		if(!term) {
+			connections.remove(con);
+			if (authClients.contains(con)) authClients.remove(con);
+			if (authServers.contains(con)) authServers.remove(con);
+			if (unauthConnections.contains(con)) unauthConnections.remove(con);
+		}
 	}
 	
 	/*
@@ -93,6 +118,7 @@ public class Control extends Thread {
 		log.debug("incomming connection: "+Settings.socketAddress(s));
 		Connection c = new Connection(s);
 		connections.add(c);
+		unauthConnections.add(c);
 		return c;
 		
 	}
@@ -104,6 +130,7 @@ public class Control extends Thread {
 		log.debug("outgoing connection: "+Settings.socketAddress(s));
 		Connection c = new Connection(s);
 		connections.add(c);
+		unauthConnections.add(c);
 		return c;
 		
 	}
@@ -141,17 +168,6 @@ public class Control extends Thread {
 	public final void setTerm(boolean t){
 		term=t;
 	}
-	
-	public final ArrayList<Connection> getConnections() {
-		return connections;
-	}
-	
-	public final ArrayList<Connection> getAuthServers() {
-		return authServers;
-	}
-	
-	public final ArrayList<Connection> getUnauthServers() {
-		return unauthServers;
-	}
+
 	
 }

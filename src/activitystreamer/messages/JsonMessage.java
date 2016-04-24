@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 public class JsonMessage {
 
 	public static final String invalidMessageTypeError = "the message type was not recognised";
+	public static final String alreadyAuthenticatedError = "this server has already authenticated";
 
 	protected String command;
 	
