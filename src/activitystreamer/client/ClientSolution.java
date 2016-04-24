@@ -36,6 +36,8 @@ public class ClientSolution extends Thread {
 		 */
 		try{
 			connection = new Socket(Settings.getLocalHostname(), Settings.getRemotePort());
+
+			
 			System.out.print("connection started to server ");
 		}catch(Exception e){
 			System.out.print(e);
@@ -75,6 +77,8 @@ public class ClientSolution extends Thread {
 	// the client's run method, to receive messages
 	@Override
 	public void run(){
+		
+		
 		
 	}
 

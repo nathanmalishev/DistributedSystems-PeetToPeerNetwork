@@ -9,10 +9,14 @@ import org.apache.logging.log4j.Logger;
 import org.json.simple.JSONObject;
 
 import activitystreamer.util.Settings;
+import activitystreamer.messages.*;
 
 public class Control extends Thread {
 	private static final Logger log = LogManager.getLogger();
 	private static ArrayList<Connection> connections;
+	private static ArrayList<Connection> authServers;
+	private static ArrayList<Connection> unauthServers;
+
 	private static boolean term=false;
 	private static Listener listener;
 	
@@ -28,6 +32,8 @@ public class Control extends Thread {
 	public Control() {
 		// initialize the connections array
 		connections = new ArrayList<Connection>();
+		authServers = new ArrayList<Connection>();
+		unauthServers = new ArrayList<Connection>();
 		// start a listener
 		try {
 			listener = new Listener();
@@ -51,11 +57,11 @@ public class Control extends Thread {
 				Connection c = outgoingConnection(new Socket(Settings.getRemoteHostname(),Settings.getRemotePort()));
 				
 				// Send JSON Authenticate message
-				JSONObject authenticate = new JSONObject();
-				authenticate.put("command", "AUTHENTICATE");
-				authenticate.put("secret", Settings.getSecret());
+				Authenticate authenticateMsg = new Authenticate(Settings.getSecret());
+				c.writeMsg(authenticateMsg.toData());
 				
-				c.writeMsg(authenticate.toString());
+				// Add to authorized connections
+				authServers.add(c);
 				
 			} catch (IOException e) {
 				log.error("failed to make connection to "+Settings.getRemoteHostname()+":"+Settings.getRemotePort()+" :"+e);
@@ -69,8 +75,6 @@ public class Control extends Thread {
 	 * Return true if the connection should close.
 	 */
 	public synchronized boolean process(Connection con,String msg){
-		
-		
 		
 		return true;
 	}
@@ -127,6 +131,7 @@ public class Control extends Thread {
 			connection.closeCon();
 		}
 		listener.setTerm(true);
+		
 	}
 	
 	public boolean doActivity(){
@@ -140,4 +145,13 @@ public class Control extends Thread {
 	public final ArrayList<Connection> getConnections() {
 		return connections;
 	}
+	
+	public final ArrayList<Connection> getAuthServers() {
+		return authServers;
+	}
+	
+	public final ArrayList<Connection> getUnauthServers() {
+		return unauthServers;
+	}
+	
 }
