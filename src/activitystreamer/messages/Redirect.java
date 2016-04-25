@@ -11,4 +11,13 @@ public class Redirect extends JsonMessage{
 		this.hostname = hostname;
 		this.port = port;
 	}
+
+	public String getHostname() {
+		return hostname;
+	}
+
+	public String getPort() {
+		return port;
+	}
+	
 }

@@ -30,6 +30,10 @@ public class RulesEngine {
             case "LOGIN_FAILED" :
 
                 return triggerLoginFailedRead((LoginFailed)msg, con);
+                
+            case "LOGIN_SUCCESS" :
+            	
+            	return triggerLoginSuccess((LoginSuccess)msg, con);
 
             case "INVALID_MESSAGE" :
 
@@ -44,10 +48,19 @@ public class RulesEngine {
         }
     }
     
+    /* Always ensures connection is closed */
     public boolean triggerRedirectMessage(Redirect msg, Connection con){
     	
     	// Simply close the connection
+    	log.info("Being Redirected to, Hostname: " + msg.getHostname() + " Port: " + msg.getPort());
     	return true;
+    }
+    
+    /* Always ensures connection is held open */
+    public boolean triggerLoginSuccess(LoginSuccess msg, Connection con){
+    	
+    	log.info(msg.getInfo());
+    	return false;
     }
 
 
