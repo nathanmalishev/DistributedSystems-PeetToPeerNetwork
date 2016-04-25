@@ -33,18 +33,27 @@ public class RulesEngine {
 
             case "SERVER_ANNOUNCE" :
 
-                return triggerServerAnnounceRead((ServerAnnounce)msg, con);
+                return triggerServerAnnounceRead((ServerAnnounce) msg, con);
 
             case "LOGIN" :
 
-                return triggerLoginRead((Login)msg, con);
+                return triggerLoginRead((Login) msg, con);
 
             case "INVALID_MESSAGE" :
 
-                return triggerInvalidMessageRead((InvalidMessage)msg, con);
+                return triggerInvalidMessageRead((InvalidMessage) msg, con);
 
             case "REGISTER" :
-                return triggerRegisterRead((Register)msg, con);
+                return triggerRegisterRead((Register) msg, con);
+
+            case "LOCK_REQUEST" :
+                return triggerLockRequestRead((LockRequest) msg, con);
+
+            case "LOCK_DENIED" :
+                return triggerLockDeniedRead((LockDenied)msg, con);
+
+            case "LOCK_ALLOWED" :
+                return triggerLockAllowedRead((LockAllowed)msg, con);
 
             default :
                 return triggerInvalidMessage(con, InvalidMessage.invalidMessageTypeError);
@@ -182,13 +191,98 @@ public class RulesEngine {
             return false;
         }
 
-//        // Setup Set of servers we are waiting to reply.
-//        server.addLockRequest(con, new HashSet<>(knownServers));
-//
-//        // Send lock request to all servers.
-//        for (Connection otherServer : knownServers) {
-//            otherServer.writeMsg(new LockRequest(msg.getUsername(), msg.getSecret()).toData());
-//        }
+        // Setup Set of servers we are waiting to reply.
+        server.addLockRequest(msg.getUsername()+msg.getSecret(), new HashSet<>(knownServers));
+        server.addConnectionForLogin(msg.getUsername() + msg.getSecret(), con);
+
+        // Send lock request to all servers.
+        for (Connection otherServer : knownServers) {
+            otherServer.writeMsg(new LockRequest(msg.getUsername(), msg.getSecret()).toData());
+        }
+
+        return false;
+    }
+
+    public boolean triggerLockRequestRead(LockRequest msg, Connection con) {
+        ControlSolution server = ControlSolution.getInstance();
+
+        // Get known servers.
+        ArrayList<Connection> knownServers = server.getAuthServers();
+        // Check already registered.
+        if (server.userKnownDifferentSecret(msg.getUsername(), msg.getSecret())) {
+            // Broadcast lock denied.
+            log.info("sending lock denied from already reg");
+            for (Connection otherServer : knownServers)
+                otherServer.writeMsg(new LockDenied(msg.getUsername(), msg.getSecret()).toData());
+            return false;
+        }
+
+        // Check if only other know server is that which sent message.
+        if (knownServers.size() == 1) {
+            con.writeMsg(new LockAllowed(msg.getUsername(), msg.getSecret()).toData());
+
+            // Register user
+            server.addUser(msg.getUsername(), msg.getSecret());
+
+            return false;
+        }
+
+        // Send LR to all but original.
+        server.addLockRequest(msg.getUsername() + msg.getSecret(), new HashSet<>(knownServers));
+        server.addServerConnectionForLogin(msg.getUsername() + msg.getSecret(), con);
+        for (Connection otherServer : knownServers) {
+            if (otherServer != con) {
+                otherServer.writeMsg(new LockRequest(msg.getUsername(), msg.getSecret()).toData());
+            }
+        }
+
+        return false;
+    }
+
+    public boolean triggerLockAllowedRead(LockAllowed msg, Connection con) {
+        ControlSolution server = ControlSolution.getInstance();
+
+        // Get servers we are waiting for.
+        HashSet<Connection> waiting = server.getLockRequest(msg.getUsername() + msg.getSecret());
+
+        // Remove received connection.
+        waiting.remove(con);
+
+        // Check if no longer waiting.
+        if (waiting.size() == 0) {
+            // If initially received message from client, send approval.
+            if (server.containsConnectionForLogin(msg.getUsername()+msg.getSecret())) {
+                server.getConnectionForLogin(msg.getUsername()+msg.getSecret()).writeMsg(new RegisterSuccess(msg.getUsername()).toData());
+                return false;
+            }
+            // If not, we send back lock allowed.
+            server.getServerConnectionForLogin(msg.getUsername()+msg.getSecret()).writeMsg(new LockAllowed(msg.getUsername(), msg.getSecret()).toData());
+            return false;
+        }
+
+        return false;
+    }
+
+    public boolean triggerLockDeniedRead(LockDenied msg, Connection con) {
+        ControlSolution server = ControlSolution.getInstance();
+
+        // Remove from storate
+        if (server.hasUser(msg.getUsername(), msg.getSecret())) {
+            server.removeUser(msg.getUsername());
+        }
+
+        // Propagate lock denied.
+        ArrayList<Connection> knownServers = server.getAuthServers();
+        for (Connection otherServer : knownServers) {
+            log.info("sending lock denied");
+            if (otherServer != con) otherServer.writeMsg(new LockDenied(msg.getUsername(), msg.getSecret()).toData());
+        }
+
+        // If connected to client, send failure.
+        if (server.containsConnectionForLogin(msg.getUsername() + msg.getSecret())) {
+            server.getConnectionForLogin(msg.getUsername()+msg.getSecret()).writeMsg(new RegisterFailed(msg.getUsername()).toData());
+            return false;
+        }
 
         return false;
     }

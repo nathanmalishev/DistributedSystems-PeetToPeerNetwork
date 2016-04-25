@@ -20,13 +20,19 @@ public class ControlSolution extends Control {
 	
 	private static final Logger log = LogManager.getLogger();
 
-    private HashMap<Connection, HashSet<Connection>> lockRequests = new HashMap<>();
+    private HashMap<String, HashSet<Connection>> lockRequests = new HashMap<>();
+    private HashMap<String, Connection> loginConnections = new HashMap<>();
+    private HashMap<String, Connection> serverLoginConnections = new HashMap<>();
 
-    public HashMap<Connection, HashSet<Connection>> getLockRequests() { return lockRequests; }
+    public HashSet<Connection> getLockRequest(String combo) { return lockRequests.get(combo); }
+    public void addLockRequest(String combo, HashSet<Connection> set) { lockRequests.put(combo, set); }
 
-    public void addLockRequest(Connection con, HashSet<Connection> knownServers) {
-        lockRequests.put(con, knownServers);
-    }
+    public void addConnectionForLogin(String combo, Connection con) { loginConnections.put(combo, con); }
+    public Connection getConnectionForLogin(String combo) { return loginConnections.get(combo); }
+    public void addServerConnectionForLogin(String combo, Connection con) { serverLoginConnections.put(combo, con); }
+    public Connection getServerConnectionForLogin(String combo) { return serverLoginConnections.get(combo); }
+    public boolean containsConnectionForLogin(String combo) { return loginConnections.containsKey(combo); }
+
 	
 	// since control and its subclasses are singleton, we get the singleton this way
 	public static ControlSolution getInstance() {
@@ -134,6 +140,18 @@ public class ControlSolution extends Control {
 
     public void addUser(String username, String secret) {
         getClientDB().put(username, secret);
+    }
+
+    public boolean userKnownDifferentSecret(String username, String secret) {
+        return getClientDB().containsKey(username) && !getClientDB().get(username).equals(secret);
+    }
+
+    public boolean hasUser(String username, String secret) {
+        return getClientDB().get(username).equals(secret);
+    }
+
+    public void removeUser(String username) {
+        getClientDB().remove(username);
     }
 
 }	
