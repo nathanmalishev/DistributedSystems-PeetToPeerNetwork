@@ -53,6 +53,19 @@ public class MessageFactory {
                     Gson registerGson = new GsonBuilder().registerTypeAdapter(Register.class, new EnforcedDeserializer<JsonMessage>(log)).create();
                     return registerGson.fromJson(msg, Register.class);
 
+                case "REGISTER_FAILED":
+                    Gson registerFailedGson = new GsonBuilder().registerTypeAdapter(RegisterFailed.class, new EnforcedDeserializer<JsonMessage>(log)).create();
+                    return registerFailedGson.fromJson(msg, RegisterFailed.class);
+
+                case "REGISTER_SUCCESS":
+                    Gson registerSuccessGson = new GsonBuilder().registerTypeAdapter(RegisterSuccess.class, new EnforcedDeserializer<JsonMessage>(log)).create();
+                    return registerSuccessGson.fromJson(msg, RegisterSuccess.class);
+
+                case "LOGIN_SUCCESS":
+                    Gson loginSuccessGson =  new GsonBuilder().registerTypeAdapter(LoginSuccess.class, new EnforcedDeserializer<JsonMessage>(log)).create();
+                    return loginSuccessGson.fromJson(msg, LoginSuccess.class);
+
+
                 default:
                     return null;
 

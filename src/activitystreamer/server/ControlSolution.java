@@ -12,12 +12,21 @@ import com.google.gson.Gson;
 
 import activitystreamer.messages.*;
 import activitystreamer.util.Settings;
-
+import java.util.HashMap;
+import java.util.HashSet;
 
 
 public class ControlSolution extends Control {
 	
 	private static final Logger log = LogManager.getLogger();
+
+    private HashMap<Connection, HashSet<Connection>> lockRequests = new HashMap<>();
+
+    public HashMap<Connection, HashSet<Connection>> getLockRequests() { return lockRequests; }
+
+    public void addLockRequest(Connection con, HashSet<Connection> knownServers) {
+        lockRequests.put(con, knownServers);
+    }
 	
 	// since control and its subclasses are singleton, we get the singleton this way
 	public static ControlSolution getInstance() {
@@ -123,5 +132,8 @@ public class ControlSolution extends Control {
 		return false;
 	}
 
+    public void addUser(String username, String secret) {
+        getClientDB().put(username, secret);
+    }
 
 }	

@@ -35,11 +35,26 @@ public class RulesEngine {
 
                 return triggerInvalidMessageRead((InvalidMessage)msg, con);
 
+            case "REGISTER_SUCCESS" :
+                return triggerRegisterSuccess((RegisterSuccess)msg, con);
+
+            case "LOGIN_SUCCESS" :
+                return triggerLoginSuccess((LoginSuccess)msg, con);
+
             default :
                 return triggerInvalidMessage(con, InvalidMessage.invalidMessageTypeError);
         }
     }
 
+    public boolean triggerRegisterSuccess(RegisterSuccess msg, Connection con) {
+        log.info(msg.getInfo());
+        return false;
+    }
+
+    public boolean triggerLoginSuccess(LoginSuccess msg, Connection con) {
+        log.info(msg.getInfo());
+        return false;
+    }
 
     public boolean triggerLoginFailedRead(LoginFailed msg, Connection con) {
 

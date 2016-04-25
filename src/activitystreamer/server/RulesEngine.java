@@ -119,6 +119,7 @@ public class RulesEngine {
 
             if (!ControlSolution.getInstance().getAuthClients().contains(con)) {
                 ControlSolution.getInstance().getAuthClients().add(con);
+                con.writeMsg(new LoginSuccess(msg.getUsername()).toData());
             }
             ControlSolution.getInstance().getUnauthConnections().remove(con);
             return false;
@@ -160,21 +161,36 @@ public class RulesEngine {
     }
 
     public boolean triggerRegisterRead(Register msg, Connection con) {
-        // Check if already registered
-        if (ControlSolution.getInstance().getClientDB().containsKey(msg.getUsername())) {
+        ControlSolution server = ControlSolution.getInstance();
+
+        // Check if already logged in on this connection.
+
+        // Check if already registered.
+        if (server.getClientDB().containsKey(msg.getUsername())) {
             log.info(msg.getUsername() + " already know.");
-            con.writeMsg(new InvalidMessage("temp").toData()); // Temp.
+            con.writeMsg(new RegisterFailed(msg.getUsername()).toData());
             return true;
         }
 
-        // Send lock request to all servers.
-//        for (Connection server : ControlSolution.getInstance().getAuthServers()) {
-//            // Do not send to server that sent the message.
-//            if (server != con)
-//                server.writeMsg(new LockRequest(msg.getUsername(), msg.getSecret()).toData());
+        // Get known servers.
+        ArrayList<Connection> knownServers = server.getAuthServers();
+
+        // If no other servers, register the user.
+        if (knownServers.size() == 0) {
+            con.writeMsg(new RegisterSuccess(msg.getUsername()).toData());
+            server.addUser(msg.getUsername(), msg.getSecret());
+            return false;
+        }
+
+//        // Setup Set of servers we are waiting to reply.
+//        server.addLockRequest(con, new HashSet<>(knownServers));
+//
+//        // Send lock request to all servers.
+//        for (Connection otherServer : knownServers) {
+//            otherServer.writeMsg(new LockRequest(msg.getUsername(), msg.getSecret()).toData());
 //        }
 
-        return true;
+        return false;
     }
 
 
