@@ -51,14 +51,29 @@ public class RulesEngine {
 
     /* Return True if the server is to be shut down */
     public boolean triggerServerAnnounceRead(ServerAnnounce msg, Connection con) {
-
-        // ---- DEBUG ----
-        log.debug("Command: " + msg.getCommand());
-        log.debug("ID: " + msg.getId());
-        log.debug("Load: " + msg.getLoad());
-        log.debug("Hostname: " + msg.getHostname());
-        log.debug("Port: " + msg.getPort());
-
+    	
+    	ControlSolution server = ControlSolution.getInstance();
+    	
+    	// Message received from unauthorized Server
+    	if(!server.getAuthServers().contains(con)){
+    		return triggerInvalidMessage(con, InvalidMessage.unauthorisedServerError);
+    	}
+    	
+        // Broadcast received message to fellow connections
+        for(Connection c : server.getAuthServers()){
+        	
+        	// Don't send to the received connection
+        	if(!c.equals(con)) c.writeMsg(msg.toData());
+        }
+        
+        // Update Servers load in Map
+        if(server.getServerLoads().containsKey(con)){
+        	server.getServerLoads().replace(con, msg);
+        }
+        else{
+        	server.getServerLoads().put(con, msg);
+        }
+        
         return false;
     }
 
@@ -102,6 +117,7 @@ public class RulesEngine {
 
         // Remove from Authorized list, add to Unauthorized list
         ControlSolution.getInstance().getAuthServers().remove(con);
+        ControlSolution.getInstance().getServerLoads().remove(con);
         ControlSolution.getInstance().getUnauthConnections().add(con);
 
         return true;

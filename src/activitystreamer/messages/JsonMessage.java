@@ -6,7 +6,8 @@ public class JsonMessage {
 
 	public static final String invalidMessageTypeError = "the message type was not recognised";
 	public static final String alreadyAuthenticatedError = "this server has already authenticated";
-
+	public static final String unauthorisedServerError = "message sent from an unauthorised server";
+	
 	protected String command;
 	
 	public String getCommand() {

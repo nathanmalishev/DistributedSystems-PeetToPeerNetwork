@@ -79,7 +79,10 @@ public class ControlSolution extends Control {
 		super.connectionClosed(con);
 		
 		// Remove from list
-		if(getAuthServers().contains(con)) getAuthServers().remove(con);
+		if(getAuthServers().contains(con)){
+			getAuthServers().remove(con);
+			getServerLoads().remove(con);
+		}
 	}
 	
 	
