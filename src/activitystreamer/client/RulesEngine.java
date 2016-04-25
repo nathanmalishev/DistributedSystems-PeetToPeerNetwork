@@ -34,10 +34,20 @@ public class RulesEngine {
             case "INVALID_MESSAGE" :
 
                 return triggerInvalidMessageRead((InvalidMessage)msg, con);
+                
+            case "REDIRECT" :
+            	
+            	return triggerRedirectMessage((Redirect)msg, con);
 
             default :
                 return triggerInvalidMessage(con, InvalidMessage.invalidMessageTypeError);
         }
+    }
+    
+    public boolean triggerRedirectMessage(Redirect msg, Connection con){
+    	
+    	// Simply close the connection
+    	return true;
     }
 
 
