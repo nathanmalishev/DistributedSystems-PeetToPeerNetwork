@@ -151,7 +151,7 @@ public class Control extends Thread {
 				break;
 			}
 			if(!term){
-				log.debug("doing activity");
+//				log.debug("doing activity");
 				term=doActivity();
 			}
 			

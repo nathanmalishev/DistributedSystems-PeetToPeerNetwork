@@ -107,7 +107,7 @@ public class ControlSolution extends Control {
 	@Override
 	public boolean doActivity(){
 
-		ServerAnnounce serverAnnounce = new ServerAnnounce(Settings.getId(), getConnections().size(), Settings.getLocalHostname(), String.valueOf(Settings.getLocalPort()));
+		ServerAnnounce serverAnnounce = new ServerAnnounce(Settings.getId(), getAuthClients().size(), Settings.getLocalHostname(), String.valueOf(Settings.getLocalPort()));
 
 		// Sends JSON Object to Authorized Servers only
 		for(Connection c : getAuthServers()){

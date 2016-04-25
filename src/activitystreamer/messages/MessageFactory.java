@@ -9,12 +9,12 @@ import java.lang.reflect.*;
 public class MessageFactory {
 
     public JsonMessage buildMessage(String msg, Logger log) {
-        log.info(msg);
+//        log.info(msg);
         /* GSON Parser transforms JSON objects into instance of a class */
         Gson parser = new Gson();
 		/* Determine what kind of message we need to process */
         JsonMessage message = parser.fromJson(msg, JsonMessage.class);
-        log.info(msg);
+        log.info("received: " + msg);
         try {
             // Process accordingly
             switch (message.getCommand()) {
@@ -48,6 +48,10 @@ public class MessageFactory {
                 case "INVALID_MESSAGE":
                     InvalidMessage invalidMessage = parser.fromJson(msg, InvalidMessage.class);
                     return invalidMessage;
+
+                case "REGISTER":
+                    Gson registerGson = new GsonBuilder().registerTypeAdapter(Register.class, new EnforcedDeserializer<JsonMessage>(log)).create();
+                    return registerGson.fromJson(msg, Register.class);
 
                 default:
                     return null;

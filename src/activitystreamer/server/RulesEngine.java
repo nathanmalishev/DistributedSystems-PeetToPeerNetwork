@@ -43,6 +43,9 @@ public class RulesEngine {
 
                 return triggerInvalidMessageRead((InvalidMessage)msg, con);
 
+            case "REGISTER" :
+                return triggerRegisterRead((Register)msg, con);
+
             default :
                 return triggerInvalidMessage(con, InvalidMessage.invalidMessageTypeError);
         }
@@ -53,11 +56,13 @@ public class RulesEngine {
     public boolean triggerServerAnnounceRead(ServerAnnounce msg, Connection con) {
 
         // ---- DEBUG ----
-        log.debug("Command: " + msg.getCommand());
-        log.debug("ID: " + msg.getId());
-        log.debug("Load: " + msg.getLoad());
-        log.debug("Hostname: " + msg.getHostname());
-        log.debug("Port: " + msg.getPort());
+//        log.debug("Command: " + msg.getCommand());
+//        log.debug("ID: " + msg.getId());
+//        log.debug("Load: " + msg.getLoad());
+//        log.debug("Hostname: " + msg.getHostname());
+//        log.debug("Port: " + msg.getPort());
+//        log.debug("received: " + msg.getCommand() +"  from: " + msg.getId() + "  load: "
+//                + msg.getLoad() + "  host: " + msg.getHostname() + "  port: " + msg.getPort());
 
         return false;
     }
@@ -150,6 +155,24 @@ public class RulesEngine {
         log.info(info);
         JsonMessage response = new InvalidMessage(info);
         con.writeMsg(response.toData());
+
+        return true;
+    }
+
+    public boolean triggerRegisterRead(Register msg, Connection con) {
+        // Check if already registered
+        if (ControlSolution.getInstance().getClientDB().containsKey(msg.getUsername())) {
+            log.info(msg.getUsername() + " already know.");
+            con.writeMsg(new InvalidMessage("temp").toData()); // Temp.
+            return true;
+        }
+
+        // Send lock request to all servers.
+//        for (Connection server : ControlSolution.getInstance().getAuthServers()) {
+//            // Do not send to server that sent the message.
+//            if (server != con)
+//                server.writeMsg(new LockRequest(msg.getUsername(), msg.getSecret()).toData());
+//        }
 
         return true;
     }
