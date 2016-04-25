@@ -1,8 +1,7 @@
 package activitystreamer.client;
 
 import activitystreamer.messages.*;
-import activitystreamer.server.Connection;
-import activitystreamer.server.ControlSolution;
+import activitystreamer.client.Connection;
 import activitystreamer.util.Settings;
 import org.apache.logging.log4j.Logger;
 
@@ -61,7 +60,8 @@ public class RulesEngine {
         log.info(info);
         JsonMessage response = new InvalidMessage(info);
         con.writeMsg(response.toData());
-
+        log.info("Closing connection");
+        con.closeCon();
         return true;
     }
 

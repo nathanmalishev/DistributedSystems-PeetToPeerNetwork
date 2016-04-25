@@ -1,27 +1,30 @@
 package activitystreamer.client;
 
+import activitystreamer.client.RulesEngine;
+import activitystreamer.messages.JsonMessage;
+import activitystreamer.messages.MessageFactory;
 import activitystreamer.util.Settings;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 
-import java.io.BufferedOutputStream;
-import java.io.DataOutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.net.ServerSocket;
+import java.io.*;
 import java.net.Socket;
+
+
 
 public class ClientSolution extends Thread {
 	private static final Logger log = LogManager.getLogger();
 	private static ClientSolution clientSolution;
 	private TextFrame textFrame;
-	private PrintWriter outwriter;
 	/*
 	 * additional variables
 	 */
-    private Socket connection;
-	
+	public Connection myConnection;
+	private JSONParser parser = new JSONParser();
+	private RulesEngine rulesEngine;
+	private Socket s;
 	// this is a singleton object
 	public static ClientSolution getInstance(){
 		if(clientSolution==null){
@@ -34,10 +37,10 @@ public class ClientSolution extends Thread {
 		/*
 		 * some additional initialization
 		 */
-		try{
-			connection = new Socket(Settings.getLocalHostname(), Settings.getRemotePort());
+		try {
+			s = new Socket(Settings.getLocalHostname(), Settings.getRemotePort());
+			myConnection =new Connection(s);
 
-			
 			System.out.print("connection started to server ");
 		}catch(Exception e){
 			System.out.print(e);
@@ -53,12 +56,8 @@ public class ClientSolution extends Thread {
 	// called by the gui when the user clicks "send"
 	public void sendActivityObject(JSONObject activityObj){
 		try{
-			DataOutputStream out = new DataOutputStream(connection.
-					getOutputStream());
-			outwriter = new PrintWriter(out,true);
-			outwriter.println(activityObj.toString());
-			outwriter.flush();
-			System.out.print("Message successfully sent");
+			myConnection.writeMsg(textFrame.getInputText().replaceAll("(\\r|\\n|\\t)", ""));
+			log.debug("Message successfully sent: " + textFrame.getInputText().replaceAll("(\\r|\\n|\\t)", ""));
 
 		}catch(Exception e){
 			System.out.print(e);
@@ -71,19 +70,42 @@ public class ClientSolution extends Thread {
 		/*
 		 * other things to do
 		 */
+		myConnection.closeCon();
 	}
 	
 
 	// the client's run method, to receive messages
 	@Override
 	public void run(){
-		
-		
-		
+
+		try{
+			myConnection.run();
+
+		}catch(Exception e){
+			log.error("connection "+Settings.socketAddress(s)+ "" +
+					"closed with exception: "+e );
+
+		}
 	}
 
 	/*
 	 * additional methods
 	 */
-	
+
+	public boolean process(Connection con, String msg){
+
+		try{
+			textFrame.setOutputText( (JSONObject) parser.parse(msg) );
+		}catch(Exception e){
+
+		}
+
+		MessageFactory msgFactory = new MessageFactory();
+		rulesEngine = new RulesEngine(log);
+
+		JsonMessage receivedMessage = msgFactory.buildMessage(msg, log);
+		return rulesEngine.triggerResponse(receivedMessage, con);
+
+	}
+
 }
