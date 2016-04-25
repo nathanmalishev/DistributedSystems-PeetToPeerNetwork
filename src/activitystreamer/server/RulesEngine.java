@@ -132,10 +132,45 @@ public class RulesEngine {
                 ControlSolution.getInstance().getAuthClients().add(con);
             }
             ControlSolution.getInstance().getUnauthConnections().remove(con);
-            return false;
+            
+            // Send Login Success Message
+            String info = LoginSuccess.loginSuccess + msg.getUsername();
+            LoginSuccess response = new LoginSuccess(info);
+            con.writeMsg(response.toData());
+            
+            // Determine if we need to redirect
+            return triggerRedirect(con);
         }
 
         return triggerLoginFailed(msg, con);
+    }
+    
+    /* Sends REDIRECT message if there is a server with a load with 2 or more less than
+     * the current server.
+     * Returns true if connection is to be closed.
+     */
+    public boolean triggerRedirect(Connection con){
+    	
+    	ControlSolution currentInstance = ControlSolution.getInstance();
+    	
+    	// Check all Server Loads
+    	for(Map.Entry<Connection, ServerAnnounce> server : currentInstance.getServerLoads().entrySet()){
+    		
+    		// Close connection of load load difference > 2
+    		int load = server.getValue().getLoad();
+    		if((currentInstance.getAuthClients().size() - load) >= 2){
+    			
+    			// Send Redirect Message
+    			Redirect response = new Redirect(server.getValue().getHostname(), server.getValue().getPort());
+    			con.writeMsg(response.toData());
+    			
+    			// Remove from Authorised list and disconnect
+    			currentInstance.getAuthClients().remove(con);
+    			return true;
+    		}
+    		
+    	}
+    	return false;
     }
 
     public boolean triggerLoginFailed(Login msg, Connection con) {
