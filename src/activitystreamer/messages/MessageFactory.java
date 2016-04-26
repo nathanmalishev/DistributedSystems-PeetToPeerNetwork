@@ -3,6 +3,7 @@ package activitystreamer.messages;
 // Need to change this so it is importing the one in our library
 import activitystreamer.server.Control;
 import com.google.gson.*;
+import com.google.gson.stream.MalformedJsonException;
 import org.apache.logging.log4j.Logger;
 import java.lang.reflect.*;
 
@@ -10,11 +11,16 @@ public class MessageFactory {
 
     public JsonMessage buildMessage(String msg, Logger log) {
 //        log.info(msg);
+        JsonMessage message;
         /* GSON Parser transforms JSON objects into instance of a class */
         Gson parser = new Gson();
 		/* Determine what kind of message we need to process */
-        JsonMessage message = parser.fromJson(msg, JsonMessage.class);
-        
+        try {
+            message = parser.fromJson(msg, JsonMessage.class);
+        }catch(Exception e){
+            /* catches any malformed json strings */
+            return null;
+        }
         if(message.getCommand() == null){
             return null;
         }
