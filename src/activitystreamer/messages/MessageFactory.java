@@ -14,6 +14,11 @@ public class MessageFactory {
         Gson parser = new Gson();
 		/* Determine what kind of message we need to process */
         JsonMessage message = parser.fromJson(msg, JsonMessage.class);
+        
+        if(message.getCommand() == null){
+            return null;
+        }
+
         log.info("received: " + msg);
         try {
             // Process accordingly
