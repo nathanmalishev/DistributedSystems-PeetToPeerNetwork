@@ -13,11 +13,19 @@ import com.google.gson.Gson;
 import activitystreamer.messages.*;
 import activitystreamer.util.Settings;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 
 
 public class ControlSolution extends Control {
 	
 	private static final Logger log = LogManager.getLogger();
+
+    private ArrayList<Connection> unauthClients;
+    private HashMap<String, HashSet<Connection>> lockRequests;
+    private HashMap<String, Connection> lockConnections;
+
 	
 	// since control and its subclasses are singleton, we get the singleton this way
 	public static ControlSolution getInstance() {
@@ -32,6 +40,9 @@ public class ControlSolution extends Control {
 		/*
 		 * Do some further initialization here if necessary
 		 */
+        lockRequests = new HashMap<>();
+        lockConnections = new HashMap<>();
+        unauthClients = new ArrayList<>();
 
 		
 		// check if we should initiate a connection and do so if necessary
@@ -107,7 +118,7 @@ public class ControlSolution extends Control {
 	@Override
 	public boolean doActivity(){
 
-		ServerAnnounce serverAnnounce = new ServerAnnounce(Settings.getId(), getConnections().size(), Settings.getLocalHostname(), String.valueOf(Settings.getLocalPort()));
+		ServerAnnounce serverAnnounce = new ServerAnnounce(Settings.getId(), getAuthClients().size(), Settings.getLocalHostname(), String.valueOf(Settings.getLocalPort()));
 
 		// Sends JSON Object to Authorized Servers only
 		for(Connection c : getAuthServers()){
@@ -119,9 +130,48 @@ public class ControlSolution extends Control {
 				log.info("Error sending load. Hostname: " + Settings.getLocalHostname());
 			}
 		}
-		
+
 		return false;
 	}
 
+    public void addUser(String username, String secret) {
+        getClientDB().put(username, secret);
+    }
+
+    public boolean userKnownDifferentSecret(String username, String secret) {
+        return getClientDB().containsKey(username) && !getClientDB().get(username).equals(secret);
+    }
+
+    public boolean hasUser(String username, String secret) {
+        return getClientDB().get(username).equals(secret);
+    }
+
+    public void removeUser(String username) {
+        getClientDB().remove(username);
+    }
+
+    public ArrayList<Connection> getUnauthClients() { return unauthClients; }
+
+    public void addUnauthClient(Connection con) {
+        getUnauthClients().add(con);
+    }
+
+    public void removeUnauthClient(Connection con) {
+        getUnauthClients().remove(con);
+    }
+
+    public HashSet<Connection> getLockRequest(String combo) { return lockRequests.get(combo); }
+    public void addLockRequest(String combo, HashSet<Connection> set) { lockRequests.put(combo, set); }
+
+    public void addConnectionForLock(String combo, Connection con) { lockConnections.put(combo, con); }
+    public Connection getConnectionForLock(String combo) { return lockConnections.get(combo); }
+    public boolean containsConnectionForLock(String combo) { return lockConnections.containsKey(combo); }
+
+    public void removeLockRequestsAndConnection(String combo) {
+        if (lockRequests.containsKey(combo))
+            lockRequests.remove(combo);
+        if (lockConnections.containsKey(combo))
+            lockConnections.remove(combo);
+    }
 
 }	
