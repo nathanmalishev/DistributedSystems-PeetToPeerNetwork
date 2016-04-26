@@ -1,13 +1,15 @@
 package activitystreamer.messages;
 
-public class LoginSuccess extends JsonMessage {
+public class LoginSuccess extends JsonMessage{
+	
+	private String info;
+	public static String loginSuccess = "logged in as user ";
 
-    private String info;
+    public LoginSuccess(String info) {
+
+        this.info = info;
+        this.command = "LOGIN_SUCCESS";
+    }
 
     public String getInfo() { return info; }
-
-    public LoginSuccess(String username) {
-        this.command = "LOGIN_SUCCESS";
-        this.info = "logged in as user " + username;
-    }
 }

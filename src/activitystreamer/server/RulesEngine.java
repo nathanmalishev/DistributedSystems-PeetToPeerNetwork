@@ -67,16 +67,29 @@ public class RulesEngine {
 
     /* Return True if the server is to be shut down */
     public boolean triggerServerAnnounceRead(ServerAnnounce msg, Connection con) {
-
-        // ---- DEBUG ----
-//        log.debug("Command: " + msg.getCommand());
-//        log.debug("ID: " + msg.getId());
-//        log.debug("Load: " + msg.getLoad());
-//        log.debug("Hostname: " + msg.getHostname());
-//        log.debug("Port: " + msg.getPort());
-//        log.debug("received: " + msg.getCommand() +"  from: " + msg.getId() + "  load: "
-//                + msg.getLoad() + "  host: " + msg.getHostname() + "  port: " + msg.getPort());
-
+    	
+    	ControlSolution server = ControlSolution.getInstance();
+    	
+    	// Message received from unauthorized Server
+    	if(!server.getAuthServers().contains(con)){
+    		return triggerInvalidMessage(con, InvalidMessage.unauthorisedServerError);
+    	}
+    	
+        // Broadcast received message to fellow connections
+        for(Connection c : server.getAuthServers()){
+        	
+        	// Don't send to the received connection
+        	if(!c.equals(con)) c.writeMsg(msg.toData());
+        }
+        
+        // Update Servers load in Map
+        if(server.getServerLoads().containsKey(con)){
+        	server.getServerLoads().replace(con, msg);
+        }
+        else{
+        	server.getServerLoads().put(con, msg);
+        }
+        
         return false;
     }
 
@@ -120,6 +133,7 @@ public class RulesEngine {
 
         // Remove from Authorized list, add to Unauthorized list
         ControlSolution.getInstance().getAuthServers().remove(con);
+        ControlSolution.getInstance().getServerLoads().remove(con);
         ControlSolution.getInstance().getUnauthConnections().add(con);
 
         return true;
@@ -132,13 +146,47 @@ public class RulesEngine {
 
             if (!ControlSolution.getInstance().getAuthClients().contains(con)) {
                 ControlSolution.getInstance().getAuthClients().add(con);
-                con.writeMsg(new LoginSuccess(msg.getUsername()).toData());
+            	ControlSolution.getInstance().getUnauthConnections().remove(con);
+            
+            	// Send Login Success Message
+            	String info = LoginSuccess.loginSuccess + msg.getUsername();
+            	LoginSuccess response = new LoginSuccess(info);
+            	con.writeMsg(response.toData());
+            
+            	// Determine if we need to redirect
+            	return triggerRedirect(con);
             }
-            ControlSolution.getInstance().getUnauthConnections().remove(con);
-            return false;
         }
 
         return triggerLoginFailed(msg, con);
+    }
+    
+    /* Sends REDIRECT message if there is a server with a load with 2 or more less than
+     * the current server.
+     * Returns true if connection is to be closed.
+     */
+    public boolean triggerRedirect(Connection con){
+    	
+    	ControlSolution currentInstance = ControlSolution.getInstance();
+    	
+    	// Check all Server Loads
+    	for(Map.Entry<Connection, ServerAnnounce> server : currentInstance.getServerLoads().entrySet()){
+    		
+    		// Close connection of load load difference > 2
+    		int load = server.getValue().getLoad();
+    		if((currentInstance.getAuthClients().size() - load) >= 2){
+    			
+    			// Send Redirect Message
+    			Redirect response = new Redirect(server.getValue().getHostname(), server.getValue().getPort());
+    			con.writeMsg(response.toData());
+    			
+    			// Remove from Authorised list and disconnect
+    			currentInstance.getAuthClients().remove(con);
+    			return true;
+    		}
+    		
+    	}
+    	return false;
     }
 
     public boolean triggerLogout(Connection con){

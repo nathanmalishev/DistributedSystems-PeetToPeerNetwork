@@ -20,6 +20,7 @@ public class Control extends Thread {
 	private ArrayList<Connection> unauthConnections; // A list of unauthorized connections
 															// (may be servers that havn't authorized or clients that havn't logged in)
 	private HashMap<String, String> clientDB;
+	private HashMap<Connection, ServerAnnounce> serverLoads;
 
 	private boolean term=false;
 	private Listener listener;
@@ -43,6 +44,8 @@ public class Control extends Thread {
 	}
 
 	public final HashMap<String, String> getClientDB() { return clientDB; }
+	
+	public final HashMap<Connection, ServerAnnounce> getServerLoads() { return serverLoads; }
 
 	public static Control getInstance() {
 		if(control==null){
@@ -58,6 +61,8 @@ public class Control extends Thread {
 		authClients = new ArrayList<Connection>();
 		connections = new ArrayList<Connection>();
 		clientDB = new HashMap<String, String>();
+		serverLoads = new HashMap<Connection, ServerAnnounce>();
+		
 		// start a listener
 		try {
 			listener = new Listener();
