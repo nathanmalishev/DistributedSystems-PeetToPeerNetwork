@@ -12,6 +12,8 @@ import com.google.gson.Gson;
 
 import activitystreamer.messages.*;
 import activitystreamer.util.Settings;
+
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -20,18 +22,16 @@ public class ControlSolution extends Control {
 	
 	private static final Logger log = LogManager.getLogger();
 
-    private HashMap<String, HashSet<Connection>> lockRequests = new HashMap<>();
-    private HashMap<String, Connection> loginConnections = new HashMap<>();
-    private HashMap<String, Connection> serverLoginConnections = new HashMap<>();
+    private ArrayList<Connection> unauthClients;
+    private HashMap<String, HashSet<Connection>> lockRequests;
+    private HashMap<String, Connection> lockConnections;
 
     public HashSet<Connection> getLockRequest(String combo) { return lockRequests.get(combo); }
     public void addLockRequest(String combo, HashSet<Connection> set) { lockRequests.put(combo, set); }
 
-    public void addConnectionForLogin(String combo, Connection con) { loginConnections.put(combo, con); }
-    public Connection getConnectionForLogin(String combo) { return loginConnections.get(combo); }
-    public void addServerConnectionForLogin(String combo, Connection con) { serverLoginConnections.put(combo, con); }
-    public Connection getServerConnectionForLogin(String combo) { return serverLoginConnections.get(combo); }
-    public boolean containsConnectionForLogin(String combo) { return loginConnections.containsKey(combo); }
+    public void addConnectionForLock(String combo, Connection con) { lockConnections.put(combo, con); }
+    public Connection getConnectionForLock(String combo) { return lockConnections.get(combo); }
+    public boolean containsConnectionForLock(String combo) { return lockConnections.containsKey(combo); }
 
 	
 	// since control and its subclasses are singleton, we get the singleton this way
@@ -47,6 +47,9 @@ public class ControlSolution extends Control {
 		/*
 		 * Do some further initialization here if necessary
 		 */
+        lockRequests = new HashMap<>();
+        lockConnections = new HashMap<>();
+        unauthClients = new ArrayList<>();
 
 		
 		// check if we should initiate a connection and do so if necessary
@@ -134,7 +137,7 @@ public class ControlSolution extends Control {
 				log.info("Error sending load. Hostname: " + Settings.getLocalHostname());
 			}
 		}
-		
+
 		return false;
 	}
 
@@ -152,6 +155,16 @@ public class ControlSolution extends Control {
 
     public void removeUser(String username) {
         getClientDB().remove(username);
+    }
+
+    public ArrayList<Connection> getUnauthClients() { return unauthClients; }
+
+    public void addUnauthClient(Connection con) {
+        getUnauthClients().add(con);
+    }
+
+    public void removeUnauthClient(Connection con) {
+        getUnauthClients().remove(con);
     }
 
 }	

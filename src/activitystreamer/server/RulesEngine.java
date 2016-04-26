@@ -193,7 +193,10 @@ public class RulesEngine {
 
         // Setup Set of servers we are waiting to reply.
         server.addLockRequest(msg.getUsername()+msg.getSecret(), new HashSet<>(knownServers));
-        server.addConnectionForLogin(msg.getUsername() + msg.getSecret(), con);
+        server.addConnectionForLock(msg.getUsername() + msg.getSecret(), con);
+
+        // Add to list on unauth clients.
+        server.addUnauthClient(con);
 
         // Send lock request to all servers.
         for (Connection otherServer : knownServers) {
@@ -228,9 +231,11 @@ public class RulesEngine {
         }
 
         // Send LR to all but original.
-        server.addLockRequest(msg.getUsername() + msg.getSecret(), new HashSet<>(knownServers));
-        server.addServerConnectionForLogin(msg.getUsername() + msg.getSecret(), con);
-        for (Connection otherServer : knownServers) {
+        HashSet<Connection> knownSet = new HashSet<>(knownServers);
+        knownSet.remove(con);
+        server.addLockRequest(msg.getUsername() + msg.getSecret(), knownSet);
+        server.addConnectionForLock(msg.getUsername() + msg.getSecret(), con);
+        for (Connection otherServer : knownSet) {
             if (otherServer != con) {
                 otherServer.writeMsg(new LockRequest(msg.getUsername(), msg.getSecret()).toData());
             }
@@ -250,14 +255,34 @@ public class RulesEngine {
 
         // Check if no longer waiting.
         if (waiting.size() == 0) {
-            // If initially received message from client, send approval.
-            if (server.containsConnectionForLogin(msg.getUsername()+msg.getSecret())) {
-                server.getConnectionForLogin(msg.getUsername()+msg.getSecret()).writeMsg(new RegisterSuccess(msg.getUsername()).toData());
-                return false;
+            if (server.containsConnectionForLock(msg.getUsername()+msg.getSecret())) {
+                Connection replyCon = server.getConnectionForLock(msg.getUsername()+msg.getSecret());
+
+                // If connection is client, send register success.
+                if (server.getUnauthClients().contains(replyCon)) {
+                    log.info("Successful register for " + msg.getUsername());
+                    replyCon.writeMsg(new RegisterSuccess(msg.getUsername()).toData());
+
+                    // Register the user.
+                    server.addUser(msg.getUsername(), msg.getSecret());
+                    server.removeUnauthClient(replyCon);
+                    return false;
+                }
+                // If connection is server, send lock allowed.
+                if (server.getAuthServers().contains(replyCon)) {
+                    log.info("Lock allowed for " + msg.getUsername());
+                    replyCon.writeMsg(new LockAllowed(msg.getUsername(), msg.getSecret()).toData());
+//
+                    // Register the user.
+                    server.addUser(msg.getUsername(), msg.getSecret());
+
+                    return false;
+                }
+                // Otherwise, send failure.
+                triggerInvalidMessage(con, InvalidMessage.invalidMessageTypeError);
+                return true;
+
             }
-            // If not, we send back lock allowed.
-            server.getServerConnectionForLogin(msg.getUsername()+msg.getSecret()).writeMsg(new LockAllowed(msg.getUsername(), msg.getSecret()).toData());
-            return false;
         }
 
         return false;
@@ -266,7 +291,7 @@ public class RulesEngine {
     public boolean triggerLockDeniedRead(LockDenied msg, Connection con) {
         ControlSolution server = ControlSolution.getInstance();
 
-        // Remove from storate
+        // Remove from storage.
         if (server.hasUser(msg.getUsername(), msg.getSecret())) {
             server.removeUser(msg.getUsername());
         }
@@ -279,8 +304,8 @@ public class RulesEngine {
         }
 
         // If connected to client, send failure.
-        if (server.containsConnectionForLogin(msg.getUsername() + msg.getSecret())) {
-            server.getConnectionForLogin(msg.getUsername()+msg.getSecret()).writeMsg(new RegisterFailed(msg.getUsername()).toData());
+        if (server.containsConnectionForLock(msg.getUsername() + msg.getSecret())) {
+            server.getConnectionForLock(msg.getUsername() + msg.getSecret()).writeMsg(new RegisterFailed(msg.getUsername()).toData());
             return false;
         }
 
