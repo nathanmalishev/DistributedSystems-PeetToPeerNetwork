@@ -39,6 +39,10 @@ public class RulesEngine {
 
                 return triggerLoginRead((Login) msg, con);
 
+            case "LOGOUT":
+
+                return triggerLogout(con);
+
             case "INVALID_MESSAGE" :
 
                 return triggerInvalidMessageRead((InvalidMessage) msg, con);
@@ -135,6 +139,11 @@ public class RulesEngine {
         }
 
         return triggerLoginFailed(msg, con);
+    }
+
+    public boolean triggerLogout(Connection con){
+        con.closeCon();
+        return true;
     }
 
     public boolean triggerLoginFailed(Login msg, Connection con) {

@@ -19,9 +19,11 @@ public class MessageFactory {
             message = parser.fromJson(msg, JsonMessage.class);
         }catch(Exception e){
             /* catches any malformed json strings */
+            log.error(e);
             return null;
         }
         if(message.getCommand() == null){
+            log.error("message was null");
             return null;
         }
 
@@ -75,6 +77,11 @@ public class MessageFactory {
                 case "LOGIN_SUCCESS":
                     Gson loginSuccessGson =  new GsonBuilder().registerTypeAdapter(LoginSuccess.class, new EnforcedDeserializer<JsonMessage>(log)).create();
                     return loginSuccessGson.fromJson(msg, LoginSuccess.class);
+
+                case "LOGOUT":
+                    Gson logoutGson =  new GsonBuilder().registerTypeAdapter(Logout.class, new EnforcedDeserializer<JsonMessage>(log)).create();
+                    System.out.print("tyring to log out");
+                    return logoutGson.fromJson(msg, Logout.class);
 
                 case "LOCK_REQUEST":
                     Gson lockRequestGson =  new GsonBuilder().registerTypeAdapter(LockRequest.class, new EnforcedDeserializer<JsonMessage>(log)).create();
