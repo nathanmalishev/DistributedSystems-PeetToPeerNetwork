@@ -26,13 +26,6 @@ public class ControlSolution extends Control {
     private HashMap<String, HashSet<Connection>> lockRequests;
     private HashMap<String, Connection> lockConnections;
 
-    public HashSet<Connection> getLockRequest(String combo) { return lockRequests.get(combo); }
-    public void addLockRequest(String combo, HashSet<Connection> set) { lockRequests.put(combo, set); }
-
-    public void addConnectionForLock(String combo, Connection con) { lockConnections.put(combo, con); }
-    public Connection getConnectionForLock(String combo) { return lockConnections.get(combo); }
-    public boolean containsConnectionForLock(String combo) { return lockConnections.containsKey(combo); }
-
 	
 	// since control and its subclasses are singleton, we get the singleton this way
 	public static ControlSolution getInstance() {
@@ -165,6 +158,20 @@ public class ControlSolution extends Control {
 
     public void removeUnauthClient(Connection con) {
         getUnauthClients().remove(con);
+    }
+
+    public HashSet<Connection> getLockRequest(String combo) { return lockRequests.get(combo); }
+    public void addLockRequest(String combo, HashSet<Connection> set) { lockRequests.put(combo, set); }
+
+    public void addConnectionForLock(String combo, Connection con) { lockConnections.put(combo, con); }
+    public Connection getConnectionForLock(String combo) { return lockConnections.get(combo); }
+    public boolean containsConnectionForLock(String combo) { return lockConnections.containsKey(combo); }
+
+    public void removeLockRequestsAndConnection(String combo) {
+        if (lockRequests.containsKey(combo))
+            lockRequests.remove(combo);
+        if (lockConnections.containsKey(combo))
+            lockConnections.remove(combo);
     }
 
 }	

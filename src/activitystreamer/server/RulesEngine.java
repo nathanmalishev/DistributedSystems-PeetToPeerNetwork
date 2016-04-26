@@ -258,6 +258,9 @@ public class RulesEngine {
             if (server.containsConnectionForLock(msg.getUsername()+msg.getSecret())) {
                 Connection replyCon = server.getConnectionForLock(msg.getUsername()+msg.getSecret());
 
+                // Remove lock requests waiting.
+                server.removeLockRequestsAndConnection(msg.getUsername()+msg.getSecret());
+
                 // If connection is client, send register success.
                 if (server.getUnauthClients().contains(replyCon)) {
                     log.info("Successful register for " + msg.getUsername());
@@ -272,7 +275,7 @@ public class RulesEngine {
                 if (server.getAuthServers().contains(replyCon)) {
                     log.info("Lock allowed for " + msg.getUsername());
                     replyCon.writeMsg(new LockAllowed(msg.getUsername(), msg.getSecret()).toData());
-//
+                    
                     // Register the user.
                     server.addUser(msg.getUsername(), msg.getSecret());
 
@@ -295,6 +298,9 @@ public class RulesEngine {
         if (server.hasUser(msg.getUsername(), msg.getSecret())) {
             server.removeUser(msg.getUsername());
         }
+
+        // Remove lock requests waiting.
+        server.removeLockRequestsAndConnection(msg.getUsername()+msg.getSecret());
 
         // Propagate lock denied.
         ArrayList<Connection> knownServers = server.getAuthServers();
