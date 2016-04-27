@@ -163,18 +163,18 @@ public class ControlSolution extends Control {
         getUnauthClients().remove(con);
     }
 
-    public HashSet<Connection> getLockRequest(String combo) { return lockRequests.get(combo); }
-    public void addLockRequest(String combo, HashSet<Connection> set) { lockRequests.put(combo, set); }
+    public HashSet<Connection> getLockRequest(String username) { return lockRequests.get(username); }
+    public void addLockRequest(String username, HashSet<Connection> set) { lockRequests.put(username, set); }
 
-    public void addConnectionForLock(String combo, Connection con) { lockConnections.put(combo, con); }
-    public Connection getConnectionForLock(String combo) { return lockConnections.get(combo); }
-    public boolean containsConnectionForLock(String combo) { return lockConnections.containsKey(combo); }
+    public void addConnectionForLock(String username, Connection con) { lockConnections.put(username, con); }
+    public Connection getConnectionForLock(String username) { return lockConnections.get(username); }
+    public boolean containsConnectionForLock(String username) { return lockConnections.containsKey(username); }
 
-    public void removeLockRequestsAndConnection(String combo) {
-        if (lockRequests.containsKey(combo))
-            lockRequests.remove(combo);
-        if (lockConnections.containsKey(combo))
-            lockConnections.remove(combo);
+    public void removeLockRequestsAndConnection(String username) {
+        if (lockRequests.containsKey(username))
+            lockRequests.remove(username);
+        if (lockConnections.containsKey(username))
+            lockConnections.remove(username);
     }
 
 }	
