@@ -33,6 +33,9 @@ public class RulesEngine {
             case "LOGIN_SUCCESS" :
             	return triggerLoginSuccess((LoginSuccess)msg, con);
 
+            case "ACTIVITY_BROADCAST" :
+                return triggerActivityBroadcast((ActivityBroadcast) msg, con);
+
             case "INVALID_MESSAGE" :
                 return triggerInvalidMessageRead((InvalidMessage)msg, con);
                 
@@ -70,6 +73,12 @@ public class RulesEngine {
         Login loginMsg = new Login(Settings.getUsername(), Settings.getSecret());
         con.writeMsg(loginMsg.toData());
 
+        return false;
+    }
+
+    public boolean triggerActivityBroadcast(ActivityBroadcast msg, Connection con) {
+        log.info("received activity broadcast:");
+        log.info(msg.getCommand());
         return false;
     }
 
