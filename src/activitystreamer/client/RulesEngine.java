@@ -28,26 +28,19 @@ public class RulesEngine {
         switch(msg.getCommand()){
 
             case "LOGIN_FAILED" :
-
                 return triggerLoginFailedRead((LoginFailed)msg, con);
                 
             case "LOGIN_SUCCESS" :
-            	
             	return triggerLoginSuccess((LoginSuccess)msg, con);
 
             case "INVALID_MESSAGE" :
-
                 return triggerInvalidMessageRead((InvalidMessage)msg, con);
                 
             case "REDIRECT" :
-            	
             	return triggerRedirectMessage((Redirect)msg, con);
 
             case "REGISTER_SUCCESS" :
                 return triggerRegisterSuccess((RegisterSuccess)msg, con);
-
-            case "LOGIN_SUCCESS" :
-                return triggerLoginSuccess((LoginSuccess)msg, con);
 
             default :
                 return triggerInvalidMessage(con, InvalidMessage.invalidMessageTypeError);
@@ -70,11 +63,6 @@ public class RulesEngine {
     }
 
     public boolean triggerRegisterSuccess(RegisterSuccess msg, Connection con) {
-        log.info(msg.getInfo());
-        return false;
-    }
-
-    public boolean triggerLoginSuccess(LoginSuccess msg, Connection con) {
         log.info(msg.getInfo());
         return false;
     }

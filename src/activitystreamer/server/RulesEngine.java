@@ -230,7 +230,11 @@ public class RulesEngine {
         ControlSolution server = ControlSolution.getInstance();
 
         // Check if already logged in on this connection.
-
+        //TODO: apply correct invalid message.
+        if (server.getAuthClients().contains(con)) {
+            con.writeMsg(new InvalidMessage(InvalidMessage.alreadyAuthenticatedError).toData());
+            return true;
+        }
         // Check if already registered.
         if (server.getClientDB().containsKey(msg.getUsername())) {
             log.info(msg.getUsername() + " already know.");
