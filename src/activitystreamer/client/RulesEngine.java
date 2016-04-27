@@ -46,9 +46,6 @@ public class RulesEngine {
             case "REGISTER_SUCCESS" :
                 return triggerRegisterSuccess((RegisterSuccess)msg, con);
 
-            case "LOGIN_SUCCESS" :
-                return triggerLoginSuccess((LoginSuccess)msg, con);
-
             default :
                 return triggerInvalidMessage(con, InvalidMessage.invalidMessageTypeError);
         }
