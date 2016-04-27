@@ -12,6 +12,7 @@ public class MessageFactory {
     public JsonMessage buildMessage(String msg, Logger log) {
 //        log.info(msg);
         JsonMessage message;
+        System.out.println("Parsing message: " + msg);
         /* GSON Parser transforms JSON objects into instance of a class */
         Gson parser = new Gson();
 		/* Determine what kind of message we need to process */
@@ -68,8 +69,10 @@ public class MessageFactory {
                     return activityMessage;
 
                 case "ACTIVITY_BROADCAST":
+                	System.out.println("reading an activity broadcast");
                     Gson activityBroadcastGson =  new GsonBuilder().registerTypeAdapter(ActivityBroadcast.class, new EnforcedDeserializer<JsonMessage>(log)).create();
                     ActivityBroadcast activityBroadcast = activityBroadcastGson.fromJson(msg, ActivityBroadcast.class);
+                    System.out.println("successfully read");
                     return activityBroadcast;
 
                 case "REGISTER":
