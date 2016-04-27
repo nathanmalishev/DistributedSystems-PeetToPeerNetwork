@@ -243,19 +243,20 @@ public class RulesEngine {
             return triggerAuthenticationFail(con, ActivityMessage.alreadyAuthenticatedError);
         } else {
 
-            return triggerActivityBroadcast(msg.getCommand(), con);
+            return triggerActivityBroadcast(msg.getActivity(), con);
         }
     }
 
-    public boolean triggerActivityBroadcast(String command, Connection originalCon) {
+    public boolean triggerActivityBroadcast(String activity, Connection originalCon) {
 
         ControlSolution server = ControlSolution.getInstance();
 
-        ActivityBroadcast activityBroadcast = new ActivityBroadcast(command);
+        ActivityBroadcast activityBroadcast = new ActivityBroadcast(activity);
 
         for (Connection connection : server.getConnections()) {
             if (!(connection==originalCon)) {
-                connection.writeMsg(activityBroadcast.toString());
+                connection.writeMsg(activityBroadcast.toData());
+                log.debug(connection.getSocket());
             }
         }
         return false;

@@ -26,7 +26,7 @@ public class ClientSolution extends Thread {
 	private JSONParser parser = new JSONParser();
 	private RulesEngine rulesEngine;
 	private Socket s;
-
+	public TextFrame getTextFrame() { return textFrame; }
 	public void setOpen(boolean open) { this.open = open; }
 
 	public void setRedirect(boolean redirect) { this.redirect = redirect; }
@@ -89,7 +89,7 @@ public class ClientSolution extends Thread {
 	// called by the gui when the user clicks "send"
 	public void sendActivityObject(JSONObject activityObj){
 		try{
-			ActivityMessage activityMessage = new ActivityMessage(Settings.getUsername(), Settings.getSecret(), activityObj.toString());
+			ActivityMessage activityMessage = new ActivityMessage(Settings.getUsername(), Settings.getSecret(), activityObj.toJSONString());
 
 			myConnection.writeMsg(activityMessage.toData());
 

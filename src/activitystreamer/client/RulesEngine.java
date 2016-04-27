@@ -3,7 +3,13 @@ package activitystreamer.client;
 import activitystreamer.messages.*;
 import activitystreamer.client.Connection;
 import activitystreamer.util.Settings;
+
 import org.apache.logging.log4j.Logger;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+
+import com.google.gson.*;
+import com.google.gson.stream.MalformedJsonException;
 
 import java.util.HashMap;
 
@@ -34,6 +40,7 @@ public class RulesEngine {
             	return triggerLoginSuccess((LoginSuccess)msg, con);
 
             case "ACTIVITY_BROADCAST" :
+            	log.debug("...........Broadcasting.......... ");
                 return triggerActivityBroadcast((ActivityBroadcast) msg, con);
 
             case "INVALID_MESSAGE" :
@@ -77,8 +84,22 @@ public class RulesEngine {
     }
 
     public boolean triggerActivityBroadcast(ActivityBroadcast msg, Connection con) {
-        log.info("received activity broadcast:");
-        log.info(msg.getCommand());
+       
+    	Gson gson = new Gson();
+    	JSONParser parser = new JSONParser();
+    	JSONObject json = new JSONObject();
+    	try { 
+    		System.out.println(msg.getActivity());
+        	json = (JSONObject) parser.parse(msg.getActivity());
+        	System.out.println(json);
+    	} catch (Exception e) {
+    		log.error(e);
+    	}
+        try{
+			ClientSolution.getInstance().getTextFrame().setOutputText(json);
+		}catch(Exception e){
+			log.error(e);
+		}
         return false;
     }
 
