@@ -24,7 +24,6 @@ public class RulesEngine {
         switch(msg.getCommand()){
 
             case "AUTHENTICATE" :
-
                 return triggerAuthenticateAttempt((Authenticate)msg, con);
 
             case "AUTHENTICATION_FAIL" :
@@ -81,14 +80,7 @@ public class RulesEngine {
         	// Don't send to the received connection
         	if(!c.equals(con)) c.writeMsg(msg.toData());
         }
-        
-        // Update Servers load in Map
-        if(server.getServerLoads().containsKey(con)){
-        	server.getServerLoads().replace(con, msg);
-        }
-        else{
-        	server.getServerLoads().put(con, msg);
-        }
+        server.getServerLoads().put(con, msg);
         
         return false;
     }
