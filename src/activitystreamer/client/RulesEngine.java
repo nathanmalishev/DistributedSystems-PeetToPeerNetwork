@@ -40,7 +40,6 @@ public class RulesEngine {
             	return triggerLoginSuccess((LoginSuccess)msg, con);
 
             case "ACTIVITY_BROADCAST" :
-            	log.debug("...........Broadcasting.......... ");
                 return triggerActivityBroadcast((ActivityBroadcast) msg, con);
 
             case "INVALID_MESSAGE" :
@@ -88,10 +87,9 @@ public class RulesEngine {
     	Gson gson = new Gson();
     	JSONParser parser = new JSONParser();
     	JSONObject json = new JSONObject();
+    	System.out.println("--- Client --- " + msg.getActivity() );
     	try { 
-    		System.out.println(msg.getActivity());
         	json = (JSONObject) parser.parse(msg.getActivity());
-        	System.out.println(json);
     	} catch (Exception e) {
     		log.error(e);
     	}

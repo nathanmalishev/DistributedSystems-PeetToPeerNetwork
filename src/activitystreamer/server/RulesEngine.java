@@ -256,7 +256,6 @@ public class RulesEngine {
         for (Connection connection : server.getConnections()) {
             if (!(connection==originalCon)) {
                 connection.writeMsg(activityBroadcast.toData());
-                log.debug(connection.getSocket());
             }
         }
         return false;
@@ -265,7 +264,7 @@ public class RulesEngine {
 
     public boolean triggerActivityBroadcastRead(ActivityBroadcast msg, Connection con) {
 
-        return triggerActivityBroadcast(msg.getCommand(), con);
+        return triggerActivityBroadcast(msg.getActivity(), con);
 
     }
 
