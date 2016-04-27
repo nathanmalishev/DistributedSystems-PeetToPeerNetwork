@@ -5,10 +5,6 @@ package activitystreamer.messages;
  */
 public class LoginFailed extends JsonMessage {
 
-    public static String noMatchingUsernameError = "there was no client matching this username";
-    public static String incorrectSecretError = "the secret was incorrect for this username";
-    public static String genericLoginFailedError = "failed to login: incorrect details";
-
     private String info;
 
     public LoginFailed(String info) {
