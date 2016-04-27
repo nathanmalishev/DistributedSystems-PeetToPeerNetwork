@@ -121,15 +121,15 @@ public class ControlSolution extends Control {
 		ServerAnnounce serverAnnounce = new ServerAnnounce(Settings.getId(), getAuthClients().size(), Settings.getLocalHostname(), String.valueOf(Settings.getLocalPort()));
 
 		// Sends JSON Object to Authorized Servers only
-//		for(Connection c : getAuthServers()){
-//
-//			if(c.writeMsg(serverAnnounce.toData())){
-//				log.info("Hostname: " + Settings.getLocalHostname() + " sending load");
-//			}
-//			else{
-//				log.info("Error sending load. Hostname: " + Settings.getLocalHostname());
-//			}
-//		}
+		for(Connection c : getAuthServers()){
+
+			if(c.writeMsg(serverAnnounce.toData())){
+				log.info("Hostname: " + Settings.getLocalHostname() + " sending load");
+			}
+			else{
+				log.info("Error sending load. Hostname: " + Settings.getLocalHostname());
+			}
+		}
 
 		return false;
 	}
