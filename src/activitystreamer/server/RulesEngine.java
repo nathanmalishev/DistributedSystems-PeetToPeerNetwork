@@ -24,7 +24,6 @@ public class RulesEngine {
         switch(msg.getCommand()){
 
             case "AUTHENTICATE" :
-
                 return triggerAuthenticateAttempt((Authenticate)msg, con);
 
             case "AUTHENTICATION_FAIL" :
@@ -41,7 +40,13 @@ public class RulesEngine {
 
             case "LOGOUT":
 
-                return triggerLogout(con);
+                return triggerLogoutRead(con);
+
+            case "ACTIVITY_MESSAGE":
+                return triggerActivityMessageRead((ActivityMessage)msg, con);
+
+            case "ACTIVITY_BROADCAST":
+                return triggerActivityBroadcastRead((ActivityBroadcast)msg, con);
 
             case "INVALID_MESSAGE" :
 
@@ -81,14 +86,7 @@ public class RulesEngine {
         	// Don't send to the received connection
         	if(!c.equals(con)) c.writeMsg(msg.toData());
         }
-        
-        // Update Servers load in Map
-        if(server.getServerLoads().containsKey(con)){
-        	server.getServerLoads().replace(con, msg);
-        }
-        else{
-        	server.getServerLoads().put(con, msg);
-        }
+        server.getServerLoads().put(con, msg);
         
         return false;
     }
@@ -101,11 +99,8 @@ public class RulesEngine {
             // If secret is invalid, send authentication fail message
 
             String info = AuthenticationFail.invalidSecretTypeError + msg.getSecret();
-            JsonMessage response = new AuthenticationFail(info);
-            con.writeMsg(response.toData());
+            return triggerAuthenticationFail(con, info);
 
-            // Close the connection
-            return true;
         } else if (ControlSolution.getInstance().getAuthServers().contains(con)) {
 
             // If this connection has already authorized, send invalid message
@@ -122,6 +117,14 @@ public class RulesEngine {
         }
     }
 
+    public boolean triggerAuthenticationFail(Connection con, String info) {
+
+
+        JsonMessage response = new AuthenticationFail(info);
+        con.writeMsg(response.toData());
+
+        return true;
+    }
 
     /* Logs the information and returns true to indicate the connection will be closed */
     public boolean triggerAuthenticationFailRead(AuthenticationFail msg, Connection con) {
@@ -144,15 +147,15 @@ public class RulesEngine {
 
         if (isClient(msg) && isCorrectClientSecret(msg)) {
 
-            if (!ControlSolution.getInstance().getAuthClients().contains(con)) {
-                ControlSolution.getInstance().getAuthClients().add(con);
+            if (!alreadyLoggedIn(msg.getUsername(), con)) {
             	ControlSolution.getInstance().getUnauthConnections().remove(con);
-            
+                login(msg, con);
+
             	// Send Login Success Message
             	String info = LoginSuccess.loginSuccess + msg.getUsername();
             	LoginSuccess response = new LoginSuccess(info);
             	con.writeMsg(response.toData());
-            
+
             	// Determine if we need to redirect
             	return triggerRedirect(con);
             }
@@ -160,7 +163,29 @@ public class RulesEngine {
 
         return triggerLoginFailed(msg, con);
     }
-    
+
+    private void login(Login msg, Connection con) {
+        ControlSolution.getInstance().getAuthClients().add(con);
+        ControlSolution.getInstance().getUnauthConnections().remove(con);
+        ControlSolution.getInstance().getLoggedInUsernames().put(con, msg.getUsername());
+    }
+
+    private void logout(Connection con) {
+        ControlSolution.getInstance().getLoggedInUsernames().remove(con);
+    }
+
+    private boolean alreadyLoggedIn(String username, Connection con) {
+
+        if (ControlSolution.getInstance().getAuthClients().contains(con)) {
+            return true;
+        }
+
+        if (ControlSolution.getInstance().getLoggedInUsernames().containsValue(username)) {
+            return true;
+        }
+        return false;
+    }
+
     /* Sends REDIRECT message if there is a server with a load with 2 or more less than
      * the current server.
      * Returns true if connection is to be closed.
@@ -174,14 +199,12 @@ public class RulesEngine {
     		
     		// Close connection of load load difference > 2
     		int load = server.getValue().getLoad();
-    		if((currentInstance.getAuthClients().size() - load) >= 2){
+    		if((currentInstance.getAuthClients().size() - load) > 2){
     			
     			// Send Redirect Message
     			Redirect response = new Redirect(server.getValue().getHostname(), server.getValue().getPort());
     			con.writeMsg(response.toData());
-    			
-    			// Remove from Authorised list and disconnect
-    			currentInstance.getAuthClients().remove(con);
+                logout(con);
     			return true;
     		}
     		
@@ -189,7 +212,8 @@ public class RulesEngine {
     	return false;
     }
 
-    public boolean triggerLogout(Connection con){
+    public boolean triggerLogoutRead(Connection con){
+        logout(con);
         con.closeCon();
         return true;
     }
@@ -213,6 +237,37 @@ public class RulesEngine {
 
     }
 
+    public boolean triggerActivityMessageRead(ActivityMessage msg, Connection con) {
+        ControlSolution server = ControlSolution.getInstance();
+        if (!alreadyLoggedIn(msg.getUsername(), con)) {
+            return triggerAuthenticationFail(con, ActivityMessage.alreadyAuthenticatedError);
+        } else {
+
+            return triggerActivityBroadcast(msg.getCommand(), con);
+        }
+    }
+
+    public boolean triggerActivityBroadcast(String command, Connection originalCon) {
+
+        ControlSolution server = ControlSolution.getInstance();
+
+        ActivityBroadcast activityBroadcast = new ActivityBroadcast(command);
+
+        for (Connection connection : server.getConnections()) {
+            if (!(connection==originalCon)) {
+                connection.writeMsg(activityBroadcast.toString());
+            }
+        }
+        return false;
+
+    }
+
+    public boolean triggerActivityBroadcastRead(ActivityBroadcast msg, Connection con) {
+
+        return triggerActivityBroadcast(msg.getCommand(), con);
+
+    }
+
     public boolean triggerInvalidMessageRead(InvalidMessage msg, Connection con) {
         return true;
     }
@@ -233,7 +288,7 @@ public class RulesEngine {
 
         // Check if already logged in on this connection.
         //TODO: apply correct invalid message.
-        if (server.getAuthClients().contains(con)) {
+        if (alreadyLoggedIn(msgUsername, con)) {
             log.info(msgUsername + " cannot register while logged in");
             con.writeMsg(new InvalidMessage(InvalidMessage.alreadyAuthenticatedError).toData());
             return true;

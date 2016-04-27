@@ -25,8 +25,10 @@ public class ControlSolution extends Control {
     private ArrayList<Connection> unauthClients;
     private HashMap<String, HashSet<Connection>> lockRequests;
     private HashMap<String, Connection> lockConnections;
+	private HashMap<Connection, String> loggedInUsernames;
 
-	
+	public HashMap<Connection, String> getLoggedInUsernames() { return loggedInUsernames; }
+
 	// since control and its subclasses are singleton, we get the singleton this way
 	public static ControlSolution getInstance() {
 		if(control==null){
@@ -43,7 +45,7 @@ public class ControlSolution extends Control {
         lockRequests = new HashMap<>();
         lockConnections = new HashMap<>();
         unauthClients = new ArrayList<>();
-
+		loggedInUsernames = new HashMap<Connection, String>();
 		
 		// check if we should initiate a connection and do so if necessary
 		initiateConnection();
@@ -88,12 +90,7 @@ public class ControlSolution extends Control {
 	@Override
 	public void connectionClosed(Connection con){
 		super.connectionClosed(con);
-		
-		// Remove from list
-		if(getAuthServers().contains(con)){
-			getAuthServers().remove(con);
-			getServerLoads().remove(con);
-		}
+
 	}
 	
 	

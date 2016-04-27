@@ -3,7 +3,6 @@ package activitystreamer.messages;
 public class LoginSuccess extends JsonMessage{
 	
 	private String info;
-	public static String loginSuccess = "logged in as user ";
 
     public LoginSuccess(String info) {
 

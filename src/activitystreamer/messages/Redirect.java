@@ -3,20 +3,20 @@ package activitystreamer.messages;
 public class Redirect extends JsonMessage{
 	
 	private String hostname;
-	private String port;
+	private int port;
 	
 	public Redirect(String hostname, String port){
 		
 		this.command = "REDIRECT";
 		this.hostname = hostname;
-		this.port = port;
+		this.port = Integer.parseInt(port);
 	}
 
 	public String getHostname() {
 		return hostname;
 	}
 
-	public String getPort() {
+	public int getPort() {
 		return port;
 	}
 	

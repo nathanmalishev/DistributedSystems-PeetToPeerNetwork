@@ -28,23 +28,22 @@ public class RulesEngine {
         switch(msg.getCommand()){
 
             case "LOGIN_FAILED" :
-                return triggerLoginFailedRead((LoginFailed) msg, con);
+                return triggerLoginFailedRead((LoginFailed)msg, con);
                 
             case "LOGIN_SUCCESS" :
-            	return triggerLoginSuccess((LoginSuccess) msg, con);
+            	return triggerLoginSuccess((LoginSuccess)msg, con);
+
+            case "ACTIVITY_BROADCAST" :
+                return triggerActivityBroadcast((ActivityBroadcast) msg, con);
 
             case "INVALID_MESSAGE" :
-                return triggerInvalidMessageRead((InvalidMessage) msg, con);
+                return triggerInvalidMessageRead((InvalidMessage)msg, con);
                 
             case "REDIRECT" :
-            	return triggerRedirectMessage((Redirect) msg, con);
+            	return triggerRedirectMessage((Redirect)msg, con);
 
             case "REGISTER_SUCCESS" :
                 return triggerRegisterSuccess((RegisterSuccess) msg, con);
-
-            case "REGISTER_FAILED" :
-                return triggerRegisterFailed((RegisterFailed)msg, con);
-
 
             default :
                 return triggerInvalidMessage(con, InvalidMessage.invalidMessageTypeError);
@@ -53,9 +52,10 @@ public class RulesEngine {
     
     /* Always ensures connection is closed */
     public boolean triggerRedirectMessage(Redirect msg, Connection con){
-    	
     	// Simply close the connection
     	log.info("Being Redirected to, Hostname: " + msg.getHostname() + " Port: " + msg.getPort());
+        ClientSolution.getInstance().resetServer(msg.getHostname(), msg.getPort());
+        ClientSolution.getInstance().setRedirect(true);
     	return true;
     }
     
@@ -68,6 +68,17 @@ public class RulesEngine {
 
     public boolean triggerRegisterSuccess(RegisterSuccess msg, Connection con) {
         log.info(msg.getInfo());
+
+        // Once registration has succeeded, attempt to login
+        Login loginMsg = new Login(Settings.getUsername(), Settings.getSecret());
+        con.writeMsg(loginMsg.toData());
+
+        return false;
+    }
+
+    public boolean triggerActivityBroadcast(ActivityBroadcast msg, Connection con) {
+        log.info("received activity broadcast:");
+        log.info(msg.getCommand());
         return false;
     }
 
@@ -83,8 +94,9 @@ public class RulesEngine {
         return true;
     }
 
-    public boolean triggerRegisterFailed(RegisterFailed msg, Connection con) {
-        log.info("Register failed: " + msg.getInfo());
+    public boolean triggerLogout(Connection con) {
+        Logout logoutMsg = new Logout(Logout.disconnectLogout);
+        con.writeMsg(logoutMsg.toData());
         return true;
     }
 
@@ -94,8 +106,23 @@ public class RulesEngine {
         JsonMessage response = new InvalidMessage(info);
         con.writeMsg(response.toData());
         log.info("Closing connection");
-        con.closeCon();
         return true;
+    }
+
+    public boolean triggerLogin(Connection con) {
+
+        Login loginMsg = new Login(Settings.getUsername(), Settings.getSecret());
+        log.info("Logging in with: " + Settings.getUsername() + " " + Settings.getSecret());
+        con.writeMsg(loginMsg.toData());
+        return false;
+    }
+
+    public boolean triggerRegister(Connection con) {
+
+        Register registerMsg = new Register(Settings.getUsername(), Settings.getSecret());
+        log.info("Registering with secret: " + Settings.getSecret());
+        con.writeMsg(registerMsg.toData());
+        return false;
     }
 
 }

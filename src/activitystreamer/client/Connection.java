@@ -10,7 +10,7 @@ import java.io.*;
 import java.net.Socket;
 
 
-public class Connection extends Thread {
+public class Connection {
 	private static final Logger log = LogManager.getLogger();
 	private DataInputStream in;
 	private DataOutputStream out;
@@ -27,7 +27,6 @@ public class Connection extends Thread {
 	    outwriter = new PrintWriter(out, true);
 	    this.socket = socket;
 	    open = true;
-	    start();
 	}
 	
 	/*
@@ -35,7 +34,6 @@ public class Connection extends Thread {
 	 */
 	public boolean writeMsg(String msg) {
 		if(open){
-			System.out.print("open trying to write message "+msg);
 			outwriter.println(msg);
 			outwriter.flush();
 			return true;	
@@ -44,34 +42,33 @@ public class Connection extends Thread {
 	}
 	
 	public void closeCon(){
-		if(open){
-			log.info("closing connection "+Settings.socketAddress(socket));
-			try {
-				term=true;
-				inreader.close();
-				out.close();
-			} catch (IOException e) {
-				// already closed?
-				log.error("received exception closing the connection "+Settings.socketAddress(socket)+": "+e);
-			}
+		log.info("closing connection "+Settings.socketAddress(socket));
+		try {
+			term=true;
+			open = false;
+			inreader.close();
+			in.close();
+			out.close();
+			socket.close();
+		} catch (IOException e) {
+			// already closed?
+			log.error("received exception closing the connection "+Settings.socketAddress(socket)+": "+e);
 		}
 	}
 	
 	
-	public void run(){
+	public void listen(){
 		try {
 			String data;
 			while(!term && (data = inreader.readLine())!=null){
-				term=ClientSolution.getInstance().process(this, data);
+				term = ClientSolution.getInstance().process(this, data);
 			}
 			log.debug("connection closed to "+Settings.socketAddress(socket));
-			ClientSolution.getInstance().myConnection.closeCon();
-			in.close();
+			closeCon();
 		} catch (IOException e) {
 			log.error("connection "+Settings.socketAddress(socket)+" closed with exception: "+e);
-			ClientSolution.getInstance().myConnection.closeCon();
+			closeCon();
 		}
-		open=false;
 	}
 	
 	public Socket getSocket() {

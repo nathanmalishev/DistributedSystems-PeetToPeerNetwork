@@ -1,8 +1,7 @@
 package activitystreamer.client;
 
 import activitystreamer.client.RulesEngine;
-import activitystreamer.messages.JsonMessage;
-import activitystreamer.messages.MessageFactory;
+import activitystreamer.messages.*;
 import activitystreamer.util.Settings;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -18,6 +17,8 @@ public class ClientSolution extends Thread {
 	private static final Logger log = LogManager.getLogger();
 	private static ClientSolution clientSolution;
 	private TextFrame textFrame;
+	private boolean open = false;
+	private boolean redirect = false;
 	/*
 	 * additional variables
 	 */
@@ -25,6 +26,11 @@ public class ClientSolution extends Thread {
 	private JSONParser parser = new JSONParser();
 	private RulesEngine rulesEngine;
 	private Socket s;
+
+	public void setOpen(boolean open) { this.open = open; }
+
+	public void setRedirect(boolean redirect) { this.redirect = redirect; }
+
 	// this is a singleton object
 	public static ClientSolution getInstance(){
 		if(clientSolution==null){
@@ -34,17 +40,9 @@ public class ClientSolution extends Thread {
 	}
 	
 	public ClientSolution(){
-		/*
-		 * some additional initialization
-		 */
-		try {
-			s = new Socket(Settings.getLocalHostname(), Settings.getRemotePort());
-			myConnection =new Connection(s);
-
-			System.out.print("connection started to server ");
-		}catch(Exception e){
-			System.out.print(e);
-		}
+		open = true;
+		rulesEngine = new RulesEngine(log);
+		initialiseConnection();
 
 		// open the gui
 		log.debug("opening the gui");
@@ -52,12 +50,50 @@ public class ClientSolution extends Thread {
 		// start the client's thread
 		start();
 	}
-	
+
+	private void initialiseConnection() {
+
+		connectToServer();
+
+		// If secret is null, attempt to register
+		if (Settings.getSecret() == null && !Settings.getUsername().equals("anonymous")) {
+			Settings.setSecret(Settings.nextSecret());
+			rulesEngine.triggerRegister(myConnection);
+		}
+		// Otherwise attempt to login
+		else {
+			rulesEngine.triggerLogin(myConnection);
+		}
+
+	}
+
+	public void connectToServer() {
+		try {
+			s = new Socket(Settings.getRemoteHostname(), Settings.getRemotePort());
+			myConnection = new Connection(s);
+		} catch(Exception e) {
+			System.out.print(e);
+		}
+	}
+
+	public void resetServer(String hostname, int port) {
+		Settings.setRemoteHostname(hostname);
+		Settings.setRemotePort(port);
+	}
+
+	public void redirectConnection() {
+		connectToServer();
+		rulesEngine.triggerLogin(myConnection);
+	}
+
 	// called by the gui when the user clicks "send"
 	public void sendActivityObject(JSONObject activityObj){
 		try{
-			myConnection.writeMsg(textFrame.getInputText().replaceAll("(\\r|\\n|\\t)", ""));
-			log.debug("Message successfully sent: " + textFrame.getInputText().replaceAll("(\\r|\\n|\\t)", ""));
+			ActivityMessage activityMessage = new ActivityMessage(Settings.getUsername(), Settings.getSecret(), activityObj.toString());
+
+			myConnection.writeMsg(activityMessage.toData());
+
+			log.debug("Message successfully sent: " + activityObj.toString());
 
 		}catch(Exception e){
 			System.out.print(e);
@@ -67,9 +103,9 @@ public class ClientSolution extends Thread {
 	// called by the gui when the user clicks disconnect
 	public void disconnect(){
 		textFrame.setVisible(false);
-		/*
-		 * other things to do
-		 */
+
+		rulesEngine.triggerLogout(myConnection);
+
 		myConnection.closeCon();
 	}
 	
@@ -77,35 +113,38 @@ public class ClientSolution extends Thread {
 	// the client's run method, to receive messages
 	@Override
 	public void run(){
-
-		try{
-			myConnection.run();
-
-		}catch(Exception e){
-			log.error("connection "+Settings.socketAddress(s)+ "" +
-					"closed with exception: "+e );
-
+		while (open) {
+			if (!myConnection.isOpen()) {
+				if (redirect) {
+					redirectConnection();
+					this.redirect = false;
+				}
+				else {
+					this.open = false;
+				}
+			}
+			else {
+				try{
+					myConnection.listen();
+				}catch(Exception e){
+					log.error("connection "+Settings.socketAddress(s)+ "" +
+							"closed with exception: "+e );
+				}
+			}
 		}
 	}
-
-	/*
-	 * additional methods
-	 */
 
 	public boolean process(Connection con, String msg){
 
-		try{
-			textFrame.setOutputText( (JSONObject) parser.parse(msg) );
-		}catch(Exception e){
-
-		}
-
 		MessageFactory msgFactory = new MessageFactory();
-		rulesEngine = new RulesEngine(log);
-
 		JsonMessage receivedMessage = msgFactory.buildMessage(msg, log);
 		return rulesEngine.triggerResponse(receivedMessage, con);
-
 	}
 
 }
+
+/* 		try{
+			textFrame.setOutputText( (JSONObject) parser.parse(msg) );
+		}catch(Exception e){
+
+		}*/
