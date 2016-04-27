@@ -13,7 +13,7 @@ public class JsonMessage {
 	public static final String incorrectSecretError = "the secret was incorrect for this username";
 	public static final String genericLoginFailedError = "failed to login: incorrect details";
 	public static final String loginSuccess = "logged in as user ";
-
+	public static final String disconnectLogout = "client has disconnected";
 	protected String command;
 	
 	public String getCommand() {

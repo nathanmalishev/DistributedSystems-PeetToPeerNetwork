@@ -103,9 +103,9 @@ public class ClientSolution extends Thread {
 	// called by the gui when the user clicks disconnect
 	public void disconnect(){
 		textFrame.setVisible(false);
-		/*
-		 * other things to do
-		 */
+
+		rulesEngine.triggerLogout(myConnection);
+
 		myConnection.closeCon();
 	}
 	

@@ -95,6 +95,12 @@ public class RulesEngine {
         return true;
     }
 
+    public boolean triggerLogout(Connection con) {
+        Logout logoutMsg = new Logout(Logout.disconnectLogout);
+        con.writeMsg(logoutMsg.toData());
+        return true;
+    }
+
     public boolean triggerInvalidMessage(Connection con, String info) {
 
         log.info(info);
