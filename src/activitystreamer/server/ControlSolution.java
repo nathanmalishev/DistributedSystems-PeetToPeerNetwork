@@ -124,15 +124,15 @@ public class ControlSolution extends Control {
 		ServerAnnounce serverAnnounce = new ServerAnnounce(Settings.getId(), getAuthClients().size(), Settings.getLocalHostname(), String.valueOf(Settings.getLocalPort()));
 
 		// Sends JSON Object to Authorized Servers only
-		for(Connection c : getAuthServers()){
-
-			if(c.writeMsg(serverAnnounce.toData())){
-				log.info("Hostname: " + Settings.getLocalHostname() + " sending load");
-			}
-			else{
-				log.info("Error sending load. Hostname: " + Settings.getLocalHostname());
-			}
-		}
+//		for(Connection c : getAuthServers()){
+//
+//			if(c.writeMsg(serverAnnounce.toData())){
+//				log.info("Hostname: " + Settings.getLocalHostname() + " sending load");
+//			}
+//			else{
+//				log.info("Error sending load. Hostname: " + Settings.getLocalHostname());
+//			}
+//		}
 
 		return false;
 	}
@@ -145,8 +145,12 @@ public class ControlSolution extends Control {
         return getClientDB().containsKey(username) && !getClientDB().get(username).equals(secret);
     }
 
-    public boolean hasUser(String username, String secret) {
-        return getClientDB().get(username).equals(secret);
+    public boolean userKnownSameSecret(String username, String secret) {
+        return userKnown(username) && getClientDB().get(username).equals(secret);
+    }
+
+    public boolean userKnown(String username) {
+        return getClientDB().containsKey(username);
     }
 
     public void removeUser(String username) {
@@ -164,11 +168,12 @@ public class ControlSolution extends Control {
     }
 
     public HashSet<Connection> getLockRequest(String username) { return lockRequests.get(username); }
+    public boolean hasLockRequest(String username) { return lockRequests.containsKey(username); }
     public void addLockRequest(String username, HashSet<Connection> set) { lockRequests.put(username, set); }
 
     public void addConnectionForLock(String username, Connection con) { lockConnections.put(username, con); }
     public Connection getConnectionForLock(String username) { return lockConnections.get(username); }
-    public boolean containsConnectionForLock(String username) { return lockConnections.containsKey(username); }
+    public boolean hasConnectionForLock(String username) { return lockConnections.containsKey(username); }
 
     public void removeLockRequestsAndConnection(String username) {
         if (lockRequests.containsKey(username))

@@ -277,10 +277,11 @@ public class RulesEngine {
 
         // Get known servers.
         ArrayList<Connection> knownServers = server.getAuthServers();
-        // Check already registered.
-        if (server.userKnownDifferentSecret(msgUsername, msgSecret)) {
+
+        // Check already registered (same or different name), or already registering
+        if (server.userKnown(msgUsername) || server.hasLockRequest(msgUsername)) {
             // Broadcast lock denied.
-            log.info("sending lock denied from already reg");
+            log.info("sending lock denied.");
             for (Connection otherServer : knownServers)
                 otherServer.writeMsg(new LockDenied(msgUsername, msgSecret).toData());
             return false;
@@ -320,7 +321,7 @@ public class RulesEngine {
 
         // Check if no longer waiting.
         if (waiting.size() == 0) {
-            if (server.containsConnectionForLock(msgUsername)) {
+            if (server.hasConnectionForLock(msgUsername)) {
                 Connection replyCon = server.getConnectionForLock(msgUsername);
 
                 // Remove lock requests waiting.
@@ -360,13 +361,13 @@ public class RulesEngine {
         ControlSolution server = ControlSolution.getInstance();
 
         // Remove from storage.
-        if (server.hasUser(msg.getUsername(), msg.getSecret())) {
+        if (server.userKnownSameSecret(msg.getUsername(), msg.getSecret())) {
             server.removeUser(msg.getUsername());
         }
 
         // Remove lock requests waiting.
         Connection replyCon = null;
-        if (server.containsConnectionForLock(msg.getUsername()))
+        if (server.hasConnectionForLock(msg.getUsername()))
             replyCon = server.getConnectionForLock(msg.getUsername());
         server.removeLockRequestsAndConnection(msg.getUsername());
 
@@ -378,7 +379,7 @@ public class RulesEngine {
         }
 
         // If connected to client, send failure.
-        if (server.containsConnectionForLock(msg.getUsername()) && replyCon != null) {
+        if (replyCon != null && server.getUnauthClients().contains(replyCon)) {
             replyCon.writeMsg(new RegisterFailed(msg.getUsername()).toData());
             return false;
         }
