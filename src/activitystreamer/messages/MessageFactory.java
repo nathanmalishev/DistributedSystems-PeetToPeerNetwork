@@ -62,6 +62,16 @@ public class MessageFactory {
                     InvalidMessage invalidMessage = parser.fromJson(msg, InvalidMessage.class);
                     return invalidMessage;
 
+                case "ACTIVITY_MESSAGE":
+                    Gson activityMsgGson =  new GsonBuilder().registerTypeAdapter(ActivityMessage.class, new EnforcedDeserializer<JsonMessage>(log)).create();
+                    ActivityMessage activityMessage = activityMsgGson.fromJson(msg, ActivityMessage.class);
+                    return activityMessage;
+
+                case "ACTIVITY_BROADCAST":
+                    Gson activityBroadcastGson =  new GsonBuilder().registerTypeAdapter(ActivityBroadcast.class, new EnforcedDeserializer<JsonMessage>(log)).create();
+                    ActivityBroadcast activityBroadcast = activityBroadcastGson.fromJson(msg, ActivityBroadcast.class);
+                    return activityBroadcast;
+
                 case "REGISTER":
                     Gson registerGson = new GsonBuilder().registerTypeAdapter(Register.class, new EnforcedDeserializer<JsonMessage>(log)).create();
                     return registerGson.fromJson(msg, Register.class);
