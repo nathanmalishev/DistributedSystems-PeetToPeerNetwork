@@ -361,6 +361,9 @@ public class RulesEngine {
         }
 
         // Remove lock requests waiting.
+        Connection replyCon = null;
+        if (server.containsConnectionForLock(msg.getUsername()+msg.getSecret()))
+            replyCon = server.getConnectionForLock(msg.getUsername()+msg.getSecret());
         server.removeLockRequestsAndConnection(msg.getUsername()+msg.getSecret());
 
         // Propagate lock denied.
@@ -371,8 +374,8 @@ public class RulesEngine {
         }
 
         // If connected to client, send failure.
-        if (server.containsConnectionForLock(msg.getUsername() + msg.getSecret())) {
-            server.getConnectionForLock(msg.getUsername() + msg.getSecret()).writeMsg(new RegisterFailed(msg.getUsername()).toData());
+        if (server.containsConnectionForLock(msg.getUsername() + msg.getSecret()) && replyCon != null) {
+            replyCon.writeMsg(new RegisterFailed(msg.getUsername()).toData());
             return false;
         }
 
