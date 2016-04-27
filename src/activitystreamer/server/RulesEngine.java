@@ -45,6 +45,9 @@ public class RulesEngine {
             case "ACTIVITY_MESSAGE":
                 return triggerActivityMessageRead((ActivityMessage)msg, con);
 
+            case "ACTIVITY_BROADCAST":
+                return triggerActivityBroadcastRead((ActivityBroadcast)msg, con);
+            
             case "INVALID_MESSAGE" :
 
                 return triggerInvalidMessageRead((InvalidMessage) msg, con);
