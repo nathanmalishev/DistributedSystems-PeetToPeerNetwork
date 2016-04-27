@@ -287,10 +287,9 @@ public class RulesEngine {
         String msgSecret = msg.getSecret();
 
         // Check if already logged in on this connection.
-        //TODO: apply correct invalid message.
         if (alreadyLoggedIn(msgUsername, con)) {
-            log.info(msgUsername + " cannot register while logged in");
-            con.writeMsg(new InvalidMessage(InvalidMessage.alreadyAuthenticatedError).toData());
+            log.info("User attempting to register while logged in.");
+            con.writeMsg(new InvalidMessage(InvalidMessage.alreadyLoggedInError).toData());
             return true;
         }
         // Check if already registered.
