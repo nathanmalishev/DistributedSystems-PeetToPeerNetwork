@@ -124,10 +124,10 @@ public class ControlSolution extends Control {
 		for(Connection c : getAuthServers()){
 
 			if(c.writeMsg(serverAnnounce.toData())){
-				log.info("Hostname: " + Settings.getLocalHostname() + " sending load");
+//				log.info("Hostname: " + Settings.getLocalHostname() + " sending load");
 			}
 			else{
-				log.info("Error sending load. Hostname: " + Settings.getLocalHostname());
+//				log.info("Error sending load. Hostname: " + Settings.getLocalHostname());
 			}
 		}
 

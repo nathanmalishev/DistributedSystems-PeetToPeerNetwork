@@ -15,6 +15,7 @@ public class JsonMessage {
 	public static final String genericLoginFailedError = "failed to login: incorrect details";
 	public static final String loginSuccess = "logged in as user ";
 	public static final String disconnectLogout = "client has disconnected";
+	public static final String userAlreadyRegistered = "this username has already been registered";
 	protected String command;
 	
 	public String getCommand() {

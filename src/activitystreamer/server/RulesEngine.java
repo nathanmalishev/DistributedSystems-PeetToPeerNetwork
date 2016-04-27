@@ -409,7 +409,7 @@ public class RulesEngine {
                     return false;
                 }
                 // Otherwise, send failure.
-                triggerInvalidMessage(con, InvalidMessage.invalidMessageTypeError);
+                triggerInvalidMessage(con, InvalidMessage.userAlreadyRegistered);
                 return true;
             }
         }
