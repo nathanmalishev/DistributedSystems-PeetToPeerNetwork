@@ -20,11 +20,9 @@ public class MessageFactory {
             message = parser.fromJson(msg, JsonMessage.class);
         }catch(Exception e){
             /* catches any malformed json strings */
-            log.error(e);
             return null;
         }
         if(message.getCommand() == null){
-            log.error("message was null");
             return null;
         }
 
@@ -66,13 +64,16 @@ public class MessageFactory {
                 case "ACTIVITY_MESSAGE":
                     Gson activityMsgGson =  new GsonBuilder().registerTypeAdapter(ActivityMessage.class, new EnforcedDeserializer<JsonMessage>(log)).create();
                     ActivityMessage activityMessage = activityMsgGson.fromJson(msg, ActivityMessage.class);
-                    System.out.println("reading an activity message " + activityMessage.getActivity());
                     return activityMessage;
+
+                case "REDIRECT":
+                    Gson redirectGson =  new GsonBuilder().registerTypeAdapter(Redirect.class, new EnforcedDeserializer<JsonMessage>(log)).create();
+                    Redirect redirect = redirectGson.fromJson(msg, Redirect.class);
+                    return redirect;
 
                 case "ACTIVITY_BROADCAST":
                     Gson activityBroadcastGson =  new GsonBuilder().registerTypeAdapter(ActivityBroadcast.class, new EnforcedDeserializer<JsonMessage>(log)).create();
                     ActivityBroadcast activityBroadcast = activityBroadcastGson.fromJson(msg, ActivityBroadcast.class);
-                    System.out.println("reading an activity broadcast " + activityBroadcast.getActivity());
                     return activityBroadcast;
 
                 case "REGISTER":
@@ -93,7 +94,6 @@ public class MessageFactory {
 
                 case "LOGOUT":
                     Gson logoutGson =  new GsonBuilder().registerTypeAdapter(Logout.class, new EnforcedDeserializer<JsonMessage>(log)).create();
-                    System.out.print("tyring to log out");
                     return logoutGson.fromJson(msg, Logout.class);
 
                 case "LOCK_REQUEST":
