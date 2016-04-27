@@ -34,9 +34,7 @@ public class ClientSolution extends Thread {
 	}
 	
 	public ClientSolution(){
-		/*
-		 * some additional initialization
-		 */
+
 		try {
 			s = new Socket(Settings.getLocalHostname(), Settings.getRemotePort());
 			myConnection =new Connection(s);

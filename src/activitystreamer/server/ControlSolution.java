@@ -88,7 +88,7 @@ public class ControlSolution extends Control {
 	@Override
 	public void connectionClosed(Connection con){
 		super.connectionClosed(con);
-		
+
 	}
 	
 	

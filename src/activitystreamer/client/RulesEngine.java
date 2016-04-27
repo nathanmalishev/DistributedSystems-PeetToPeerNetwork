@@ -74,11 +74,6 @@ public class RulesEngine {
         return false;
     }
 
-    public boolean triggerLoginSuccess(LoginSuccess msg, Connection con) {
-        log.info(msg.getInfo());
-        return false;
-    }
-
     public boolean triggerLoginFailedRead(LoginFailed msg, Connection con) {
 
         log.info("Login Failed: " + msg.getInfo());
