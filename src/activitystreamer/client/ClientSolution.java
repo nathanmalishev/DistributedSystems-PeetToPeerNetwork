@@ -89,7 +89,7 @@ public class ClientSolution extends Thread {
 	// called by the gui when the user clicks "send"
 	public void sendActivityObject(JSONObject activityObj){
 		try{
-			ActivityMessage activityMessage = new ActivityMessage(Settings.getUsername(), Settings.getSecret(), activityObj.toJSONString());
+			ActivityMessage activityMessage = new ActivityMessage(Settings.getUsername(), Settings.getSecret(), activityObj);
 			System.out.println("Sending Client Message " +activityMessage.toData());
 			myConnection.writeMsg(activityMessage.toData());
 

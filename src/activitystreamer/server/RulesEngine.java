@@ -3,7 +3,7 @@ package activitystreamer.server;
 import activitystreamer.messages.*;
 import activitystreamer.util.Settings;
 import java.util.*;
-
+import org.json.simple.JSONObject;
 import org.apache.logging.log4j.Logger;
 
 public class RulesEngine {
@@ -247,7 +247,7 @@ public class RulesEngine {
         }
     }
 
-    public boolean triggerActivityBroadcast(String activity, Connection originalCon) {
+    public boolean triggerActivityBroadcast(JSONObject activity, Connection originalCon) {
 
         ControlSolution server = ControlSolution.getInstance();
 

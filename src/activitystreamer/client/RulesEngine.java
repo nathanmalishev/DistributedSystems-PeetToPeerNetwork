@@ -92,18 +92,8 @@ public class RulesEngine {
     }
 
     public boolean triggerActivityBroadcast(ActivityBroadcast msg, Connection con) {
-       
-    	Gson gson = new Gson();
-    	JSONParser parser = new JSONParser();
-    	JSONObject json = new JSONObject();
-    	System.out.println("--- Client --- " + msg.getActivity() );
-    	try { 
-        	json = (JSONObject) parser.parse(msg.getActivity());
-    	} catch (Exception e) {
-    		log.error(e);
-    	}
         try{
-			ClientSolution.getInstance().getTextFrame().setOutputText(json);
+			ClientSolution.getInstance().getTextFrame().setOutputText(msg.getActivity());
 		}catch(Exception e){
 			log.error(e);
 		}
