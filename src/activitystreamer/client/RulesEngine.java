@@ -25,6 +25,7 @@ public class RulesEngine {
     }
 
     public boolean triggerResponse(JsonMessage msg, Connection con) {
+        System.out.println(msg);
         // If message factory returned null, means message was invalid
         if (msg == null) {
             return triggerInvalidMessage(con, InvalidMessage.invalidMessageTypeError);
@@ -47,6 +48,9 @@ public class RulesEngine {
                 
             case "REDIRECT" :
             	return triggerRedirectMessage((Redirect)msg, con);
+
+            case "REGISTER_FAILED" :
+                return triggerRegisterFailed((RegisterFailed) msg, con);
 
             case "REGISTER_SUCCESS" :
                 return triggerRegisterSuccess((RegisterSuccess) msg, con);
@@ -80,6 +84,11 @@ public class RulesEngine {
         con.writeMsg(loginMsg.toData());
 
         return false;
+    }
+
+    public boolean triggerRegisterFailed(RegisterFailed msg, Connection con) {
+        log.info("Register failed: " + msg.getInfo());
+        return true;
     }
 
     public boolean triggerActivityBroadcast(ActivityBroadcast msg, Connection con) {
