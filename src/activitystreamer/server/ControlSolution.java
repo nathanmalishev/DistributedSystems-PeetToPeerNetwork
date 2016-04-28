@@ -45,7 +45,7 @@ public class ControlSolution extends Control {
         lockRequests = new HashMap<>();
         lockConnections = new HashMap<>();
         unauthClients = new ArrayList<>();
-		loggedInUsernames = new HashMap<Connection, String>();
+		loggedInUsernames = new HashMap<>();
 		
 		// check if we should initiate a connection and do so if necessary
 		initiateConnection();
@@ -90,6 +90,8 @@ public class ControlSolution extends Control {
 	@Override
 	public void connectionClosed(Connection con){
 		super.connectionClosed(con);
+		if (unauthClients.contains(con)) unauthClients.remove(con);
+		if (loggedInUsernames.containsKey(con)) loggedInUsernames.remove(con);
 
 	}
 	

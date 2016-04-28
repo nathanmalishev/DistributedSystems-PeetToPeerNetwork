@@ -129,7 +129,7 @@ public class RulesEngine {
     public boolean triggerLogin(Connection con) {
 
         Login loginMsg = new Login(Settings.getUsername(), Settings.getSecret());
-        log.info("Lo    gging in with: " + Settings.getUsername() + " " + Settings.getSecret());
+        log.info("Logging in with: " + Settings.getUsername() + " " + Settings.getSecret());
         con.writeMsg(loginMsg.toData());
         return false;
     }
