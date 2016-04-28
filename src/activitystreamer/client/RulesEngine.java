@@ -25,7 +25,6 @@ public class RulesEngine {
     }
 
     public boolean triggerResponse(JsonMessage msg, Connection con) {
-        System.out.println(msg);
         // If message factory returned null, means message was invalid
         if (msg == null) {
             return triggerInvalidMessage(con, InvalidMessage.invalidMessageTypeError);

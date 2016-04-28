@@ -138,7 +138,7 @@ public class ClientSolution extends Thread {
 
 		MessageFactory msgFactory = new MessageFactory();
 		JsonMessage receivedMessage = msgFactory.buildMessage(msg, log);
-		System.out.println(receivedMessage);
+		log.info("Received: " + receivedMessage.toData());
 		return rulesEngine.triggerResponse(receivedMessage, con);
 	}
 
