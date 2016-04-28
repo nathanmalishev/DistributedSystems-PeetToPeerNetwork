@@ -242,8 +242,10 @@ public class RulesEngine {
         if (!alreadyLoggedIn(msg.getUsername(), con)) {
             return triggerAuthenticationFail(con, ActivityMessage.alreadyAuthenticatedError);
         } else {
-
-            return triggerActivityBroadcast(msg.getActivity());
+            // Add user field, broadcast.
+            JSONObject msgActivity = msg.getActivity();
+            msgActivity.put("authenticated_user", msg.getUsername());
+            return triggerActivityBroadcast(msgActivity);
         }
     }
 
