@@ -46,7 +46,7 @@ public class RulesEngine {
                 return triggerActivityMessageRead((ActivityMessage)msg, con);
 
             case "ACTIVITY_BROADCAST":
-                return triggerActivityBroadcastRead((ActivityBroadcast)msg, con);
+                return triggerActivityBroadcastRead((ActivityBroadcast)msg);
 
             case "INVALID_MESSAGE" :
 
@@ -243,28 +243,26 @@ public class RulesEngine {
             return triggerAuthenticationFail(con, ActivityMessage.alreadyAuthenticatedError);
         } else {
 
-            return triggerActivityBroadcast(msg.getActivity(), con);
+            return triggerActivityBroadcast(msg.getActivity());
         }
     }
 
-    public boolean triggerActivityBroadcast(JSONObject activity, Connection originalCon) {
+    public boolean triggerActivityBroadcast(JSONObject activity) {
 
         ControlSolution server = ControlSolution.getInstance();
 
         ActivityBroadcast activityBroadcast = new ActivityBroadcast(activity);
 
         for (Connection connection : server.getConnections()) {
-            if (!(connection==originalCon)) {
-                connection.writeMsg(activityBroadcast.toData());
-            }
+            connection.writeMsg(activityBroadcast.toData());
         }
         return false;
 
     }
 
-    public boolean triggerActivityBroadcastRead(ActivityBroadcast msg, Connection con) {
+    public boolean triggerActivityBroadcastRead(ActivityBroadcast msg) {
 
-        return triggerActivityBroadcast(msg.getActivity(), con);
+        return triggerActivityBroadcast(msg.getActivity());
 
     }
 
