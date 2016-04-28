@@ -286,17 +286,17 @@ public class RulesEngine {
         String msgUsername = msg.getUsername();
         String msgSecret = msg.getSecret();
 
-        // Check if already registered.
-        if (server.getClientDB().containsKey(msgUsername)) {
-            log.info(msgUsername + " already known.");
-            con.writeMsg(new RegisterFailed(msgUsername).toData());
-            return true;
-        }
-
         // Check if already logged in on this connection.
         if (alreadyLoggedIn(msgUsername, con)) {
             log.info("User attempting to register while logged in.");
             con.writeMsg(new InvalidMessage(InvalidMessage.alreadyLoggedInError).toData());
+            return true;
+        }
+
+        // Check if already registered.
+        if (server.getClientDB().containsKey(msgUsername)) {
+            log.info(msgUsername + " already known.");
+            con.writeMsg(new RegisterFailed(msgUsername).toData());
             return true;
         }
 
