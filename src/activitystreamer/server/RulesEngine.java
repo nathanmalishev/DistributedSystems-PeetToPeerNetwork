@@ -284,7 +284,7 @@ public class RulesEngine {
         // Check if connection authenticated.
         if (!server.getAuthServers().contains(con))
             return triggerInvalidMessage(con, InvalidMessage.unauthorisedServerError);
-        
+
         return triggerActivityBroadcast(msg.getActivity(), con);
 
     }
@@ -357,6 +357,10 @@ public class RulesEngine {
         // Get known servers.
         ArrayList<Connection> knownServers = server.getAuthServers();
 
+        // Check if server authenticated.
+        if (!knownServers.contains(con))
+            return triggerInvalidMessage(con, InvalidMessage.unauthorisedServerError);
+
         // Check already registered (same or different name), or already registering
         if (server.userKnown(msgUsername) || server.hasLockRequest(msgUsername)) {
             // Broadcast lock denied.
@@ -391,6 +395,10 @@ public class RulesEngine {
 
     public boolean triggerLockAllowedRead(LockAllowed msg, Connection con) {
         ControlSolution server = ControlSolution.getInstance();
+
+        // Check if server authenticated.
+        if (!server.getAuthServers().contains(con))
+            return triggerInvalidMessage(con, InvalidMessage.unauthorisedServerError);
 
         // Get servers we are waiting for.
         String msgUsername = msg.getUsername();
@@ -442,6 +450,10 @@ public class RulesEngine {
 
     public boolean triggerLockDeniedRead(LockDenied msg, Connection con) {
         ControlSolution server = ControlSolution.getInstance();
+
+        // Check if server authenticated.
+        if (!server.getAuthServers().contains(con))
+            return triggerInvalidMessage(con, InvalidMessage.unauthorisedServerError);
 
         String msgUsername = msg.getUsername();
         String msgSecret = msg.getSecret();
