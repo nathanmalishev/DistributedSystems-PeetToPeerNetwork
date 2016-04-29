@@ -1,5 +1,6 @@
 package activitystreamer.messages;
 
+
 public class AuthenticationFail extends JsonMessage {
 
 	private String info;

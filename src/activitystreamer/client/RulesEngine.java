@@ -14,7 +14,8 @@ import com.google.gson.stream.MalformedJsonException;
 import java.util.HashMap;
 
 /**
- * Created by Jeames on 24/04/2016.
+ * Class controls the processing of incoming messages from the client side
+ *  and determines what action to perform according to the type of message. 
  */
 public class RulesEngine {
 
@@ -24,7 +25,16 @@ public class RulesEngine {
         this.log = log;
     }
 
+    /**
+     * Decides what kind of action to take depending on the type of 
+     * message which is passed in.
+     * 
+     * @param msg	Incoming Message
+     * @param con	Connection which sent the message
+     * @return		True if connection is to be closed, false otherwise
+     */
     public boolean triggerResponse(JsonMessage msg, Connection con) {
+    	
         // If message factory returned null, means message was invalid
         if (msg == null) {
             return triggerInvalidMessage(con, InvalidMessage.invalidMessageTypeError);
@@ -59,7 +69,9 @@ public class RulesEngine {
         }
     }
     
-    /* Always ensures connection is closed */
+    /**
+     *  Always ensures connection is closed 
+     */
     public boolean triggerRedirectMessage(Redirect msg, Connection con){
     	// Simply close the connection
     	log.info("Being Redirected to, Hostname: " + msg.getHostname() + " Port: " + msg.getPort());
@@ -68,13 +80,19 @@ public class RulesEngine {
     	return true;
     }
     
-    /* Always ensures connection is held open */
+    /**
+     *  Always ensures connection is held open 
+     */
     public boolean triggerLoginSuccess(LoginSuccess msg, Connection con){
 
     	log.info("Login successful: " + msg.getInfo());
     	return false;
     }
-
+    
+    /**
+     * Ensures connection is held open and sends a Login Message back to the 
+     * connection.
+     */
     public boolean triggerRegisterSuccess(RegisterSuccess msg, Connection con) {
         log.info("Register successful: " + msg.getInfo());
 
@@ -84,14 +102,22 @@ public class RulesEngine {
 
         return false;
     }
-
+    
+    /** 
+     * Ensures the connection is closed.
+     */
     public boolean triggerRegisterFailed(RegisterFailed msg, Connection con) {
         log.info("Register failed: " + msg.getInfo());
         return true;
     }
-
+    
+    /**
+     * Displays the broadcasted message to the Output text frame on the GUI.
+     * Connection is maintained.
+     */
     public boolean triggerActivityBroadcast(ActivityBroadcast msg, Connection con) {
-        try{
+        
+    	try{
 			ClientSolution.getInstance().getTextFrame().setOutputText(msg.getActivity());
 		}catch(Exception e){
 			log.error(e);
@@ -99,24 +125,36 @@ public class RulesEngine {
         return false;
     }
 
+    /**
+     * Ensures the connection is always closed.
+     */
     public boolean triggerLoginFailedRead(LoginFailed msg, Connection con) {
         log.info("Login Failed: " + msg.getInfo());
         return true;
 
     }
 
+    /**
+     * Ensures the connection is always closed.
+     */
     public boolean triggerInvalidMessageRead(InvalidMessage msg, Connection con) {
         log.info("Invalid Message Received: " + msg.getInfo());
         return true;
     }
 
+    /**
+     * Sends a logout message to the server, and closes the connection.
+     */
     public boolean triggerLogout(Connection con) {
         Logout logoutMsg = new Logout(Logout.disconnectLogout);
         log.info("Logging out");
         con.writeMsg(logoutMsg.toData());
         return true;
     }
-
+    
+    /**
+     * Sends an Invalid_Message to the connection and closes the connection.
+     */
     public boolean triggerInvalidMessage(Connection con, String info) {
 
         JsonMessage response = new InvalidMessage(info);
@@ -125,6 +163,9 @@ public class RulesEngine {
         return true;
     }
 
+    /**
+     * Sends a login message to the connection.
+     */
     public boolean triggerLogin(Connection con) {
 
         Login loginMsg = new Login(Settings.getUsername(), Settings.getSecret());
@@ -133,6 +174,9 @@ public class RulesEngine {
         return false;
     }
 
+    /**
+     * Sends a Register message to the connection.
+     */
     public boolean triggerRegister(Connection con) {
 
         Register registerMsg = new Register(Settings.getUsername(), Settings.getSecret());

@@ -14,8 +14,9 @@ import org.apache.logging.log4j.Logger;
 
 import activitystreamer.util.Settings;
 
-
+/** Class contains information related to a Servers connection */
 public class Connection extends Thread {
+	
 	private static final Logger log = LogManager.getLogger();
 	private DataInputStream in;
 	private DataOutputStream out;
@@ -35,7 +36,7 @@ public class Connection extends Thread {
 	    start();
 	}
 	
-	/*
+	/**
 	 * returns true if the message was written, otherwise false
 	 */
 	public boolean writeMsg(String msg) {

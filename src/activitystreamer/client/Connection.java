@@ -1,17 +1,16 @@
 package activitystreamer.client;
 
 
-import activitystreamer.server.Control;
 import activitystreamer.util.Settings;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.*;
 import java.net.Socket;
 
-
+/** Class contains information related to the Clients connection */
 public class Connection {
+	
 	private static final Logger log = LogManager.getLogger();
 	private DataInputStream in;
 	private DataOutputStream out;
@@ -30,8 +29,8 @@ public class Connection {
 	    open = true;
 	}
 	
-	/*
-	 * returns true if the message was written, otherwise false
+	/**
+	 * Returns true if the message was written, otherwise false
 	 */
 	public boolean writeMsg(String msg) {
 		if(open){
@@ -42,6 +41,7 @@ public class Connection {
 		return false;
 	}
 	
+	
 	public void closeCon(){
 		log.info("closing connection "+Settings.socketAddress(socket));
 		try {
@@ -51,7 +51,6 @@ public class Connection {
 			in.close();
 			out.close();
 			socket.close();
-			System.exit(1);
 		} catch (IOException e) {
 			// already closed?
 			log.error("received exception closing the connection "+Settings.socketAddress(socket)+": "+e);

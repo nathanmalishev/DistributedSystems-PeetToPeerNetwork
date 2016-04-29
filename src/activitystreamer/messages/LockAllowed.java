@@ -1,6 +1,7 @@
 package activitystreamer.messages;
 
 public class LockAllowed extends JsonMessage {
+	
     private String username;
     private String secret;
 

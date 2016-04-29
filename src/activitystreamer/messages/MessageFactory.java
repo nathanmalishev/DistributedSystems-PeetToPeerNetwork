@@ -1,12 +1,17 @@
 package activitystreamer.messages;
 
-// Need to change this so it is importing the one in our library
+
 import activitystreamer.server.Control;
 import com.google.gson.*;
 import com.google.gson.stream.MalformedJsonException;
 import org.apache.logging.log4j.Logger;
 import java.lang.reflect.*;
 
+/**
+ * Class controls the creation of the particular JSON Message which
+ * is required for sending. Each message will be an instance of its own class
+ * containing information relevant to the protocol.
+ */
 public class MessageFactory {
 
     public JsonMessage buildMessage(String msg, Logger log) {

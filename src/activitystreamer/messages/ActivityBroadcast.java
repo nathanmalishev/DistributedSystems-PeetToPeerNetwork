@@ -1,9 +1,7 @@
 package activitystreamer.messages;
 import org.json.simple.JSONObject;
 
-/**
- * Created by Jeames on 27/04/2016.
- */
+
 public class ActivityBroadcast extends JsonMessage {
 
     private JSONObject activity;

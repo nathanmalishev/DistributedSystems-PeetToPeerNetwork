@@ -13,24 +13,26 @@ import java.io.*;
 import java.net.Socket;
 
 
-
+/** Class handles the Client Functionality. Including connecting to Server,
+ * sending activity messages and incoming message handling */
 public class ClientSolution extends Thread {
-	private static final Logger log = LogManager.getLogger();
-	private static ClientSolution clientSolution;
-	private TextFrame textFrame;
-	private boolean open = false;
-	private boolean redirect = false;
-	/*
-	 * additional variables
-	 */
-	public Connection myConnection;
-	private JSONParser parser = new JSONParser();
-	private RulesEngine rulesEngine;
-	private Socket s;
-	public TextFrame getTextFrame() { return textFrame; }
-	public void setOpen(boolean open) { this.open = open; }
+	
+	private static ClientSolution clientSolution;		// Singleton Object
+	private TextFrame textFrame;						// GUI Frame
+	
+	private boolean open = false;						// Connection open flag
+	private boolean redirect = false;					// Redirect needed flag
 
+	public Connection myConnection;						// Connection to Server
+	private JSONParser parser = new JSONParser();		
+	private RulesEngine rulesEngine;					// Handles message processing
+	private Socket s;									// Connection socket
+	private static final Logger log = LogManager.getLogger();
+	
+	/* Getters and Setters */
+	public void setOpen(boolean open) { this.open = open; }
 	public void setRedirect(boolean redirect) { this.redirect = redirect; }
+	public TextFrame getTextFrame() { return textFrame; }
 
 	// this is a singleton object
 	public static ClientSolution getInstance(){
@@ -52,6 +54,9 @@ public class ClientSolution extends Thread {
 		start();
 	}
 
+	/**
+	 * Initializes connection to the Server.
+	 */
 	private void initialiseConnection() {
 
 		connectToServer();
@@ -68,7 +73,11 @@ public class ClientSolution extends Thread {
 
 	}
 
+	/**
+	 * Creates a socket to connect to and instantiates a Connection object with that Socket 
+	 */
 	public void connectToServer() {
+		
 		try {
 			s = new Socket(Settings.getRemoteHostname(), Settings.getRemotePort());
 			myConnection = new Connection(s);
@@ -76,19 +85,32 @@ public class ClientSolution extends Thread {
 			System.out.print(e);
 		}
 	}
-
+	
+	/** 
+	 * Called when redirecting, to update server details.
+	 * 
+	 * @param hostname	New Host connection
+	 * @param port		New Port connection
+	 */
 	public void resetServer(String hostname, int port) {
 		Settings.setRemoteHostname(hostname);
 		Settings.setRemotePort(port);
 	}
-
+	
+	/**
+	 * Connects to the newly given hostname and port, and attempts to login.
+	 */
 	public void redirectConnection() {
 		connectToServer();
 		rulesEngine.triggerLogin(myConnection);
 	}
 
-	// called by the gui when the user clicks "send"
+	/** called by the GUI when the user clicks "send"
+	 * 
+	 * @param activityObj
+	 */
 	public void sendActivityObject(JSONObject activityObj){
+		
 		try{
 			ActivityMessage activityMessage = new ActivityMessage(Settings.getUsername(), Settings.getSecret(), activityObj);
 			myConnection.writeMsg(activityMessage.toData());
@@ -100,20 +122,28 @@ public class ClientSolution extends Thread {
 		}
 	}
 	
-	// called by the gui when the user clicks disconnect
+	/** 
+	 * Called by the GUI when the user clicks disconnect 
+	 */
 	public void disconnect(){
+		
 		textFrame.setVisible(false);
-
 		rulesEngine.triggerLogout(myConnection);
-
 		myConnection.closeCon();
+		System.exit(1);
 	}
 	
 
-	// the client's run method, to receive messages
+	/**
+	 *  The client's run method, to receive messages
+	 */
 	@Override
 	public void run(){
+		
+		// Continues until the connection is closed with the client
 		while (open) {
+			
+			// Redirect if required
 			if (!myConnection.isOpen()) {
 				if (redirect) {
 					redirectConnection();
@@ -133,7 +163,14 @@ public class ClientSolution extends Thread {
 			}
 		}
 	}
-
+	
+	/**
+	 * Method handles processing of incoming messages.
+	 * 
+	 * @param con Connection of incoming message
+	 * @param msg Message received
+	 * @return True if the connection is to be closed, false otherwise
+	 */
 	public boolean process(Connection con, String msg){
 
 		MessageFactory msgFactory = new MessageFactory();
@@ -142,9 +179,3 @@ public class ClientSolution extends Thread {
 	}
 
 }
-
-/* 		try{
-			textFrame.setOutputText( (JSONObject) parser.parse(msg) );
-		}catch(Exception e){
-
-		}*/

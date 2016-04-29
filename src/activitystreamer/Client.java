@@ -67,12 +67,6 @@ public class Client {
 		
 		
 		log.info("starting client");
-		
-		
-		/*
-		 * maybe change the line below to suit your program
-		 */
-		
 		ClientSolution c = ClientSolution.getInstance(); 
 				
 	}

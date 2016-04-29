@@ -13,40 +13,31 @@ import activitystreamer.util.Settings;
 import activitystreamer.messages.*;
 
 public class Control extends Thread {
+	
 	private static final Logger log = LogManager.getLogger();
-	private ArrayList<Connection> connections; // A list of all connections
-	private ArrayList<Connection> authServers; // A list of authorized servers
-	private ArrayList<Connection> authClients; // A list of logged in clients
-	private ArrayList<Connection> unauthConnections; // A list of unauthorized connections
-															// (may be servers that havn't authorized or clients that havn't logged in)
-	private HashMap<String, String> clientDB;
-	private HashMap<Connection, ServerAnnounce> serverLoads;
+	private ArrayList<Connection> connections; 				// A list of all connections
+	private ArrayList<Connection> authServers; 				// A list of authorized servers
+	private ArrayList<Connection> authClients; 				// A list of logged in clients
+	private ArrayList<Connection> unauthConnections; 		/* A list of unauthorized connections
+															 (may be servers that havn't authorized or 
+															 clients that havn't logged in) */
+	
+	private HashMap<String, String> clientDB;				// Map of Registered Users
+	private HashMap<Connection, ServerAnnounce> serverLoads;// Map of current server loads
 
 	private boolean term=false;
 	private Listener listener;
-	
-	protected static Control control = null;
+	protected static Control control = null;				// Singleton Object
 
-	public final ArrayList<Connection> getConnections() {
-		return connections;
-	}
-
-	public final ArrayList<Connection> getAuthServers() {
-		return authServers;
-	}
-
-	public final ArrayList<Connection> getUnauthConnections() {
-		return unauthConnections;
-	}
-
-	public final ArrayList<Connection> getAuthClients() {
-		return authClients;
-	}
-
+	// Getters and Setters
+	public final ArrayList<Connection> getConnections() {return connections;}
+	public final ArrayList<Connection> getAuthServers() {return authServers;}
+	public final ArrayList<Connection> getUnauthConnections() {return unauthConnections;}
+	public final ArrayList<Connection> getAuthClients() {return authClients;}
 	public final HashMap<String, String> getClientDB() { return clientDB; }
-	
 	public final HashMap<Connection, ServerAnnounce> getServerLoads() { return serverLoads; }
 
+	
 	public static Control getInstance() {
 		if(control==null){
 			control=new Control();
@@ -55,6 +46,7 @@ public class Control extends Thread {
 	}
 	
 	public Control() {
+		
 		// initialize the connections arrays
 		authServers = new ArrayList<Connection>();
 		unauthConnections = new ArrayList<Connection>();
@@ -72,7 +64,8 @@ public class Control extends Thread {
 		}	
 	}
 	
-	/* Called when starting a server and connects to the provided remote host
+	/**
+	 * Called when starting a server and connects to the provided remote host
 	 * if it is supplied.
 	 * To successfully connect the secret must match that of the given remote host.
 	 */
@@ -100,7 +93,7 @@ public class Control extends Thread {
 		}
 	}
 	
-	/*
+	/**
 	 * Processing incoming messages from the connection.
 	 * Return true if the connection should close.
 	 */

@@ -6,6 +6,10 @@ import java.util.*;
 import org.json.simple.JSONObject;
 import org.apache.logging.log4j.Logger;
 
+/**
+ * Class controls the processing of incoming messages from the server side
+ * and determines what action to perform according to the type of message. 
+ */
 public class RulesEngine {
 
     private Logger log;
@@ -14,8 +18,17 @@ public class RulesEngine {
         this.log = log;
     }
 
+    /**
+     * Decides what kind of action to take depending on the type of 
+     * message which is passed in.
+     * 
+     * @param msg	Incoming Message
+     * @param con	Connection which sent the message
+     * @return		True if connection is to be closed, false otherwise
+     */
     public boolean triggerResponse(JsonMessage msg, Connection con) {
-        // If message factory returned null, means message was invalid
+       
+    	// If message factory returned null, means message was invalid
         if (msg == null) {
             return triggerInvalidMessage(con, InvalidMessage.invalidMessageTypeError);
         }
@@ -70,7 +83,9 @@ public class RulesEngine {
     }
 
 
-    /* Return True if the server is to be shut down */
+    /**
+     *  Return True if the server is to be shut down 
+     */
     public boolean triggerServerAnnounceRead(ServerAnnounce msg, Connection con) {
     	
     	ControlSolution server = ControlSolution.getInstance();
@@ -91,6 +106,10 @@ public class RulesEngine {
         return false;
     }
 
+    /**
+     * Processing the incoming Authentication attempt, and adds the server to 
+     * the list of authorised connections if valid.
+     */
     public boolean triggerAuthenticateAttempt(Authenticate msg, Connection con) {
 
         log.info("Authentication request received with secret: " + msg.getSecret());
@@ -119,6 +138,9 @@ public class RulesEngine {
         }
     }
 
+    /**
+     * Sends an Authentication Fail to the connection and closes the connection.
+     */
     public boolean triggerAuthenticationFail(Connection con, String info) {
         log.info("Failing Authentication Request: " + info);
 
@@ -128,11 +150,13 @@ public class RulesEngine {
         return true;
     }
 
-    /* Logs the information and returns true to indicate the connection will be closed */
+    /**
+     *  Logs the information and returns true to indicate the connection will be closed 
+     */
     public boolean triggerAuthenticationFailRead(AuthenticationFail msg, Connection con) {
-        log.info("Authentication Request Failed: " + msg.getInfo());
-        // Display information on failed authentication
-
+        
+    	 // Display information on failed authentication
+    	log.info("Authentication Request Failed: " + msg.getInfo());
         log.info("command : " + msg.getCommand());
         log.info("info : " + msg.getInfo());
 
@@ -144,7 +168,11 @@ public class RulesEngine {
         return true;
 
     }
-
+    
+    /**
+     * Processes the incoming Login attempt, and adds the user to the logged in list
+     * if valid.
+     */
     public boolean triggerLoginRead(Login msg, Connection con) {
 
         log.info("Login Attempt Received: " + msg.getUsername());
@@ -169,15 +197,22 @@ public class RulesEngine {
         return triggerLoginFailed(msg, con);
     }
 
+    /**
+     * Controls the handling of adding the user to the required lists
+     */
     private void login(Login msg, Connection con) {
         ControlSolution.getInstance().getAuthClients().add(con);
         ControlSolution.getInstance().getUnauthConnections().remove(con);
         ControlSolution.getInstance().getLoggedInUsernames().put(con, msg.getUsername());
     }
 
+    /**
+     * Removes client from the logged in list
+     */
     private void logout(Connection con) {
         ControlSolution.getInstance().getLoggedInUsernames().remove(con);
     }
+
 
     private boolean alreadyLoggedIn(String username, Connection con) {
 
@@ -191,7 +226,7 @@ public class RulesEngine {
         return false;
     }
 
-    /* Sends REDIRECT message if there is a server with a load with 2 or more less than
+    /** Sends REDIRECT message if there is a server with a load with 2 or more less than
      * the current server.
      * Returns true if connection is to be closed.
      */
@@ -218,7 +253,10 @@ public class RulesEngine {
     	}
     	return false;
     }
-
+    
+    /**
+     * Closes the connection.
+     */
     public boolean triggerLogoutRead(Connection con){
         log.info("Received Logout");
         logout(con);
@@ -226,6 +264,9 @@ public class RulesEngine {
         return true;
     }
 
+    /**
+     * Writes login_failed message to the connection and closes the connection after
+     */
     public boolean triggerLoginFailed(Login msg, Connection con) {
 
         String info;
@@ -244,9 +285,14 @@ public class RulesEngine {
         return true;
 
     }
-
+    
+    /**
+     * Processes incoming activity message and broadcasts to all other connections
+     */
     public boolean triggerActivityMessageRead(ActivityMessage msg, Connection con) {
-        ControlSolution server = ControlSolution.getInstance();
+        
+    	ControlSolution server = ControlSolution.getInstance();
+    	
         if (!alreadyLoggedIn(msg.getUsername(), con)) {
             return triggerAuthenticationFail(con, ActivityMessage.alreadyAuthenticatedError);
         } else {
@@ -263,13 +309,19 @@ public class RulesEngine {
             return triggerActivityBroadcast(msgActivity, con);
         }
     }
-
+    
+    /**
+     * Processes incoming Activity_Broadcast message and broadcasts it to all other 
+     * connections it knows about.
+     */
     public boolean triggerActivityBroadcast(JSONObject activity, Connection con) {
-        log.info("Broadcasting Activity Message: " + activity);
+        
+    	log.info("Broadcasting Activity Message: " + activity);
         ControlSolution server = ControlSolution.getInstance();
 
         ActivityBroadcast activityBroadcast = new ActivityBroadcast(activity);
-
+        
+        // Send to every connection, but the one you received from
         for (Connection connection : server.getConnections()) {
             if (!connection.equals(con)) {
                 connection.writeMsg(activityBroadcast.toData());
@@ -278,9 +330,15 @@ public class RulesEngine {
         return false;
 
     }
-
+    
+    /**
+     * Checks the incoming Activity_Broadcast was sent from an Authorized Server
+     * and proceeds to broadcast
+     */
     public boolean triggerActivityBroadcastRead(ActivityBroadcast msg, Connection con) {
-        ControlSolution server = ControlSolution.getInstance();
+        
+    	ControlSolution server = ControlSolution.getInstance();
+    	
         // Check if connection authenticated.
         if (!server.getAuthServers().contains(con))
             return triggerInvalidMessage(con, InvalidMessage.unauthorisedServerError);
@@ -289,11 +347,17 @@ public class RulesEngine {
 
     }
 
+    /**
+     * Closes the connection
+     */
     public boolean triggerInvalidMessageRead(InvalidMessage msg, Connection con) {
         log.info("Received Invalid Message Response");
         return true;
     }
-
+    
+    /**
+     * Sends an Invalid_Message to the connection
+     */
     public boolean triggerInvalidMessage(Connection con, String info) {
 
         log.info("Sending Invalid Message Response: " + info);
@@ -303,8 +367,12 @@ public class RulesEngine {
         return true;
     }
 
+    /**
+     * Processes incoming Register request. Closes the connection if invalid.
+     */
     public boolean triggerRegisterRead(Register msg, Connection con) {
-        ControlSolution server = ControlSolution.getInstance();
+        
+    	ControlSolution server = ControlSolution.getInstance();
         String msgUsername = msg.getUsername();
         String msgSecret = msg.getSecret();
 
@@ -348,9 +416,13 @@ public class RulesEngine {
 
         return false;
     }
-
+    
+    /**
+     * Processes Incoming Lock_Request
+     */
     public boolean triggerLockRequestRead(LockRequest msg, Connection con) {
-        ControlSolution server = ControlSolution.getInstance();
+        
+    	ControlSolution server = ControlSolution.getInstance();
         String msgUsername = msg.getUsername();
         String msgSecret = msg.getSecret();
 
@@ -392,7 +464,10 @@ public class RulesEngine {
 
         return false;
     }
-
+    
+    /**
+     * Process incoming Lock_Allowed message
+     */
     public boolean triggerLockAllowedRead(LockAllowed msg, Connection con) {
         ControlSolution server = ControlSolution.getInstance();
 
@@ -447,7 +522,10 @@ public class RulesEngine {
 
         return false;
     }
-
+    
+    /**
+     * Process incoming Lock_denied message
+     */
     public boolean triggerLockDeniedRead(LockDenied msg, Connection con) {
         ControlSolution server = ControlSolution.getInstance();
 

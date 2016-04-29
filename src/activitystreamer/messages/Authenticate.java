@@ -1,5 +1,6 @@
 package activitystreamer.messages;
 
+
 public class Authenticate extends JsonMessage {
 	
 	private String secret;

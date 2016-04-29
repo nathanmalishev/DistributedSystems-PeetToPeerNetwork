@@ -17,15 +17,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
-
+/** 
+ * Class handles the Server Functionality. */
 public class ControlSolution extends Control {
 	
 	private static final Logger log = LogManager.getLogger();
 
-    private ArrayList<Connection> unauthClients;
-    private HashMap<String, HashSet<Connection>> lockRequests;
-    private HashMap<String, Connection> lockConnections;
-	private HashMap<Connection, String> loggedInUsernames;
+    private ArrayList<Connection> unauthClients;				// Unauthorized Connections
+    private HashMap<String, HashSet<Connection>> lockRequests;	// Outstanding Lock Requests
+    private HashMap<String, Connection> lockConnections;		
+	private HashMap<Connection, String> loggedInUsernames;		// Current active users
 
 	public HashMap<Connection, String> getLoggedInUsernames() { return loggedInUsernames; }
 
@@ -56,36 +57,31 @@ public class ControlSolution extends Control {
 	}
 	
 	
-	/*
-	 * a new incoming connection
+	/**
+	 * Process a new incoming connection
 	 */
 	@Override
 	public Connection incomingConnection(Socket s) throws IOException{
+		
 		Connection con = super.incomingConnection(s);
-		/*
-		 * do additional things here
-		 */
 		
 		return con;
 	}
 	
-	/*
-	 * a new outgoing connection
+	/**
+	 * Process a new outgoing connection
 	 */
 	@Override
 	public Connection outgoingConnection(Socket s) throws IOException{
+		
 		Connection con = super.outgoingConnection(s);
-		/*
-		 * do additional things here
-		 */
-		
-		
+
 		return con;
 	}
 	
 	
-	/*
-	 * the connection has been closed
+	/**
+	 * A connection has been closed
 	 */
 	@Override
 	public void connectionClosed(Connection con){
@@ -96,9 +92,12 @@ public class ControlSolution extends Control {
 	}
 	
 	
-	/*
-	 * process incoming msg, from connection con
-	 * return true if the connection should be closed, false otherwise
+	/**
+	 *  Process incoming msg, from connection con.
+	 *  
+	 *  @param con 	Incomming connection
+	 *  @param msg	Incoming Message
+	 *  @return		True if the connection is to be closed, false otherwise
 	 */
 	@Override
 	public synchronized boolean process(Connection con,String msg){
@@ -112,7 +111,7 @@ public class ControlSolution extends Control {
 	}
 
 
-	/*
+	/**
 	 * Called once every few seconds
 	 * Servers announce their current load to all other servers
 	 * Return true if server should shut down, false otherwise
@@ -122,51 +121,48 @@ public class ControlSolution extends Control {
 
 		ServerAnnounce serverAnnounce = new ServerAnnounce(Settings.getId(), getAuthClients().size(), Settings.getLocalHostname(), String.valueOf(Settings.getLocalPort()));
 
-		// Sends JSON Object to Authorized Servers only
+		// Sends Activity Boradcast to Authorized Servers only
 		for(Connection c : getAuthServers()){
 			c.writeMsg(serverAnnounce.toData());
 		}
 
 		return false;
 	}
-
+	
+	/**
+	 * Adds a user to the local storage
+	 */
     public void addUser(String username, String secret) {
         getClientDB().put(username, secret);
     }
 
+    /**
+     * Tests if the user name and secret are not a match
+     */
     public boolean userKnownDifferentSecret(String username, String secret) {
         return getClientDB().containsKey(username) && !getClientDB().get(username).equals(secret);
     }
 
+    /**
+     * Tests if the user name and secret are a match
+     */
     public boolean userKnownSameSecret(String username, String secret) {
         return userKnown(username) && getClientDB().get(username).equals(secret);
     }
-
+    
+    /**
+     * Tests if the user name if contained in the local storage
+     */
     public boolean userKnown(String username) {
         return getClientDB().containsKey(username);
     }
-
+    
+    /**
+     * Removes user from the local storage
+     */
     public void removeUser(String username) {
         getClientDB().remove(username);
     }
-
-    public ArrayList<Connection> getUnauthClients() { return unauthClients; }
-
-    public void addUnauthClient(Connection con) {
-        getUnauthClients().add(con);
-    }
-
-    public void removeUnauthClient(Connection con) {
-        getUnauthClients().remove(con);
-    }
-
-    public HashSet<Connection> getLockRequest(String username) { return lockRequests.get(username); }
-    public boolean hasLockRequest(String username) { return lockRequests.containsKey(username); }
-    public void addLockRequest(String username, HashSet<Connection> set) { lockRequests.put(username, set); }
-
-    public void addConnectionForLock(String username, Connection con) { lockConnections.put(username, con); }
-    public Connection getConnectionForLock(String username) { return lockConnections.get(username); }
-    public boolean hasConnectionForLock(String username) { return lockConnections.containsKey(username); }
 
     public void removeLockRequestsAndConnection(String username) {
         if (lockRequests.containsKey(username))
@@ -174,5 +170,17 @@ public class ControlSolution extends Control {
         if (lockConnections.containsKey(username))
             lockConnections.remove(username);
     }
+    
+    // Getters & Setters
+    public ArrayList<Connection> getUnauthClients() { return unauthClients; }
+    public void addUnauthClient(Connection con) {getUnauthClients().add(con);}
+    public void removeUnauthClient(Connection con) {getUnauthClients().remove(con);}
+    public HashSet<Connection> getLockRequest(String username) { return lockRequests.get(username); }
+    public boolean hasLockRequest(String username) { return lockRequests.containsKey(username); }
+    public void addLockRequest(String username, HashSet<Connection> set) { lockRequests.put(username, set); }
+    public void addConnectionForLock(String username, Connection con) { lockConnections.put(username, con); }
+    public Connection getConnectionForLock(String username) { return lockConnections.get(username); }
+    public boolean hasConnectionForLock(String username) { return lockConnections.containsKey(username); }
+
 
 }	
