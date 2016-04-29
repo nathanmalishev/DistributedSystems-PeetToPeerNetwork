@@ -280,7 +280,11 @@ public class RulesEngine {
     }
 
     public boolean triggerActivityBroadcastRead(ActivityBroadcast msg, Connection con) {
-
+        ControlSolution server = ControlSolution.getInstance();
+        // Check if connection authenticated.
+        if (!server.getAuthServers().contains(con))
+            return triggerInvalidMessage(con, InvalidMessage.unauthorisedServerError);
+        
         return triggerActivityBroadcast(msg.getActivity(), con);
 
     }
