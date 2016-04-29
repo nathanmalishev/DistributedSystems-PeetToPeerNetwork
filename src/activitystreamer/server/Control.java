@@ -119,6 +119,8 @@ public class Control extends Thread {
 			if (authServers.contains(con)) { authServers.remove(con); }
 			if (serverLoads.containsKey(con)) { serverLoads.remove(con); }
 			if (unauthConnections.contains(con)) unauthConnections.remove(con);
+			if (ControlSolution.getInstance().getUnauthClients().contains(con))
+				ControlSolution.getInstance().removeUnauthClient(con);
 		}
 	}
 	
