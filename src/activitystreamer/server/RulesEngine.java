@@ -46,7 +46,7 @@ public class RulesEngine {
                 return triggerActivityMessageRead((ActivityMessage)msg, con);
 
             case "ACTIVITY_BROADCAST":
-                return triggerActivityBroadcastRead((ActivityBroadcast)msg);
+                return triggerActivityBroadcastRead((ActivityBroadcast)msg, con);
 
             case "INVALID_MESSAGE" :
 
@@ -93,6 +93,8 @@ public class RulesEngine {
 
     public boolean triggerAuthenticateAttempt(Authenticate msg, Connection con) {
 
+        log.info("Authentication request received with secret: " + msg.getSecret());
+
         // Check if secret is valid
         if(!secretMatch(msg.getSecret())){
 
@@ -111,14 +113,14 @@ public class RulesEngine {
 
             // Add to authorized list
             ControlSolution.getInstance().getAuthServers().add(con);
-
+            log.info("Authentication Successful");
             // Otherwise, do not close the connection
             return false;
         }
     }
 
     public boolean triggerAuthenticationFail(Connection con, String info) {
-
+        log.info("Failing Authentication Request: " + info);
 
         JsonMessage response = new AuthenticationFail(info);
         con.writeMsg(response.toData());
@@ -128,7 +130,7 @@ public class RulesEngine {
 
     /* Logs the information and returns true to indicate the connection will be closed */
     public boolean triggerAuthenticationFailRead(AuthenticationFail msg, Connection con) {
-
+        log.info("Authentication Request Failed: " + msg.getInfo());
         // Display information on failed authentication
 
         log.info("command : " + msg.getCommand());
@@ -145,6 +147,8 @@ public class RulesEngine {
 
     public boolean triggerLoginRead(Login msg, Connection con) {
 
+        log.info("Login Attempt Received: " + msg.getUsername());
+
         if (isClient(msg) && isCorrectClientSecret(msg)) {
 
             if (!alreadyLoggedIn(msg.getUsername(), con)) {
@@ -153,6 +157,7 @@ public class RulesEngine {
 
             	// Send Login Success Message
             	String info = LoginSuccess.loginSuccess + msg.getUsername();
+                log.info("Login Successful: " + msg.getUsername());
             	LoginSuccess response = new LoginSuccess(info);
             	con.writeMsg(response.toData());
 
@@ -191,7 +196,7 @@ public class RulesEngine {
      * Returns true if connection is to be closed.
      */
     public boolean triggerRedirect(Connection con){
-    	
+
     	ControlSolution currentInstance = ControlSolution.getInstance();
     	
     	// Check all Server Loads
@@ -203,7 +208,9 @@ public class RulesEngine {
     			
     			// Send Redirect Message
     			Redirect response = new Redirect(server.getValue().getHostname(), server.getValue().getPort());
-    			con.writeMsg(response.toData());
+                log.info("Redirecting client to: " + response.getHostname());
+
+                con.writeMsg(response.toData());
                 logout(con);
     			return true;
     		}
@@ -213,6 +220,7 @@ public class RulesEngine {
     }
 
     public boolean triggerLogoutRead(Connection con){
+        log.info("Received Logout");
         logout(con);
         con.closeCon();
         return true;
@@ -230,7 +238,7 @@ public class RulesEngine {
             info = LoginFailed.genericLoginFailedError;
         }
 
-        log.info(info);
+        log.info("Login Failed: " + info);
         JsonMessage response = new LoginFailed(info);
         con.writeMsg(response.toData());
         return true;
@@ -243,38 +251,48 @@ public class RulesEngine {
             return triggerAuthenticationFail(con, ActivityMessage.alreadyAuthenticatedError);
         } else {
             // Add user field, broadcast.
+            log.info("Activity Message Received From: " + msg.getUsername());
+
             JSONObject msgActivity = msg.getActivity();
             msgActivity.put("authenticated_user", msg.getUsername());
-            return triggerActivityBroadcast(msgActivity);
+
+            // Resend the message back to the original client so they display it
+            ActivityBroadcast activityBroadcast = new ActivityBroadcast(msgActivity);
+            con.writeMsg(activityBroadcast.toData());
+
+            return triggerActivityBroadcast(msgActivity, con);
         }
     }
 
-    public boolean triggerActivityBroadcast(JSONObject activity) {
-
+    public boolean triggerActivityBroadcast(JSONObject activity, Connection con) {
+        log.info("Broadcasting Activity Message: " + activity);
         ControlSolution server = ControlSolution.getInstance();
 
         ActivityBroadcast activityBroadcast = new ActivityBroadcast(activity);
 
         for (Connection connection : server.getConnections()) {
-            connection.writeMsg(activityBroadcast.toData());
+            if (!connection.equals(con)) {
+                connection.writeMsg(activityBroadcast.toData());
+            }
         }
         return false;
 
     }
 
-    public boolean triggerActivityBroadcastRead(ActivityBroadcast msg) {
+    public boolean triggerActivityBroadcastRead(ActivityBroadcast msg, Connection con) {
 
-        return triggerActivityBroadcast(msg.getActivity());
+        return triggerActivityBroadcast(msg.getActivity(), con);
 
     }
 
     public boolean triggerInvalidMessageRead(InvalidMessage msg, Connection con) {
+        log.info("Received Invalid Message Response");
         return true;
     }
 
     public boolean triggerInvalidMessage(Connection con, String info) {
 
-        log.info(info);
+        log.info("Sending Invalid Message Response: " + info);
         JsonMessage response = new InvalidMessage(info);
         con.writeMsg(response.toData());
 

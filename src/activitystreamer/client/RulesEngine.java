@@ -70,13 +70,13 @@ public class RulesEngine {
     
     /* Always ensures connection is held open */
     public boolean triggerLoginSuccess(LoginSuccess msg, Connection con){
-    	
-    	log.info(msg.getInfo());
+
+    	log.info("Login successful: " + msg.getInfo());
     	return false;
     }
 
     public boolean triggerRegisterSuccess(RegisterSuccess msg, Connection con) {
-        log.info(msg.getInfo());
+        log.info("Register successful: " + msg.getInfo());
 
         // Once registration has succeeded, attempt to login
         Login loginMsg = new Login(Settings.getUsername(), Settings.getSecret());
@@ -100,29 +100,28 @@ public class RulesEngine {
     }
 
     public boolean triggerLoginFailedRead(LoginFailed msg, Connection con) {
-
         log.info("Login Failed: " + msg.getInfo());
         return true;
 
     }
 
     public boolean triggerInvalidMessageRead(InvalidMessage msg, Connection con) {
-        log.info("Invalid Message: " + msg.getInfo());
+        log.info("Invalid Message Received: " + msg.getInfo());
         return true;
     }
 
     public boolean triggerLogout(Connection con) {
         Logout logoutMsg = new Logout(Logout.disconnectLogout);
+        log.info("Logging out");
         con.writeMsg(logoutMsg.toData());
         return true;
     }
 
     public boolean triggerInvalidMessage(Connection con, String info) {
 
-        log.info(info);
         JsonMessage response = new InvalidMessage(info);
         con.writeMsg(response.toData());
-        log.info("Closing connection");
+        log.info("Closing connection due to: " + info);
         return true;
     }
 

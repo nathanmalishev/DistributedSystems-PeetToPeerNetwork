@@ -10,11 +10,11 @@ import java.lang.reflect.*;
 public class MessageFactory {
 
     public JsonMessage buildMessage(String msg, Logger log) {
-//        log.info(msg);
         JsonMessage message;
-        //System.out.println("Parsing message: " + msg);
+
         /* GSON Parser transforms JSON objects into instance of a class */
         Gson parser = new Gson();
+
 		/* Determine what kind of message we need to process */
         try {
             message = parser.fromJson(msg, JsonMessage.class);
@@ -26,7 +26,6 @@ public class MessageFactory {
             return null;
         }
 
-        //log.info("received: " + msg);
         try {
             // Process accordingly
             switch (message.getCommand()) {
@@ -78,15 +77,18 @@ public class MessageFactory {
 
                 case "REGISTER":
                     Gson registerGson = new GsonBuilder().registerTypeAdapter(Register.class, new EnforcedDeserializer<JsonMessage>(log)).create();
-                    return registerGson.fromJson(msg, Register.class);
+                    Register registerMsg = registerGson.fromJson(msg, Register.class);
+                    return registerMsg;
 
                 case "REGISTER_FAILED":
                     Gson registerFailedGson = new GsonBuilder().registerTypeAdapter(RegisterFailed.class, new EnforcedDeserializer<JsonMessage>(log)).create();
-                    return registerFailedGson.fromJson(msg, RegisterFailed.class);
+                    RegisterFailed registerFailMsg = registerFailedGson.fromJson(msg, RegisterFailed.class);
+                    return registerFailMsg;
 
                 case "REGISTER_SUCCESS":
                     Gson registerSuccessGson = new GsonBuilder().registerTypeAdapter(RegisterSuccess.class, new EnforcedDeserializer<JsonMessage>(log)).create();
-                    return registerSuccessGson.fromJson(msg, RegisterSuccess.class);
+                    RegisterSuccess regSuccessMsg = registerSuccessGson.fromJson(msg, RegisterSuccess.class);
+                    return regSuccessMsg;
 
                 case "LOGIN_SUCCESS":
                     Gson loginSuccessGson =  new GsonBuilder().registerTypeAdapter(LoginSuccess.class, new EnforcedDeserializer<JsonMessage>(log)).create();

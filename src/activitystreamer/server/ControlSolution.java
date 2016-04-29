@@ -124,13 +124,7 @@ public class ControlSolution extends Control {
 
 		// Sends JSON Object to Authorized Servers only
 		for(Connection c : getAuthServers()){
-
-			if(c.writeMsg(serverAnnounce.toData())){
-//				log.info("Hostname: " + Settings.getLocalHostname() + " sending load");
-			}
-			else{
-//				log.info("Error sending load. Hostname: " + Settings.getLocalHostname());
-			}
+			c.writeMsg(serverAnnounce.toData());
 		}
 
 		return false;

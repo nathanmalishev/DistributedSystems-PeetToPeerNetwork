@@ -87,6 +87,7 @@ public class Control extends Thread {
 				
 				// Send JSON Authenticate message
 				Authenticate authenticateMsg = new Authenticate(Settings.getSecret());
+				log.info("Sending Authentication Request to: " + Settings.getRemoteHostname() + ", with Secret: " + authenticateMsg.getSecret());
 				c.writeMsg(authenticateMsg.toData());
 				
 				// Add to authorized connections
@@ -147,7 +148,6 @@ public class Control extends Thread {
 	
 	@Override
 	public void run(){
-		log.info("using activity interval of "+Settings.getActivityInterval()+" milliseconds");
 		while(!term){
 			// do something with 5 second intervals in between
 			try {
@@ -157,7 +157,6 @@ public class Control extends Thread {
 				break;
 			}
 			if(!term){
-//				log.debug("doing activity");
 				term=doActivity();
 			}
 			
