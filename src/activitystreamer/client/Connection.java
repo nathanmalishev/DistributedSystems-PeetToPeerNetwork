@@ -3,6 +3,7 @@ package activitystreamer.client;
 
 import activitystreamer.server.Control;
 import activitystreamer.util.Settings;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -50,6 +51,7 @@ public class Connection {
 			in.close();
 			out.close();
 			socket.close();
+			System.exit(1);
 		} catch (IOException e) {
 			// already closed?
 			log.error("received exception closing the connection "+Settings.socketAddress(socket)+": "+e);

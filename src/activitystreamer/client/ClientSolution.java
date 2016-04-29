@@ -3,6 +3,7 @@ package activitystreamer.client;
 import activitystreamer.client.RulesEngine;
 import activitystreamer.messages.*;
 import activitystreamer.util.Settings;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.simple.JSONObject;
