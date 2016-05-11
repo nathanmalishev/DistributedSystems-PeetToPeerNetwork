@@ -25,9 +25,7 @@ public class Client {
 	}
 	
 	public static void main(String[] args) {
-		
-		log.info("reading command line options");
-		
+
 		Options options = new Options();
 		options.addOption("u",true,"username");
 		options.addOption("rp",true,"remote port number");
@@ -69,12 +67,6 @@ public class Client {
 		
 		
 		log.info("starting client");
-		
-		
-		/*
-		 * maybe change the line below to suit your program
-		 */
-		
 		ClientSolution c = ClientSolution.getInstance(); 
 				
 	}

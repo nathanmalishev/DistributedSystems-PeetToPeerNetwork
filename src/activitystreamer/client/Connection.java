@@ -1,21 +1,15 @@
-package activitystreamer.server;
+package activitystreamer.client;
 
 
-import java.io.BufferedReader;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.Socket;
-
+import activitystreamer.util.Settings;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import activitystreamer.util.Settings;
+import java.io.*;
+import java.net.Socket;
 
-/** Class contains information related to a Servers connection */
-public class Connection extends Thread {
+/** Class contains information related to the Clients connection */
+public class Connection {
 	
 	private static final Logger log = LogManager.getLogger();
 	private DataInputStream in;
@@ -33,11 +27,10 @@ public class Connection extends Thread {
 	    outwriter = new PrintWriter(out, true);
 	    this.socket = socket;
 	    open = true;
-	    start();
 	}
 	
 	/**
-	 * returns true if the message was written, otherwise false
+	 * Returns true if the message was written, otherwise false
 	 */
 	public boolean writeMsg(String msg) {
 		if(open){
@@ -48,34 +41,35 @@ public class Connection extends Thread {
 		return false;
 	}
 	
+	
 	public void closeCon(){
-		if(open){
-			log.info("closing connection "+Settings.socketAddress(socket));
-			try {
-				term=true;
-				inreader.close();
-				out.close();
-			} catch (IOException e) {
-				// already closed?
-				log.error("received exception closing the connection "+Settings.socketAddress(socket)+": "+e);
-			}
+		log.info("closing connection "+Settings.socketAddress(socket));
+		try {
+			term=true;
+			open = false;
+			inreader.close();
+			in.close();
+			out.close();
+			socket.close();
+		} catch (IOException e) {
+			// already closed?
+			log.error("received exception closing the connection "+Settings.socketAddress(socket)+": "+e);
 		}
 	}
 	
-	public void run(){
+	
+	public void listen(){
 		try {
 			String data;
 			while(!term && (data = inreader.readLine())!=null){
-				term=Control.getInstance().process(this,data);
+				term = ClientSolution.getInstance().process(this, data);
 			}
 			log.debug("connection closed to "+Settings.socketAddress(socket));
-			Control.getInstance().connectionClosed(this);
-			in.close();
+			closeCon();
 		} catch (IOException e) {
 			log.error("connection "+Settings.socketAddress(socket)+" closed with exception: "+e);
-			Control.getInstance().connectionClosed(this);
+			closeCon();
 		}
-		open=false;
 	}
 	
 	public Socket getSocket() {
