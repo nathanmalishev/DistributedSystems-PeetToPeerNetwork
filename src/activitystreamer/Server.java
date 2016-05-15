@@ -94,7 +94,30 @@ public class Server {
 		if(cmd.hasOption("lh")){
 			Settings.setLocalHostname(cmd.getOptionValue("lh"));
 		}
-		
+		if(cmd.hasOption("dbah")){
+			Settings.setShardAHostname(cmd.getOptionValue("dbah"));
+		}
+		if(cmd.hasOption("dbbh")){
+			Settings.setShardBHostname(cmd.getOptionValue("dbbh"));
+		}
+		if(cmd.hasOption("dbch")){
+			Settings.setShardCHostname(cmd.getOptionValue("dbch"));
+		}
+		if(cmd.hasOption("dbdh")){
+			Settings.setShardDHostname(cmd.getOptionValue("dbdh"));
+		}
+		if(cmd.hasOption("dbap")){
+			Settings.setShardAPort(Integer.parseInt(cmd.getOptionValue("dbap")));
+		}
+		if(cmd.hasOption("dbbp")){
+			Settings.setShardBPort(Integer.parseInt(cmd.getOptionValue("dbbp")));
+		}
+		if(cmd.hasOption("dbcp")){
+			Settings.setShardCPort(Integer.parseInt(cmd.getOptionValue("dbcp")));
+		}
+		if(cmd.hasOption("dbdp")){
+			Settings.setShardDPort(Integer.parseInt(cmd.getOptionValue("dbdp")));
+		}
 		// Assign Random secret if we haven't been given one
 		if(cmd.hasOption("s")){
 			Settings.setSecret(cmd.getOptionValue("s"));

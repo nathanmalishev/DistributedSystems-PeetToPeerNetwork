@@ -7,7 +7,6 @@ import java.util.*;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.json.simple.JSONObject;
 
 import activitystreamer.util.Settings;
 import activitystreamer.messages.*;
@@ -19,9 +18,9 @@ public class Control extends Thread {
 	private ArrayList<Connection> authServers; 				// A list of authorized servers
 	private ArrayList<Connection> authClients; 				// A list of logged in clients
 	private ArrayList<Connection> unauthConnections; 		/* A list of unauthorized connections
-															 (may be servers that havn't authorized or 
+															 (may be servers that havn't authorized or
 															 clients that havn't logged in) */
-	
+	private DBManager dbManager;
 	private HashMap<String, String> clientDB;				// Map of Registered Users
 	private HashMap<Connection, ServerAnnounce> serverLoads;// Map of current server loads
 
@@ -54,7 +53,8 @@ public class Control extends Thread {
 		connections = new ArrayList<Connection>();
 		clientDB = new HashMap<String, String>();
 		serverLoads = new HashMap<Connection, ServerAnnounce>();
-		
+		dbManager = new DBManager();
+
 		// start a listener
 		try {
 			listener = new Listener();
@@ -82,14 +82,23 @@ public class Control extends Thread {
 				Authenticate authenticateMsg = new Authenticate(Settings.getSecret());
 				log.info("Sending Authentication Request to: " + Settings.getRemoteHostname() + ", with Secret: " + authenticateMsg.getSecret());
 				c.writeMsg(authenticateMsg.toData());
-				
+
+				// Will need to then receive a message with db info
+
 				// Add to authorized connections
 				authServers.add(c);
-				
+
+				// Remove from unauthorized connections
+				unauthConnections.remove(c);
+
 			} catch (IOException e) {
 				log.error("failed to make connection to "+Settings.getRemoteHostname()+":"+Settings.getRemotePort()+" :"+e);
 				System.exit(-1);
 			}
+		} else {
+			/* Otherwise this is the registry server, and the DB needs to be setup (either take arguments or generate yourself) */
+			dbManager.setupDB();
+
 		}
 	}
 	

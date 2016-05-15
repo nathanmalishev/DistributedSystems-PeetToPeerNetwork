@@ -18,7 +18,15 @@ public class Settings {
 	private static String secret = null;
 	private static String username = "anonymous";
 	private static String id;
-	
+	private static String shardAHostname = null;
+	private static String shardBHostname = null;
+	private static String shardCHostname = null;
+	private static String shardDHostname = null;
+	private static int shardAPort;
+	private static int shardBPort;
+	private static int shardCPort;
+	private static int shardDPort;
+
 	public static void setId(String id){
 		Settings.id = id;
 	}
@@ -104,7 +112,35 @@ public class Settings {
 	    return new BigInteger(130, random).toString(32);
 	 }
 
+	public static String getShardAHostname() { return shardAHostname; }
 
+	public static String getShardBHostname() { return shardBHostname; }
 
-	
+	public static String getShardCHostname() { return shardCHostname; }
+
+	public static String getShardDHostname() { return shardDHostname; }
+
+	public static int getShardAPort() { return shardAPort; }
+
+	public static int getShardBPort() { return shardBPort; }
+
+	public static int getShardCPort() { return shardCPort; }
+
+	public static int getShardDPort() { return shardDPort; }
+
+	public static void setShardAHostname(String name) { shardAHostname = name; }
+
+	public static void setShardBHostname(String name) { shardBHostname = name; }
+
+	public static void setShardCHostname(String name) { shardCHostname = name; }
+
+	public static void setShardDHostname(String name) { shardDHostname = name; }
+
+	public static void setShardAPort(int port) { shardAPort = port; }
+
+	public static void setShardBPort(int port) { shardBPort = port; }
+
+	public static void setShardCPort(int port) { shardCPort = port; }
+
+	public static void setShardDPort(int port) { shardDPort = port; }
 }

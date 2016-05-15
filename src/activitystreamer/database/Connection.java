@@ -1,4 +1,4 @@
-package activitystreamer.server;
+package activitystreamer.database;
 
 
 import java.io.BufferedReader;
@@ -25,14 +25,16 @@ public class Connection extends Thread {
 	private boolean open = false;
 	private Socket socket;
 	private boolean term=false;
+	private DBShard dbShard;
 	
-	public Connection(Socket socket) throws IOException{
+	public Connection(Socket socket, DBShard dbShard) throws IOException{
 		in = new DataInputStream(socket.getInputStream());
 	    out = new DataOutputStream(socket.getOutputStream());
 	    inreader = new BufferedReader( new InputStreamReader(in));
 	    outwriter = new PrintWriter(out, true);
 	    this.socket = socket;
 	    open = true;
+		this.dbShard = dbShard;
 	    start();
 	}
 	
@@ -66,14 +68,14 @@ public class Connection extends Thread {
 		try {
 			String data;
 			while(!term && (data = inreader.readLine())!=null){
-				term=Control.getInstance().process(this,data);
+				term=dbShard.process(this,data);
 			}
 			log.debug("connection closed to "+Settings.socketAddress(socket));
-			Control.getInstance().connectionClosed(this);
+			dbShard.connectionClosed(this);
 			in.close();
 		} catch (IOException e) {
 			log.error("connection "+Settings.socketAddress(socket)+" closed with exception: "+e);
-			Control.getInstance().connectionClosed(this);
+			dbShard.connectionClosed(this);
 		}
 		open=false;
 	}
