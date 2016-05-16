@@ -16,6 +16,9 @@ public class JsonMessage {
 	public static final String loginSuccess = "logged in as user ";
 	public static final String disconnectLogout = "client has disconnected";
 	public static final String userAlreadyRegistered = "this username has already been registered";
+	public static final String invalidUsernameError = "this username is invalid, it must start with a letter";
+	public static final String invalidShardBoundaryError = "this username is invalid for this shard boudnary";
+
 	protected String command;
 	
 	public String getCommand() {

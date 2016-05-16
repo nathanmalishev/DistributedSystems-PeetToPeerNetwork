@@ -1,6 +1,6 @@
 package activitystreamer.database;
 
-import activitystreamer.server.Listener;
+import activitystreamer.messages.*;
 import activitystreamer.util.Settings;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -21,21 +21,28 @@ public class DBShard extends Thread {
     private HashMap<String, String> clientShard;				// Map of Registered Users
     private Listener listener;
     private boolean term=false;
+    private static final char[] startBoundaries = {'a', 'h', 'n', 'u'};
+    private static final char[] endBoundaries = {'g', 'm', 't', 'z'};
+    public final void setTerm(boolean t){
+        term=t;
+    }
 
-
-    public DBShard(char start, char end) {
-        this.start = start;
-        this.end = end;
+    public DBShard(int num) {
+        this.start = startBoundaries[num];
+        this.end = endBoundaries[num];
         connections = new ArrayList();
+        unauthConnections = new ArrayList();
         clientShard = new HashMap();
 
         // start a listener
         try {
-            listener = new Listener();
+            listener = new Listener(this);
         } catch (IOException e1) {
             log.fatal("failed to startup a listening thread: "+e1);
             System.exit(-1);
         }
+
+        start();
     }
 
     /*
@@ -82,9 +89,52 @@ public class DBShard extends Thread {
     }
 
     public synchronized boolean process(Connection con, String msg) {
-        // process request for data
+        System.out.println("PROCESSING: " + msg);
+
+        MessageFactory msgFactory = new MessageFactory();
+
+        JsonMessage receivedMessage = msgFactory.buildMessage(msg, log);
+
+        switch (receivedMessage.getCommand()) {
+
+            case "REGISTER" :
+                return triggerRegisterRead((Register) receivedMessage, con);
+
+            case "LOGIN" :
+        }
+
         return false;
     }
 
+    private boolean triggerRegisterRead(Register msg, Connection con) {
+
+        String username = msg.getUsername();
+        if (!checkBounds(username.charAt(0))) {
+            return triggerInvalidMessage(con, InvalidMessage.invalidShardBoundaryError);
+        }
+
+        System.out.println("Got the register for " + username);
+
+        return false;
+    }
+
+    /**
+     * Sends an Invalid_Message to the connection
+     */
+    public boolean triggerInvalidMessage(Connection con, String info) {
+
+        log.info("Sending Invalid Message Response: " + info);
+        JsonMessage response = new InvalidMessage(info);
+        con.writeMsg(response.toData());
+
+        return true;
+    }
+
+    private boolean checkBounds(char firstLetter) {
+        if (firstLetter >= start && firstLetter <= end) {
+            return true;
+        }
+        return false;
+    }
 
 }

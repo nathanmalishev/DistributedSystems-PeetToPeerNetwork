@@ -96,27 +96,43 @@ public class Server {
 		}
 		if(cmd.hasOption("dbah")){
 			Settings.setShardAHostname(cmd.getOptionValue("dbah"));
+		} else {
+			Settings.setShardAHostname("localhost");
 		}
 		if(cmd.hasOption("dbbh")){
 			Settings.setShardBHostname(cmd.getOptionValue("dbbh"));
+		} else {
+			Settings.setShardBHostname("localhost");
 		}
 		if(cmd.hasOption("dbch")){
 			Settings.setShardCHostname(cmd.getOptionValue("dbch"));
+		} else {
+			Settings.setShardCHostname("localhost");
 		}
 		if(cmd.hasOption("dbdh")){
 			Settings.setShardDHostname(cmd.getOptionValue("dbdh"));
+		} else {
+			Settings.setShardDHostname("localhost");
 		}
 		if(cmd.hasOption("dbap")){
 			Settings.setShardAPort(Integer.parseInt(cmd.getOptionValue("dbap")));
+		} else {
+			Settings.setShardAPort(2000);
 		}
 		if(cmd.hasOption("dbbp")){
 			Settings.setShardBPort(Integer.parseInt(cmd.getOptionValue("dbbp")));
+		} else {
+			Settings.setShardBPort(2001);
 		}
 		if(cmd.hasOption("dbcp")){
 			Settings.setShardCPort(Integer.parseInt(cmd.getOptionValue("dbcp")));
+		} else {
+			Settings.setShardCPort(2002);
 		}
 		if(cmd.hasOption("dbdp")){
 			Settings.setShardDPort(Integer.parseInt(cmd.getOptionValue("dbdp")));
+		} else {
+			Settings.setShardDPort(2003);
 		}
 		// Assign Random secret if we haven't been given one
 		if(cmd.hasOption("s")){

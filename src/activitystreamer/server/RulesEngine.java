@@ -367,11 +367,28 @@ public class RulesEngine {
         return true;
     }
 
+    public boolean triggerDBWrite(Register msg, Connection con) {
+        System.out.println("triggering db write");
+        Connection dbCon = ControlSolution.getInstance().map(msg.getUsername());
+        if (dbCon== null) {
+            con.writeMsg(new InvalidMessage(InvalidMessage.invalidUsernameError).toData());
+            return true;
+        }
+        System.out.println("writing to con db");
+        dbCon.writeMsg(msg.toData());
+
+        return false;
+    }
+
+
+
     /**
      * Processes incoming Register request. Closes the connection if invalid.
      */
     public boolean triggerRegisterRead(Register msg, Connection con) {
-        
+
+        triggerDBWrite(msg, con);
+
     	ControlSolution server = ControlSolution.getInstance();
         String msgUsername = msg.getUsername();
         String msgSecret = msg.getSecret();
