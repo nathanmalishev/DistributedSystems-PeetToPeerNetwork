@@ -27,9 +27,12 @@ public class ControlSolution extends Control {
     private HashMap<String, HashSet<Connection>> lockRequests;	// Outstanding Lock Requests
     private HashMap<String, Connection> lockConnections;		
 	private HashMap<Connection, String> loggedInUsernames;		// Current active users
+	private HashMap<String, Connection> registerWaiting;
+	private HashMap<String, Connection> loginWaiting;
 
+	public HashMap<String, Connection> getRegisterWaiting() { return registerWaiting; }
 	public HashMap<Connection, String> getLoggedInUsernames() { return loggedInUsernames; }
-
+	public HashMap<String, Connection> getLoginWaiting() { return loginWaiting; }
 	private static final char[] startBoundaries = {'a', 'h', 'n', 'u'};
 	private static final char[] endBoundaries = {'g', 'm', 't', 'z'};
 
@@ -50,7 +53,8 @@ public class ControlSolution extends Control {
         lockConnections = new HashMap<>();
         unauthClients = new ArrayList<>();
 		loggedInUsernames = new HashMap<>();
-		
+		registerWaiting = new HashMap<>();
+		loginWaiting = new HashMap<>();
 		// check if we should initiate a connection and do so if necessary
 		initiateConnection();
 		

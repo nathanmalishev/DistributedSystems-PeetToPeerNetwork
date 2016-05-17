@@ -18,6 +18,7 @@ public class JsonMessage {
 	public static final String userAlreadyRegistered = "this username has already been registered";
 	public static final String invalidUsernameError = "this username is invalid, it must start with a letter";
 	public static final String invalidShardBoundaryError = "this username is invalid for this shard boudnary";
+    public static final String registerSuccessMsg = "successful registration";
 
 	protected String command;
 	

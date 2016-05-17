@@ -97,25 +97,74 @@ public class DBShard extends Thread {
 
         switch (receivedMessage.getCommand()) {
 
-            case "REGISTER" :
-                return triggerRegisterRead((Register) receivedMessage, con);
+            case "WRITE_REQUEST" :
+                return triggerWriteRequest((WriteRequest) receivedMessage, con);
 
-            case "LOGIN" :
+            case "READ_REQUEST" :
+                return triggerReadRequest((ReadRequest) receivedMessage, con);
         }
 
         return false;
     }
 
-    private boolean triggerRegisterRead(Register msg, Connection con) {
+    private boolean triggerReadRequest(ReadRequest msg, Connection con) {
 
+        String result, info;
+        if (clientShard.containsKey(msg.getUsername())) {
+
+            if (clientShard.get(msg.getUsername()).equals(msg.getSecret())) {
+                result = "SUCCESS";
+                info = LoginSuccess.loginSuccess;
+            }
+            else {
+                result = "FAILED";
+                info = LoginFailed.incorrectSecretError;
+            }
+        } else {
+            result = "FAILED";
+            info = LoginFailed.genericLoginFailedError;
+        }
+        triggerReadReply(msg.getUsername(), con, result, info);
+        return false;
+
+    }
+
+    private boolean triggerReadReply(String username, Connection con, String result, String info) {
+
+        log.info("Read " + result + " for " + username);
+        con.writeMsg(new ReadReply(username, result, info).toData());
+        return false;
+
+    }
+
+
+    private boolean triggerWriteRequest(WriteRequest msg, Connection con) {
+        System.out.println("trying to write");
         String username = msg.getUsername();
         if (!checkBounds(username.charAt(0))) {
             return triggerInvalidMessage(con, InvalidMessage.invalidShardBoundaryError);
         }
 
         System.out.println("Got the register for " + username);
+        String result, info;
+        if (clientShard.containsKey(username)) {
+            result = "FAILED";
+            info = RegisterFailed.userAlreadyRegistered;
+        } else {
+            clientShard.put(username, msg.getSecret());
+            result = "SUCCESS";
+            info = RegisterSuccess.registerSuccessMsg;
+        }
+        return triggerWriteReply(username, con, result, info);
+    }
 
+
+    private boolean triggerWriteReply(String username, Connection con, String result, String info) {
+
+        log.info("Registration " + result + " for " + username + " .Notifying.");
+        con.writeMsg(new WriteReply(username, result, info).toData());
         return false;
+
     }
 
     /**
