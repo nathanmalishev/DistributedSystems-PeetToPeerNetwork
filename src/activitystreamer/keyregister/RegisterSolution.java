@@ -109,7 +109,7 @@ public class RegisterSolution extends Thread{
 		if(keyStore.containsKey(msg.getServerId())){
 			
 			// Check to see if key already exists
-			if(keyStore.get(msg.getServerId()).equals(msg.getPublicKey())){
+			if(keyStore.get(msg.getServerId()).equals(msg.getPublicKeyStr())){
 				info = KeyRegisterResponse.keyExists;
 				result = "SUCCESS";
 			}
@@ -121,7 +121,7 @@ public class RegisterSolution extends Thread{
 		}
 		else{
 			// Store new key in register
-			keyStore.put(msg.getServerId(), msg.getPublicKey());
+			keyStore.put(msg.getServerId(), msg.getPublicKeyStr());
 			info = KeyRegisterResponse.keyRegisterSuccess;
 			result = "SUCCESS";
 		}
