@@ -5,7 +5,7 @@ public class ServerAnnounce extends JsonMessage {
 	private String id;
 	private int load;
 	private String hostname;
-	private String port;
+	private int port;
 
 	public String getId() {
 		return id;
@@ -16,11 +16,11 @@ public class ServerAnnounce extends JsonMessage {
 	public String getHostname() {
 		return hostname;
 	}
-	public String getPort() {
+	public int getPort() {
 		return port;
 	}
 
-	public ServerAnnounce(String id, int load, String hostname, String port) {
+	public ServerAnnounce(String id, int load, String hostname, int port) {
 
 		this.id = id;
 		this.load = load;

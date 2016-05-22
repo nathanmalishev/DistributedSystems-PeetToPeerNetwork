@@ -27,8 +27,14 @@ public class ControlSolution extends Control {
     private HashMap<String, HashSet<Connection>> lockRequests;	// Outstanding Lock Requests
     private HashMap<String, Connection> lockConnections;		
 	private HashMap<Connection, String> loggedInUsernames;		// Current active users
+	private HashMap<String, Connection> registerWaiting;
+	private HashMap<String, Connection> loginWaiting;
 
+	public HashMap<String, Connection> getRegisterWaiting() { return registerWaiting; }
 	public HashMap<Connection, String> getLoggedInUsernames() { return loggedInUsernames; }
+	public HashMap<String, Connection> getLoginWaiting() { return loginWaiting; }
+	private static final char[] startBoundaries = {'a', 'h', 'n', 'u'};
+	private static final char[] endBoundaries = {'g', 'm', 't', 'z'};
 
 	// since control and its subclasses are singleton, we get the singleton this way
 	public static ControlSolution getInstance() {
@@ -47,7 +53,8 @@ public class ControlSolution extends Control {
         lockConnections = new HashMap<>();
         unauthClients = new ArrayList<>();
 		loggedInUsernames = new HashMap<>();
-		
+		registerWaiting = new HashMap<>();
+		loginWaiting = new HashMap<>();
 		// check if we should initiate a connection and do so if necessary
 		initiateConnection();
 		
@@ -55,8 +62,85 @@ public class ControlSolution extends Control {
 		// it will call doActivity every few seconds
 		start();
 	}
-	
-	
+
+	/**
+	 * Called when starting a server and connects to the provided remote host
+	 * if it is supplied.
+	 * To successfully connect the secret must match that of the given remote host.
+	 */
+	public void initiateConnection(){
+		// make a connection to another server if remote hostname is supplied
+		if(Settings.getRemoteHostname()!=null){
+
+			try {
+				// Establish a connection
+				Connection c = outgoingConnection(new Socket(Settings.getRemoteHostname(),Settings.getRemotePort()));
+
+				// Send JSON Authenticate message
+				Authenticate authenticateMsg = new Authenticate(Settings.getSecret());
+				log.info("Sending Authentication Request to: " + Settings.getRemoteHostname() + ", with Secret: " + authenticateMsg.getSecret());
+				c.writeMsg(authenticateMsg.toData());
+
+				// Will need to then receive a message with db info
+
+				// Add to authorized connections
+				getAuthServers().add(c);
+
+				// Remove from unauthorized connections
+				getUnauthConnections().remove(c);
+
+			} catch (IOException e) {
+				log.error("failed to make connection to "+Settings.getRemoteHostname()+":"+Settings.getRemotePort()+" :"+e);
+				System.exit(-1);
+			}
+		}
+		/* DB needs to be setup (either take arguments or generate yourself) */
+		initialiseDBConnections();
+
+
+	}
+
+	public void initialiseDBConnections() {
+
+		dbLookup = new HashMap();
+		// Either way, initialise connections with them
+		try {
+			Connection a = outgoingConnection(new Socket(Settings.getShardAHostname(), Settings.getShardAPort()));
+			Connection b = outgoingConnection(new Socket(Settings.getShardBHostname(), Settings.getShardBPort()));
+			Connection c = outgoingConnection(new Socket(Settings.getShardCHostname(), Settings.getShardCPort()));
+			Connection d = outgoingConnection(new Socket(Settings.getShardDHostname(), Settings.getShardDPort()));
+			dbLookup.put(0, a);
+			dbLookup.put(1, b);
+			dbLookup.put(2, c);
+			dbLookup.put(3, d);
+		} catch (IOException e) {
+			log.error("failed to make connection to " + Settings.getRemoteHostname() + ":" + Settings.getRemotePort() + " :" + e);
+			System.exit(-1);
+		}
+	}
+
+
+	/* Takes a username and returns the connection to the correct db shard */
+	public Connection map(String username) {
+
+		char[] usernameArray = username.toCharArray();
+
+		char firstLetter = usernameArray[0];
+		int dbNum = -1;
+		for (int i = 0; i < 4; i ++) {
+			if (firstLetter >= startBoundaries[i] && firstLetter <= endBoundaries[i]) {
+				dbNum = i;
+				break;
+			}
+		}
+		if (dbNum!= -1) {
+			return dbLookup.get(dbNum);
+		}
+
+		return null;
+	}
+
+
 	/**
 	 * Process a new incoming connection
 	 */
@@ -119,7 +203,7 @@ public class ControlSolution extends Control {
 	@Override
 	public boolean doActivity(){
 
-		ServerAnnounce serverAnnounce = new ServerAnnounce(Settings.getId(), getAuthClients().size(), Settings.getLocalHostname(), String.valueOf(Settings.getLocalPort()));
+		ServerAnnounce serverAnnounce = new ServerAnnounce(Settings.getId(), getAuthClients().size(), Settings.getLocalHostname(), Settings.getLocalPort());
 
 		// Sends Activity Boradcast to Authorized Servers only
 		for(Connection c : getAuthServers()){

@@ -111,9 +111,21 @@ public class MessageFactory {
                     Gson lockDenied =  new GsonBuilder().registerTypeAdapter(LockDenied.class, new EnforcedDeserializer<JsonMessage>(log)).create();
                     return lockDenied.fromJson(msg, LockDenied.class);
 
-                case "LOCK_ALLOWED":
-                    Gson lockAllowed =  new GsonBuilder().registerTypeAdapter(LockAllowed.class, new EnforcedDeserializer<JsonMessage>(log)).create();
-                    return lockAllowed.fromJson(msg, LockAllowed.class);
+                case "READ_REPLY":
+                    Gson readReply =  new GsonBuilder().registerTypeAdapter(ReadReply.class, new EnforcedDeserializer<JsonMessage>(log)).create();
+                    return readReply.fromJson(msg, ReadReply.class);
+
+                case "READ_REQUEST":
+                    Gson readRequest =  new GsonBuilder().registerTypeAdapter(ReadRequest.class, new EnforcedDeserializer<JsonMessage>(log)).create();
+                    return readRequest.fromJson(msg, ReadRequest.class);
+
+                case "WRITE_REPLY":
+                    Gson writeReply =  new GsonBuilder().registerTypeAdapter(WriteReply.class, new EnforcedDeserializer<JsonMessage>(log)).create();
+                    return writeReply.fromJson(msg, WriteReply.class);
+
+                case "WRITE_REQUEST":
+                    Gson writeRequest =  new GsonBuilder().registerTypeAdapter(WriteRequest.class, new EnforcedDeserializer<JsonMessage>(log)).create();
+                    return writeRequest.fromJson(msg, WriteRequest.class);
 
                 default:
                     return null;

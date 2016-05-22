@@ -7,7 +7,6 @@ import java.util.*;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.json.simple.JSONObject;
 
 import activitystreamer.util.Settings;
 import activitystreamer.messages.*;
@@ -19,9 +18,10 @@ public class Control extends Thread {
 	private ArrayList<Connection> authServers; 				// A list of authorized servers
 	private ArrayList<Connection> authClients; 				// A list of logged in clients
 	private ArrayList<Connection> unauthConnections; 		/* A list of unauthorized connections
-															 (may be servers that havn't authorized or 
+															 (may be servers that havn't authorized or
 															 clients that havn't logged in) */
-	
+	private DBManager dbManager;
+	public HashMap<Integer, Connection> dbLookup;
 	private HashMap<String, String> clientDB;				// Map of Registered Users
 	private HashMap<Connection, ServerAnnounce> serverLoads;// Map of current server loads
 
@@ -46,7 +46,7 @@ public class Control extends Thread {
 	}
 	
 	public Control() {
-		
+
 		// initialize the connections arrays
 		authServers = new ArrayList<Connection>();
 		unauthConnections = new ArrayList<Connection>();
@@ -54,7 +54,8 @@ public class Control extends Thread {
 		connections = new ArrayList<Connection>();
 		clientDB = new HashMap<String, String>();
 		serverLoads = new HashMap<Connection, ServerAnnounce>();
-		
+		dbManager = new DBManager();
+
 		// start a listener
 		try {
 			listener = new Listener();
@@ -63,35 +64,7 @@ public class Control extends Thread {
 			System.exit(-1);
 		}	
 	}
-	
-	/**
-	 * Called when starting a server and connects to the provided remote host
-	 * if it is supplied.
-	 * To successfully connect the secret must match that of the given remote host.
-	 */
-	public void initiateConnection(){
-		
-		// make a connection to another server if remote hostname is supplied
-		if(Settings.getRemoteHostname()!=null){
-			
-			try {
-				// Establish a connection
-				Connection c = outgoingConnection(new Socket(Settings.getRemoteHostname(),Settings.getRemotePort()));
-				
-				// Send JSON Authenticate message
-				Authenticate authenticateMsg = new Authenticate(Settings.getSecret());
-				log.info("Sending Authentication Request to: " + Settings.getRemoteHostname() + ", with Secret: " + authenticateMsg.getSecret());
-				c.writeMsg(authenticateMsg.toData());
-				
-				// Add to authorized connections
-				authServers.add(c);
-				
-			} catch (IOException e) {
-				log.error("failed to make connection to "+Settings.getRemoteHostname()+":"+Settings.getRemotePort()+" :"+e);
-				System.exit(-1);
-			}
-		}
-	}
+
 	
 	/**
 	 * Processing incoming messages from the connection.
@@ -101,7 +74,7 @@ public class Control extends Thread {
 		
 		return true;
 	}
-	
+
 	/*
 	 * The connection has been closed by the other party.
 	 */

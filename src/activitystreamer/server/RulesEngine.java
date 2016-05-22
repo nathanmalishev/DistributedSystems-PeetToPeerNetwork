@@ -27,12 +27,11 @@ public class RulesEngine {
      * @return		True if connection is to be closed, false otherwise
      */
     public boolean triggerResponse(JsonMessage msg, Connection con) {
-       
+
     	// If message factory returned null, means message was invalid
         if (msg == null) {
             return triggerInvalidMessage(con, InvalidMessage.invalidMessageTypeError);
         }
-
         // Process accordingly
         switch(msg.getCommand()){
 
@@ -54,6 +53,12 @@ public class RulesEngine {
             case "LOGOUT":
 
                 return triggerLogoutRead(con);
+
+            case "READ_REPLY":
+                return triggerDBReadReply((ReadReply) msg);
+
+            case "WRITE_REPLY":
+                return triggerDBWriteReply((WriteReply) msg);
 
             case "ACTIVITY_MESSAGE":
                 return triggerActivityMessageRead((ActivityMessage)msg, con);
@@ -177,54 +182,63 @@ public class RulesEngine {
 
         log.info("Login Attempt Received: " + msg.getUsername());
 
-        if (isClient(msg) && isCorrectClientSecret(msg)) {
+        triggerDBRead(msg.getUsername(), msg.getSecret(), con);
+
+        /*if (isClient(msg.getUsername()) && isCorrectClientSecret(msg)) {
 
             if (!alreadyLoggedIn(msg.getUsername(), con)) {
             	ControlSolution.getInstance().getUnauthConnections().remove(con);
-                login(msg, con);
 
             	// Send Login Success Message
-            	String info = LoginSuccess.loginSuccess + msg.getUsername();
-                log.info("Login Successful: " + msg.getUsername());
-            	LoginSuccess response = new LoginSuccess(info);
-            	con.writeMsg(response.toData());
+                return triggerLoginSuccess(msg.getUsername(), con);
 
-            	// Determine if we need to redirect
-            	return triggerRedirect(con);
             }
         }
 
-        return triggerLoginFailed(msg, con);
-    }
-
-    /**
-     * Controls the handling of adding the user to the required lists
-     */
-    private void login(Login msg, Connection con) {
-        ControlSolution.getInstance().getAuthClients().add(con);
-        ControlSolution.getInstance().getUnauthConnections().remove(con);
-        ControlSolution.getInstance().getLoggedInUsernames().put(con, msg.getUsername());
-    }
-
-    /**
-     * Removes client from the logged in list
-     */
-    private void logout(Connection con) {
-        ControlSolution.getInstance().getLoggedInUsernames().remove(con);
-    }
-
-
-    private boolean alreadyLoggedIn(String username, Connection con) {
-
-        if (ControlSolution.getInstance().getAuthClients().contains(con)) {
-            return true;
-        }
-
-        if (ControlSolution.getInstance().getLoggedInUsernames().containsValue(username)) {
-            return true;
-        }
+        return triggerLoginFailed(msg, con);*/
         return false;
     }
+
+
+    public boolean triggerDBRead(String username, String secret, Connection con) {
+
+        Connection dbCon = ControlSolution.getInstance().map(username);
+        if (dbCon== null) {
+            con.writeMsg(new InvalidMessage(InvalidMessage.invalidUsernameError).toData());
+            return true;
+        }
+        ControlSolution.getInstance().getLoginWaiting().put(username, con);
+        dbCon.writeMsg(new ReadRequest(username, secret).toData());
+
+        return false;
+
+    }
+
+    public boolean triggerDBReadReply(ReadReply msg) {
+
+        String username = msg.getUsername();
+        Connection replyCon = ControlSolution.getInstance().getLoginWaiting().get(username);
+        ControlSolution.getInstance().getLoginWaiting().remove(username);
+
+        if (msg.passed()) {
+            triggerLoginSuccess(username, replyCon);
+
+        } else {
+            triggerLoginFailed(username, msg.getInfo(), replyCon);
+        }
+        return false;
+
+    }
+
+    public boolean triggerLoginSuccess(String username, Connection con) {
+        login(username, con);
+        log.info("Login Success: " + username);
+        con.writeMsg((new LoginSuccess(LoginSuccess.loginSuccess + username)).toData());
+
+        // Determine if we need to redirect
+        return triggerRedirect(con);
+    }
+
 
     /** Sends REDIRECT message if there is a server with a load with 2 or more less than
      * the current server.
@@ -247,7 +261,8 @@ public class RulesEngine {
 
                 con.writeMsg(response.toData());
                 logout(con);
-    			return true;
+    			con.closeCon();
+                ControlSolution.getInstance().connectionClosed(con);
     		}
     		
     	}
@@ -267,23 +282,14 @@ public class RulesEngine {
     /**
      * Writes login_failed message to the connection and closes the connection after
      */
-    public boolean triggerLoginFailed(Login msg, Connection con) {
-
-        String info;
-
-        if (!isClient(msg)) {
-            info = LoginFailed.noMatchingUsernameError;
-        } else if (!isCorrectClientSecret(msg)) {
-            info = LoginFailed.incorrectSecretError;
-        } else {
-            info = LoginFailed.genericLoginFailedError;
-        }
+    public boolean triggerLoginFailed(String username, String info, Connection con) {
 
         log.info("Login Failed: " + info);
         JsonMessage response = new LoginFailed(info);
         con.writeMsg(response.toData());
+        con.closeCon();
+        ControlSolution.getInstance().connectionClosed(con);
         return true;
-
     }
     
     /**
@@ -367,12 +373,45 @@ public class RulesEngine {
         return true;
     }
 
+    public boolean triggerDBWrite(Register msg, Connection con) {
+        Connection dbCon = ControlSolution.getInstance().map(msg.getUsername());
+        if (dbCon== null) {
+            con.writeMsg(new InvalidMessage(InvalidMessage.invalidUsernameError).toData());
+            return true;
+        }
+        ControlSolution.getInstance().getRegisterWaiting().put(msg.getUsername(), con);
+        dbCon.writeMsg(new WriteRequest(msg.getUsername(), msg.getSecret()).toData());
+
+        return false;
+    }
+
+
+    public boolean triggerDBWriteReply(WriteReply msg) {
+        String username = msg.getUsername();
+
+        Connection replyCon = ControlSolution.getInstance().getRegisterWaiting().get(username);
+        ControlSolution.getInstance().getRegisterWaiting().remove(username);
+
+        if (msg.passed()) {
+            replyCon.writeMsg(new RegisterSuccess(username).toData());
+        } else {
+            replyCon.writeMsg(new RegisterFailed(username).toData());
+            replyCon.closeCon();
+            ControlSolution.getInstance().connectionClosed(replyCon);
+        }
+        return false;
+    }
+
+
     /**
      * Processes incoming Register request. Closes the connection if invalid.
      */
     public boolean triggerRegisterRead(Register msg, Connection con) {
-        
-    	ControlSolution server = ControlSolution.getInstance();
+
+
+        return triggerDBWrite(msg, con);
+
+    	/*ControlSolution server = ControlSolution.getInstance();
         String msgUsername = msg.getUsername();
         String msgSecret = msg.getSecret();
 
@@ -412,9 +451,8 @@ public class RulesEngine {
         log.info("Sending lock requests to all known servers regarding " + msgUsername);
         for (Connection otherServer : knownServers) {
             otherServer.writeMsg(new LockRequest(msgUsername, msgSecret).toData());
-        }
+        }*/
 
-        return false;
     }
     
     /**
@@ -574,13 +612,13 @@ public class RulesEngine {
     }
 
     // Checks whether the username exists in the db
-    private boolean isClient(Login msg) {
+    private boolean isClient(String username) {
 
         HashMap<String, String> clientDB = ControlSolution.getInstance().getClientDB();
 
-        if (msg.isAnonymous()) {
+        if (username == "anonymous") {
             return true;
-        } else if (clientDB.containsKey(msg.getUsername())){
+        } else if (clientDB.containsKey(username)){
             return true;
         }
         return false;
@@ -599,6 +637,36 @@ public class RulesEngine {
         }
         return false;
 
+    }
+
+
+    /**
+     * Controls the handling of adding the user to the required lists
+     */
+    private void login(String username, Connection con) {
+        ControlSolution.getInstance().getAuthClients().add(con);
+        ControlSolution.getInstance().getUnauthConnections().remove(con);
+        ControlSolution.getInstance().getLoggedInUsernames().put(con, username);
+    }
+
+    /**
+     * Removes client from the logged in list
+     */
+    private void logout(Connection con) {
+        ControlSolution.getInstance().getLoggedInUsernames().remove(con);
+    }
+
+
+    private boolean alreadyLoggedIn(String username, Connection con) {
+
+        if (ControlSolution.getInstance().getAuthClients().contains(con)) {
+            return true;
+        }
+
+        if (ControlSolution.getInstance().getLoggedInUsernames().containsValue(username)) {
+            return true;
+        }
+        return false;
     }
 
 }
