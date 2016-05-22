@@ -20,7 +20,7 @@ public class RegisterSolution extends Thread{
     private ArrayList<Connection> connections; 				// A list of all connections
     private ArrayList<Connection> unauthConnections;
     private ArrayList<Connection> authConnections;
-    private HashMap<String,PublicKey> keyStore;
+    private HashMap<String,String> keyStore;
     private String secret;
     private Listener listener;
     private boolean term=false;
@@ -28,7 +28,7 @@ public class RegisterSolution extends Thread{
 	
 	public RegisterSolution(){
 		
-		keyStore = new HashMap<String,PublicKey>();
+		keyStore = new HashMap<String,String>();
 		
 		// start a listener
         try {
@@ -104,12 +104,46 @@ public class RegisterSolution extends Thread{
 	
 	private boolean triggerRegisterKey(RegisterKey msg, Connection con){
 		
+		String info, result;
+		
+		if(keyStore.containsKey(msg.getServerId())){
+			
+			// Check to see if key already exists
+			if(keyStore.get(msg.getServerId()).equals(msg.getPublicKey())){
+				info = KeyRegisterResponse.keyExists;
+				result = "SUCCESS";
+			}
+			// Else Public Key supplied doesn't match
+			else{
+				info = KeyRegisterResponse.invalidKey;
+				result = "FAILED";
+			}
+		}
+		else{
+			// Store new key in register
+			keyStore.put(msg.getServerId(), msg.getPublicKey());
+			info = KeyRegisterResponse.keyRegisterSuccess;
+			result = "SUCCESS";
+		}
+		
+		triggerRegisterKeyResponse(info, result, msg.getServerId(), con);
 		return false;
+	}
+	
+	public void triggerRegisterKeyResponse(String info, String serverId, String result, Connection con){
+		
+		log.info("Key Register for: " + serverId + " " + result);
+		con.writeMsg(new KeyRegisterResponse(info, result).toData());
 	}
 	
 	private boolean triggerGetKey(GetKey msg, Connection con){
 		
 		return false;
+	}
+	
+	private void triggetGetKeyResponse(){
+		
+		
 	}
 	
 	

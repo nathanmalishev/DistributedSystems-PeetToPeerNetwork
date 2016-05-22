@@ -19,6 +19,9 @@ public class JsonMessage {
 	public static final String invalidUsernameError = "this username is invalid, it must start with a letter";
 	public static final String invalidShardBoundaryError = "this username is invalid for this shard boudnary";
     public static final String registerSuccessMsg = "successful registration";
+    public static final String keyExists = "public key already exists in the register";
+    public static final String invalidKey = "public key doesn't match key already registered for that ID";
+    public static final String keyRegisterSuccess = "public key register was successful";
 
 	protected String command;
 	

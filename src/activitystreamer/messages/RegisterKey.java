@@ -6,7 +6,7 @@ public class RegisterKey extends JsonMessage {
 	private String serverId;
 
 	public RegisterKey(String publicKeyString, String uniqueIdentifier) {
-		this.command = "KEY_REGISTER";
+		this.command = "REGISTER_KEY";
 		this.publicKeyStr = publicKeyString;
 		this.serverId = uniqueIdentifier;
 	}
@@ -18,4 +18,5 @@ public class RegisterKey extends JsonMessage {
 	public String getServerId() {
 		return serverId;
 	}
+
 }
