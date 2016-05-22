@@ -126,7 +126,7 @@ public class RegisterSolution extends Thread{
 			result = "SUCCESS";
 		}
 		
-		triggerRegisterKeyResponse(info, result, msg.getServerId(), con);
+		triggerRegisterKeyResponse(info, msg.getServerId(), result, con);
 		return false;
 	}
 	

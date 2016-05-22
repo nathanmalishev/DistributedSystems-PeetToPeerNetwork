@@ -81,10 +81,20 @@ public class RulesEngine {
 
             case "LOCK_ALLOWED" :
                 return triggerLockAllowedRead((LockAllowed)msg, con);
+                
+            case "KEY_REGISTER_RESPONSE" :
+            	return triggerKeyRegisterResponse((KeyRegisterResponse) msg, con);
 
             default :
                 return triggerInvalidMessage(con, InvalidMessage.invalidMessageTypeError);
         }
+    }
+    
+    public boolean triggerKeyRegisterResponse(KeyRegisterResponse msg, Connection con){
+    	
+    	log.info("Response from KeyRegister: " + msg.getResult());
+    	
+    	return false;
     }
 
 

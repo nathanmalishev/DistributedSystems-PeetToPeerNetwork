@@ -7,7 +7,7 @@ public class KeyRegisterResponse extends JsonMessage{
 	
 	public KeyRegisterResponse(String info, String result){
 		
-		this.command = "KEY_REGISTER_SUCCESS";
+		this.command = "KEY_REGISTER_RESPONSE";
 		this.info = info;
 		this.result = result;
 	}
