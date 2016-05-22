@@ -39,8 +39,16 @@ public class Server {
 		options.addOption("lh",true,"local hostname");
 		options.addOption("a",true,"activity interval in milliseconds");
 		options.addOption("s",true,"secret for the server to use");
-		
-		
+		options.addOption("dbah",true,"DB Shard A hostname");
+		options.addOption("dbbh",true,"DB Shard B hostname");
+		options.addOption("dbch",true,"DB Shard C hostname");
+		options.addOption("dbdh",true,"DB Shard D hostname");
+		options.addOption("dbap",true,"DB Shard A port");
+		options.addOption("dbbp",true,"DB Shard B port");
+		options.addOption("dbcp",true,"DB Shard C port");
+		options.addOption("dbdp",true,"DB Shard D port");
+
+
 		// build the parser
 		CommandLineParser parser = new DefaultParser();
 		
