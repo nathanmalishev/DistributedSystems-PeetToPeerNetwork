@@ -13,6 +13,11 @@ import com.google.gson.Gson;
 import activitystreamer.messages.*;
 import activitystreamer.util.Settings;
 
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -29,6 +34,9 @@ public class ControlSolution extends Control {
 	private HashMap<Connection, String> loggedInUsernames;		// Current active users
 	private HashMap<String, Connection> registerWaiting;
 	private HashMap<String, Connection> loginWaiting;
+	
+	private PublicKey publicKey;
+	private PrivateKey privateKey;
 
 	public HashMap<String, Connection> getRegisterWaiting() { return registerWaiting; }
 	public HashMap<Connection, String> getLoggedInUsernames() { return loggedInUsernames; }
@@ -55,12 +63,35 @@ public class ControlSolution extends Control {
 		loggedInUsernames = new HashMap<>();
 		registerWaiting = new HashMap<>();
 		loginWaiting = new HashMap<>();
+		
+		// Create Public and Private Key
+		generateKeyPair();
+		
 		// check if we should initiate a connection and do so if necessary
 		initiateConnection();
 		
 		// start the server's activity loop
 		// it will call doActivity every few seconds
 		start();
+	}
+	
+	public void generateKeyPair(){
+		
+		KeyPairGenerator keyGen;
+		
+		try {
+			keyGen = KeyPairGenerator.getInstance("RSA");
+			
+			// A key pair generator needs to be initialized before it can generate keys.
+		    keyGen.initialize(1024);
+		    KeyPair keyPair = keyGen.generateKeyPair();
+		    this.publicKey = keyPair.getPublic();
+		    this.privateKey = keyPair.getPrivate();
+		    
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		}
+		
 	}
 
 	/**

@@ -95,6 +95,8 @@ public class RegisterSolution extends Thread{
         	case "REGISTER_KEY" : 
         		return triggerRegisterKey((RegisterKey) receivedMessage, connection);
         	
+        	case "GET_KEY" :
+        		return triggerGetKey((GetKey) receivedMessage, connection);
         }
         
 		return false;
@@ -103,7 +105,11 @@ public class RegisterSolution extends Thread{
 	private boolean triggerRegisterKey(RegisterKey msg, Connection con){
 		
 		return false;
+	}
+	
+	private boolean triggerGetKey(GetKey msg, Connection con){
 		
+		return false;
 	}
 	
 	
