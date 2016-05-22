@@ -12,6 +12,7 @@ import com.google.gson.Gson;
 
 import activitystreamer.messages.*;
 import activitystreamer.util.Settings;
+import activitystreamer.database.DBShard;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -71,7 +72,6 @@ public class ControlSolution extends Control {
 	public void initiateConnection(){
 		// make a connection to another server if remote hostname is supplied
 		if(Settings.getRemoteHostname()!=null){
-
 			try {
 				// Establish a connection
 				Connection c = outgoingConnection(new Socket(Settings.getRemoteHostname(),Settings.getRemotePort()));
@@ -95,10 +95,39 @@ public class ControlSolution extends Control {
 			}
 		}
 		/* DB needs to be setup (either take arguments or generate yourself) */
+
+		setupDB();
+
 		initialiseDBConnections();
 
 
 	}
+
+	public void setupDB() {
+
+		if (Settings.getShardAHostname() == null) {
+			final DBShard db1 = new DBShard(0, Settings.defaultShardAPort());
+			Settings.setShardAPort(Settings.defaultShardAPort());
+			Settings.setShardAHostname(Settings.defaultShardHostname());
+		}
+		if (Settings.getShardBHostname() == null) {
+			final DBShard db2 = new DBShard(1, Settings.defaultShardBPort());
+			Settings.setShardBPort(Settings.defaultShardBPort());
+			Settings.setShardBHostname(Settings.defaultShardHostname());
+		}
+		if (Settings.getShardCHostname() == null) {
+			final DBShard db3 = new DBShard(2, Settings.defaultShardCPort());
+			Settings.setShardCPort(Settings.defaultShardCPort());
+			Settings.setShardCHostname(Settings.defaultShardHostname());
+		}
+		if (Settings.getShardDHostname() == null) {
+			final DBShard db4 = new DBShard(3, Settings.defaultShardDPort());
+			Settings.setShardDPort(Settings.defaultShardDPort());
+			Settings.setShardDHostname(Settings.defaultShardHostname());
+		}
+
+	}
+
 
 	public void initialiseDBConnections() {
 

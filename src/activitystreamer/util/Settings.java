@@ -143,4 +143,15 @@ public class Settings {
 	public static void setShardCPort(int port) { shardCPort = port; }
 
 	public static void setShardDPort(int port) { shardDPort = port; }
+
+	public static int defaultShardAPort() { return 2000; }
+
+	public static int defaultShardBPort() { return 2001; }
+
+	public static int defaultShardCPort() { return 2002; }
+
+	public static int defaultShardDPort() { return 2003; }
+
+	public static String defaultShardHostname() { return "localhost"; }
+
 }

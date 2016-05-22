@@ -17,7 +17,7 @@ public class Listener extends Thread{
 	private DBShard dbShard;
 	
 	public Listener(DBShard dbShard) throws IOException{
-		portnum = Settings.getLocalPort(); // keep our own copy in case it changes later
+		portnum = dbShard.getPortnum(); // keep our own copy in case it changes later
 		serverSocket = new ServerSocket(portnum);
 		this.dbShard = dbShard;
 		start();

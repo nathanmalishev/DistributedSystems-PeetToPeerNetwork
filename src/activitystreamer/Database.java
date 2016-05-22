@@ -33,7 +33,7 @@ public class Database {
 		log.info("reading command line options");
 
 		int dbnum = 0;
-
+		int portnum = 2000;
 		Options options = new Options();
 		options.addOption("lp",true,"local port number");
 		options.addOption("lh",true,"local hostname");
@@ -53,8 +53,8 @@ public class Database {
 		
 		if(cmd.hasOption("lp")){
 			try{
-				int port = Integer.parseInt(cmd.getOptionValue("lp"));
-				Settings.setLocalPort(port);
+				portnum = Integer.parseInt(cmd.getOptionValue("lp"));
+				Settings.setLocalPort(portnum);
 			} catch (NumberFormatException e){
 				log.info("-lp requires a port number, parsed: "+cmd.getOptionValue("lp"));
 				help(options);
@@ -89,7 +89,7 @@ public class Database {
 		log.info("starting server with secret: " + Settings.getSecret());
 		
 		
-		final DBShard db = new DBShard(dbnum);
+		final DBShard db = new DBShard(dbnum, portnum);
 		
 		// the following shutdown hook doesn't really work, it doesn't give us enough time to
 		// cleanup all of our connections before the jvm is terminated.

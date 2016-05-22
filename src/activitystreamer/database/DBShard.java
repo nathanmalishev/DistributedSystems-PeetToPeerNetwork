@@ -20,6 +20,7 @@ public class DBShard extends Thread {
     private String secret;
     private HashMap<String, String> clientShard;				// Map of Registered Users
     private Listener listener;
+    private int portnum;
     private boolean term=false;
     private static final char[] startBoundaries = {'a', 'h', 'n', 'u'};
     private static final char[] endBoundaries = {'g', 'm', 't', 'z'};
@@ -27,11 +28,15 @@ public class DBShard extends Thread {
         term=t;
     }
 
-    public DBShard(int num) {
-        this.start = startBoundaries[num];
-        this.end = endBoundaries[num];
+    public int getPortnum() { return portnum; }
+
+    public DBShard(int dbnum, int portnum) {
+        this.start = startBoundaries[dbnum];
+        this.end = endBoundaries[dbnum];
+        this.portnum = portnum;
         connections = new ArrayList();
         unauthConnections = new ArrayList();
+        authConnections = new ArrayList();
         clientShard = new HashMap();
 
         // start a listener
@@ -83,7 +88,7 @@ public class DBShard extends Thread {
     public synchronized void connectionClosed(Connection con){
         if(!term) {
             connections.remove(con);
-            if (authConnections.contains(con)) authConnections.remove(con);
+            if (authConnections.contains(con)) { authConnections.remove(con); }
             if (unauthConnections.contains(con)) unauthConnections.remove(con);
         }
     }

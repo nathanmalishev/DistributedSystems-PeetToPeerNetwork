@@ -27,7 +27,7 @@ public class RulesEngine {
      * @return		True if connection is to be closed, false otherwise
      */
     public boolean triggerResponse(JsonMessage msg, Connection con) {
-
+        System.out.println("Message received: " + msg);
     	// If message factory returned null, means message was invalid
         if (msg == null) {
             return triggerInvalidMessage(con, InvalidMessage.invalidMessageTypeError);
@@ -184,18 +184,6 @@ public class RulesEngine {
 
         triggerDBRead(msg.getUsername(), msg.getSecret(), con);
 
-        /*if (isClient(msg.getUsername()) && isCorrectClientSecret(msg)) {
-
-            if (!alreadyLoggedIn(msg.getUsername(), con)) {
-            	ControlSolution.getInstance().getUnauthConnections().remove(con);
-
-            	// Send Login Success Message
-                return triggerLoginSuccess(msg.getUsername(), con);
-
-            }
-        }
-
-        return triggerLoginFailed(msg, con);*/
         return false;
     }
 
@@ -253,7 +241,7 @@ public class RulesEngine {
     		
     		// Close connection of load load difference > 2
     		int load = server.getValue().getLoad();
-    		if((currentInstance.getAuthClients().size() - load) > 2){
+    		if((currentInstance.getAuthClients().size() - load) >= 2){
     			
     			// Send Redirect Message
     			Redirect response = new Redirect(server.getValue().getHostname(), server.getValue().getPort());
