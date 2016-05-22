@@ -18,6 +18,8 @@ public class Settings {
 	private static String secret = null;
 	private static String username = "anonymous";
 	private static String id;
+	private static String keyRegisterHostname = null;
+	private static int keyRegisterPort;
 	private static String shardAHostname = null;
 	private static String shardBHostname = null;
 	private static String shardCHostname = null;
@@ -112,7 +114,21 @@ public class Settings {
 	    return new BigInteger(130, random).toString(32);
 	 }
 
+	public static String getKeyRegisterHostname() { return keyRegisterHostname; }
+
 	public static String getShardAHostname() { return shardAHostname; }
+
+	public static void setKeyRegisterHostname(String keyRegisterHostname) {
+		Settings.keyRegisterHostname = keyRegisterHostname;
+	}
+
+	public static int getKeyRegisterPort() {
+		return keyRegisterPort;
+	}
+
+	public static void setKeyRegisterPort(int keyRegisterPort) {
+		Settings.keyRegisterPort = keyRegisterPort;
+	}
 
 	public static String getShardBHostname() { return shardBHostname; }
 

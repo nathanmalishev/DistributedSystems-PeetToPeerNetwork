@@ -3,6 +3,7 @@ package activitystreamer.server;
 import java.io.IOException;
 import java.net.Socket;
 
+import activitystreamer.KeyRegister;
 import activitystreamer.util.Helper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -145,8 +146,14 @@ public class ControlSolution extends Control {
 		String uniqueIdentifier = Helper.createUniqueServerIdentifier(Settings.getLocalHostname(), Integer.toString(Settings.getLocalPort()));
 
 		RegisterKey keyRegisterMsg = new RegisterKey(publicKeyString, uniqueIdentifier);
+		try{
+			/* Send to Key Register Server now */
+			Connection krCONN = outgoingConnection(new Socket(Settings.getKeyRegisterHostname(), Settings.getKeyRegisterPort()));
+			krCONN.writeMsg(keyRegisterMsg.toData());
+		}catch(Exception e){
+			System.out.println("err: "+e);
+		}
 
-		/* Send to Key Register Server now */
 	}
 
 	public void initialiseDBConnections() {

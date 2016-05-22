@@ -68,8 +68,6 @@ public class RegisterSolution extends Thread{
 		
 		log.debug("incomming connection: "+ Settings.socketAddress(s));
         Connection c = new Connection(s, this);
-        connections.add(c);
-        unauthConnections.add(c);
         return c;
 	}
 
@@ -85,14 +83,16 @@ public class RegisterSolution extends Thread{
     
 	
 	public synchronized boolean process(Connection connection, String msg) {
-		
+		//TODO: delete print
+		System.out.println("process "+msg);
+
 		MessageFactory msgFactory = new MessageFactory();
 
         JsonMessage receivedMessage = msgFactory.buildMessage(msg, log);
 
         switch (receivedMessage.getCommand()) {
 
-        	case "REGISTER_KEY" : 
+        	case "REGISTER_KEY" :
         		return triggerRegisterKey((RegisterKey) receivedMessage, connection);
         	
         	case "GET_KEY" :

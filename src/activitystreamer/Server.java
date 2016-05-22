@@ -134,6 +134,19 @@ public class Server {
 		} else {
 			Settings.setShardDPort(2003);
 		}
+
+		if(cmd.hasOption("krh")){
+			Settings.setKeyRegisterHostname(cmd.getOptionValue("krh"));
+		} else{
+			Settings.setKeyRegisterHostname("localhost");
+		}
+
+		if(cmd.hasOption("krp")){
+			Settings.setKeyRegisterPort(Integer.parseInt(cmd.getOptionValue("krp")));
+		} else{
+			Settings.setKeyRegisterPort(2005);
+		}
+
 		// Assign Random secret if we haven't been given one
 		if(cmd.hasOption("s")){
 			Settings.setSecret(cmd.getOptionValue("s"));

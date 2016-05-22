@@ -4,6 +4,7 @@ package activitystreamer.messages;
 import activitystreamer.server.Control;
 import com.google.gson.*;
 import com.google.gson.stream.MalformedJsonException;
+import com.oracle.javafx.jmx.json.impl.JSONMessages;
 import org.apache.logging.log4j.Logger;
 import java.lang.reflect.*;
 
@@ -126,6 +127,10 @@ public class MessageFactory {
                 case "WRITE_REQUEST":
                     Gson writeRequest =  new GsonBuilder().registerTypeAdapter(WriteRequest.class, new EnforcedDeserializer<JsonMessage>(log)).create();
                     return writeRequest.fromJson(msg, WriteRequest.class);
+
+                case "REGISTER_KEY":
+                    Gson registerKey = new GsonBuilder().registerTypeAdapter(RegisterKey.class, new EnforcedDeserializer<JSONMessages>(log)).create();
+                    return registerKey.fromJson(msg, RegisterKey.class);
 
                 default:
                     return null;
