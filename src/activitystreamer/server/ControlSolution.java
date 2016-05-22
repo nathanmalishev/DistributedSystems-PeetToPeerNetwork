@@ -3,6 +3,7 @@ package activitystreamer.server;
 import java.io.IOException;
 import java.net.Socket;
 
+import activitystreamer.util.Helper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.simple.*;
@@ -12,6 +13,7 @@ import com.google.gson.Gson;
 
 import activitystreamer.messages.*;
 import activitystreamer.util.Settings;
+import sun.misc.BASE64Encoder;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -128,7 +130,23 @@ public class ControlSolution extends Control {
 		/* DB needs to be setup (either take arguments or generate yourself) */
 		initialiseDBConnections();
 
+		/* send public key to key register server */
+		sendPublicKeyToRegisterServer();
 
+
+	}
+
+	/* creates a json message with the servers public key as a string,
+		and its unique identifier as a string. Unique identifier is hostname:port
+	 */
+	public void sendPublicKeyToRegisterServer(){
+
+		String publicKeyString = Helper.publicKeyToString(this.publicKey);
+		String uniqueIdentifier = Helper.createUniqueServerIdentifier(Settings.getLocalHostname(), Integer.toString(Settings.getLocalPort()));
+
+		RegisterKey keyRegisterMsg = new RegisterKey(publicKeyString, uniqueIdentifier);
+
+		/* Send to Key Register Server now */
 	}
 
 	public void initialiseDBConnections() {
