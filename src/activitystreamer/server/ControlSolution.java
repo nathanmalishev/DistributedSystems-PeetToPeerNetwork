@@ -93,11 +93,11 @@ public class ControlSolution extends Control {
 				log.error("failed to make connection to "+Settings.getRemoteHostname()+":"+Settings.getRemotePort()+" :"+e);
 				System.exit(-1);
 			}
-		} else {
-			/* Otherwise this is the registry server, and the DB needs to be setup (either take arguments or generate yourself) */
-			initialiseDBConnections();
-
 		}
+		/* DB needs to be setup (either take arguments or generate yourself) */
+		initialiseDBConnections();
+
+
 	}
 
 	public void initialiseDBConnections() {
@@ -133,7 +133,6 @@ public class ControlSolution extends Control {
 				break;
 			}
 		}
-		System.out.println("found db num to be " + dbNum);
 		if (dbNum!= -1) {
 			return dbLookup.get(dbNum);
 		}
@@ -204,7 +203,7 @@ public class ControlSolution extends Control {
 	@Override
 	public boolean doActivity(){
 
-		ServerAnnounce serverAnnounce = new ServerAnnounce(Settings.getId(), getAuthClients().size(), Settings.getLocalHostname(), String.valueOf(Settings.getLocalPort()));
+		ServerAnnounce serverAnnounce = new ServerAnnounce(Settings.getId(), getAuthClients().size(), Settings.getLocalHostname(), Settings.getLocalPort());
 
 		// Sends Activity Boradcast to Authorized Servers only
 		for(Connection c : getAuthServers()){

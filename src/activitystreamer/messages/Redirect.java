@@ -5,11 +5,11 @@ public class Redirect extends JsonMessage{
 	private String hostname;
 	private int port;
 	
-	public Redirect(String hostname, String port){
+	public Redirect(String hostname, int port){
 		
 		this.command = "REDIRECT";
 		this.hostname = hostname;
-		this.port = Integer.parseInt(port);
+		this.port = port;
 	}
 
 	public String getHostname() {

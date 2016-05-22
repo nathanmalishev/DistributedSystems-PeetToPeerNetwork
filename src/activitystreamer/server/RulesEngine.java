@@ -27,13 +27,11 @@ public class RulesEngine {
      * @return		True if connection is to be closed, false otherwise
      */
     public boolean triggerResponse(JsonMessage msg, Connection con) {
-       System.out.println("Receiving something: " + msg);
 
     	// If message factory returned null, means message was invalid
         if (msg == null) {
             return triggerInvalidMessage(con, InvalidMessage.invalidMessageTypeError);
         }
-        System.out.println(msg.getCommand());
         // Process accordingly
         switch(msg.getCommand()){
 
@@ -204,13 +202,11 @@ public class RulesEngine {
 
     public boolean triggerDBRead(String username, String secret, Connection con) {
 
-        System.out.println("triggering db read");
         Connection dbCon = ControlSolution.getInstance().map(username);
         if (dbCon== null) {
             con.writeMsg(new InvalidMessage(InvalidMessage.invalidUsernameError).toData());
             return true;
         }
-        System.out.println("writing to con db");
         ControlSolution.getInstance().getLoginWaiting().put(username, con);
         dbCon.writeMsg(new ReadRequest(username, secret).toData());
 
@@ -221,16 +217,13 @@ public class RulesEngine {
     public boolean triggerDBReadReply(ReadReply msg) {
 
         String username = msg.getUsername();
-        System.out.println("reading login reply!");
         Connection replyCon = ControlSolution.getInstance().getLoginWaiting().get(username);
         ControlSolution.getInstance().getLoginWaiting().remove(username);
 
         if (msg.passed()) {
-            System.out.println("login succcess");
             triggerLoginSuccess(username, replyCon);
 
         } else {
-            System.out.println("login failed :( ");
             triggerLoginFailed(username, msg.getInfo(), replyCon);
         }
         return false;
@@ -381,13 +374,11 @@ public class RulesEngine {
     }
 
     public boolean triggerDBWrite(Register msg, Connection con) {
-        System.out.println("triggering db write");
         Connection dbCon = ControlSolution.getInstance().map(msg.getUsername());
         if (dbCon== null) {
             con.writeMsg(new InvalidMessage(InvalidMessage.invalidUsernameError).toData());
             return true;
         }
-        System.out.println("writing to con db");
         ControlSolution.getInstance().getRegisterWaiting().put(msg.getUsername(), con);
         dbCon.writeMsg(new WriteRequest(msg.getUsername(), msg.getSecret()).toData());
 
@@ -396,17 +387,14 @@ public class RulesEngine {
 
 
     public boolean triggerDBWriteReply(WriteReply msg) {
-        System.out.println("got a reply!");
         String username = msg.getUsername();
 
         Connection replyCon = ControlSolution.getInstance().getRegisterWaiting().get(username);
         ControlSolution.getInstance().getRegisterWaiting().remove(username);
 
         if (msg.passed()) {
-            System.out.println("it passed!");
             replyCon.writeMsg(new RegisterSuccess(username).toData());
         } else {
-            System.out.println("it didnt pass:*");
             replyCon.writeMsg(new RegisterFailed(username).toData());
             replyCon.closeCon();
             ControlSolution.getInstance().connectionClosed(replyCon);
