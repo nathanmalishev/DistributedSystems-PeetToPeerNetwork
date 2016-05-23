@@ -116,7 +116,7 @@ public class RulesEngine {
      * the list of authorised connections if valid.
      */
     public boolean triggerAuthenticateAttempt(Authenticate msg, Connection con) {
-
+        currentVersion(msg);
         log.info("Authentication request received with secret: " + msg.getSecret());
 
         // Check if secret is valid
@@ -179,7 +179,7 @@ public class RulesEngine {
      * if valid.
      */
     public boolean triggerLoginRead(Login msg, Connection con) {
-
+        currentVersion(msg);
         log.info("Login Attempt Received: " + msg.getUsername());
 
         triggerDBRead(msg.getUsername(), msg.getSecret(), con);
@@ -655,6 +655,18 @@ public class RulesEngine {
             return true;
         }
         return false;
+    }
+
+    private boolean currentVersion(JsonMessage msg) {
+
+        if (msg.getVersion() == 2) {
+            System.out.println("version is current!");
+            return true;
+        }
+
+        System.out.println("version is not current");
+        return false;
+
     }
 
 }

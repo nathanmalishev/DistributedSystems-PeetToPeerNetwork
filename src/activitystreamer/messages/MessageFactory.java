@@ -16,7 +16,7 @@ public class MessageFactory {
 
     public JsonMessage buildMessage(String msg, Logger log) {
         JsonMessage message;
-
+        System.out.println(msg);
         /* GSON Parser transforms JSON objects into instance of a class */
         Gson parser = new Gson();
 
@@ -36,6 +36,7 @@ public class MessageFactory {
             switch (message.getCommand()) {
 
                 case "AUTHENTICATE":
+                    System.out.println("Authenticating");
                     Gson authGson = new GsonBuilder().registerTypeAdapter(Authenticate.class, new EnforcedDeserializer<JsonMessage>(log)).create();
                     Authenticate authMessage = authGson.fromJson(msg, Authenticate.class);
                     return authMessage;

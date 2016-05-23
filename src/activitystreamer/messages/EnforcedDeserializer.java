@@ -16,6 +16,7 @@ class EnforcedDeserializer<JsonMessage> implements JsonDeserializer<JsonMessage>
         }
 
         public JsonMessage deserialize(JsonElement msg, Type type, JsonDeserializationContext jdc) throws JsonParseException{
+            System.out.println("MEssafe is: " + msg);
             Gson gson = new Gson();
             JsonMessage newMsg = gson.fromJson(msg, type);
 
@@ -26,8 +27,9 @@ class EnforcedDeserializer<JsonMessage> implements JsonDeserializer<JsonMessage>
             for (Field f : attributes) {
                 attributeNames.add(f.getName());
             }
-
+            System.out.println(attributeNames);
             attributeNames.add("command");
+            attributeNames.remove("version");
 
             for (Field f : attributes) {
                 try {
@@ -42,6 +44,7 @@ class EnforcedDeserializer<JsonMessage> implements JsonDeserializer<JsonMessage>
                 }
             }
 
+            attributeNames.add("version");
             for ( Map.Entry<String, JsonElement> entry : msg.getAsJsonObject().entrySet() ) {
                 if (!attributeNames.contains(entry.getKey())) {
                     throw new JsonParseException("Extra field");
