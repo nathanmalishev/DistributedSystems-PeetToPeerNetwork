@@ -82,7 +82,7 @@ public class RulesEngine {
     	GetKey msg = new GetKey(uniqueIdentifier);
     	
     	con.writeMsg(msg.toData());
-    	
+    	log.info("GETKEY Sent");
     	return false;
     }
     

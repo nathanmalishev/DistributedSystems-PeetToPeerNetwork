@@ -106,7 +106,9 @@ public class ClientSolution extends Thread {
 			myConnection = new Connection(s);
 			
 			// TODO: Test
+			log.info("Setting up connection with key register");
 			Connection krCon = new Connection(new Socket(Settings.getKeyRegisterHostname(), Settings.getKeyRegisterPort()));
+			log.info("Sending GETKEY message");
 			rulesEngine.triggerGetKeyMessage(krCon);
 			
 		} catch(Exception e) {

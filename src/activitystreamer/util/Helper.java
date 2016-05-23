@@ -4,6 +4,8 @@ import sun.misc.BASE64Decoder;
 import sun.misc.BASE64Encoder;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
@@ -42,6 +44,18 @@ public class Helper {
     }
 
     public static String createUniqueServerIdentifier(String LocalHost, String LocalPort){
-        return LocalHost+':'+LocalPort;
+    	
+    	String address = LocalHost;
+    	
+    	if(LocalHost.equals("localhost")){
+    		
+    		try {
+				address = InetAddress.getLocalHost().getHostAddress();
+			} catch (UnknownHostException e) {
+				e.printStackTrace();
+			}
+    	}
+    	
+        return address+':'+LocalPort;
     }
 }
