@@ -149,7 +149,9 @@ public class ControlSolution extends Control {
 	}
 
 	public void initialiseKeyRegister(){
-		RegisterSolution keyRegister = new RegisterSolution(Settings.getDefaultKeyRegisterPort());
+		if(Helper.available(Settings.getDefaultKeyRegisterPort())){
+			RegisterSolution keyRegister = new RegisterSolution(Settings.getDefaultKeyRegisterPort());
+		}
 	}
 
 
