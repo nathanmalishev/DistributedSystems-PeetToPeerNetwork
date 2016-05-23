@@ -3,8 +3,11 @@ package activitystreamer.util;
 import sun.misc.BASE64Decoder;
 import sun.misc.BASE64Encoder;
 
+import java.io.IOException;
 import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 
 public class Helper {
@@ -18,13 +21,22 @@ public class Helper {
     
     public static PublicKey stringToPublicKey(String keyString){
     	
-    	BASE64Decoder decoder = new BASE64Decoder();
-    	byte array[] = decoder.decodeBuffer(keyString);
+    	byte array[];
+    	PublicKey publicKey = null;
     	
-    	X509EncodedKeySpec x509KeySpec = new X509EncodedKeySpec(sigBytes2);
-    	
-    	KeyFactory keyFact = KeyFactory.getInstance("RSA", "BC");
-    	PublicKey publicKey = keyFact.generatePublic(x509KeySpec);
+		try {
+			
+			BASE64Decoder decoder = new BASE64Decoder();
+			array = decoder.decodeBuffer(keyString);
+			
+			X509EncodedKeySpec x509KeySpec = new X509EncodedKeySpec(array);
+	    	
+	    	KeyFactory keyFact = KeyFactory.getInstance("RSA");
+	    	publicKey = keyFact.generatePublic(x509KeySpec);
+	    	
+		} catch (IOException | InvalidKeySpecException | NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		}
     	
     	return publicKey;
     }
