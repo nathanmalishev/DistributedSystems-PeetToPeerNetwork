@@ -28,6 +28,7 @@ public class ClientSolution extends Thread {
 	private boolean redirect = false;					// Redirect needed flag
 
 	public Connection myConnection;						// Connection to Server
+	public Connection krCon;
 	private JSONParser parser = new JSONParser();		
 	private RulesEngine rulesEngine;					// Handles message processing
 	private Socket s;									// Connection socket
@@ -85,6 +86,7 @@ public class ClientSolution extends Thread {
 	public static void decodePublicKey(String serverKey){
 		
 		serverPubKey = Helper.stringToPublicKey(serverKey);
+		log.info("Decoding Public Key: " + serverPubKey);
 	}
 	
 	// TODO: Complete
@@ -107,7 +109,7 @@ public class ClientSolution extends Thread {
 			
 			// TODO: Test
 			log.info("Setting up connection with key register");
-			Connection krCon = new Connection(new Socket(Settings.getKeyRegisterHostname(), Settings.getKeyRegisterPort()));
+			krCon = new Connection(new Socket(Settings.getKeyRegisterHostname(), Settings.getKeyRegisterPort()));
 			log.info("Sending GETKEY message");
 			rulesEngine.triggerGetKeyMessage(krCon);
 			
@@ -190,6 +192,9 @@ public class ClientSolution extends Thread {
 					log.error("connection "+Settings.socketAddress(s)+ "" +
 							"closed with exception: "+e );
 				}
+			}
+			if(krCon.isOpen()){
+				krCon.listen();
 			}
 		}
 	}

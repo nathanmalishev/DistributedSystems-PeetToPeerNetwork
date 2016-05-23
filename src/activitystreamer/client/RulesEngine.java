@@ -89,6 +89,7 @@ public class RulesEngine {
     // TODO: Test
     public boolean triggerGetKeySuccess(GetKeySuccess msg, Connection con){
     	
+    	log.info("Received Public Key from KeyRegister: " + msg.getServerKey());
     	ClientSolution.decodePublicKey(msg.getServerKey());
     	
     	return false;
