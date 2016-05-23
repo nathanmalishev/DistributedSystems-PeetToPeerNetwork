@@ -14,6 +14,8 @@ import java.io.*;
 import java.net.Socket;
 import java.security.PublicKey;
 
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 
 
@@ -35,7 +37,7 @@ public class ClientSolution extends Thread {
 	private static final Logger log = LogManager.getLogger();
 	
 	private static PublicKey serverPubKey;
-	private SecretKey secretKey;
+	private SecretKey secretKey = null;
 	
 	/* Getters and Setters */
 	public void setOpen(boolean open) { this.open = open; }
@@ -68,7 +70,6 @@ public class ClientSolution extends Thread {
 	private void initialiseConnection() {
 
 		connectToServer();
-		createSecretKey();
 
 		// If secret is null, attempt to register
 		if (Settings.getSecret() == null && !Settings.getUsername().equals("anonymous")) {
@@ -82,20 +83,56 @@ public class ClientSolution extends Thread {
 
 	}
 	
-	// TODO: Test
 	public static void decodePublicKey(String serverKey){
 		
 		serverPubKey = Helper.stringToPublicKey(serverKey);
 		log.info("Decoding Public Key: " + serverPubKey);
 	}
-	
-	// TODO: Complete
+
+	/**
+	 * Creates a secret key, from the servers public key
+	 */
 	public void createSecretKey(){
-		
-		// check if publicKey != null
-		// Create SecretKeyObject
-		// Encode SecretKeyObject using public Key
-		// Send encoded secret key to server when sending first message
+		if(this.serverPubKey != null && this.secretKey == null){
+			try{
+				KeyGenerator keyGenerator = KeyGenerator.getInstance("DES");
+				SecretKey sharedKey = keyGenerator.generateKey();
+				Cipher desCipher = Cipher.getInstance("DES");
+				desCipher.init(Cipher.ENCRYPT_MODE, sharedKey);
+				this.secretKey = sharedKey;
+			}catch(Exception e){
+				System.out.println(e);
+			}
+		}
+	}
+
+	//Testing required
+
+	/**
+	 * Sends the secret key the server and client will use to communicate
+	 * from now on
+	 */
+	public boolean sendSecretKey(EncryptedKey msg, Connection con){
+		if(this.secretKey == null){return true;}
+
+		try{
+			Cipher cipher = Cipher.getInstance("RSA");
+			cipher.init(Cipher.ENCRYPT_MODE, this.serverPubKey);
+			byte[] secret = this.secretKey.getEncoded();
+			byte[] secretEncrypted = cipher.doFinal(secret);
+
+			EncryptedKey encryptedMessage = new EncryptedKey(secretEncrypted);
+
+			con.writeMsg(encryptedMessage.toData());
+			log.info("Secret key Sent");
+			return false;
+		}catch(Exception e){
+			System.out.println(e);
+		}
+
+
+
+
 	}
 
 	/**
@@ -107,13 +144,22 @@ public class ClientSolution extends Thread {
 			s = new Socket(Settings.getRemoteHostname(), Settings.getRemotePort());
 			myConnection = new Connection(s);
 			
+		} catch(Exception e) {
+			System.out.print(e);
+		}
+	}
+
+	/**
+	 * Creates a socket to connect to for the Key Register Server
+	 */
+	public void connectToKeyRegister(){
+		try{
 			// TODO: Test
 			log.info("Setting up connection with key register");
 			krCon = new Connection(new Socket(Settings.getKeyRegisterHostname(), Settings.getKeyRegisterPort()));
 			log.info("Sending GETKEY message");
 			rulesEngine.triggerGetKeyMessage(krCon);
-			
-		} catch(Exception e) {
+		}catch(Exception e){
 			System.out.print(e);
 		}
 	}

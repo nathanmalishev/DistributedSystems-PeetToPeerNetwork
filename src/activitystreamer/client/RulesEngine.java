@@ -75,7 +75,9 @@ public class RulesEngine {
                 return triggerInvalidMessage(con, InvalidMessage.invalidMessageTypeError);
         }
     }
-    
+
+
+
     public boolean triggerGetKeyMessage(Connection con){
     	
     	String uniqueIdentifier = Helper.createUniqueServerIdentifier(Settings.getRemoteHostname(), Integer.toString(Settings.getRemotePort()));
