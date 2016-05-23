@@ -2,6 +2,7 @@ package activitystreamer.client;
 
 import activitystreamer.client.RulesEngine;
 import activitystreamer.messages.*;
+import activitystreamer.util.Helper;
 import activitystreamer.util.Settings;
 
 import org.apache.logging.log4j.LogManager;
@@ -11,6 +12,9 @@ import org.json.simple.parser.JSONParser;
 
 import java.io.*;
 import java.net.Socket;
+import java.security.PublicKey;
+
+import javax.crypto.SecretKey;
 
 
 /** Class handles the Client Functionality. Including connecting to Server,
@@ -28,6 +32,9 @@ public class ClientSolution extends Thread {
 	private RulesEngine rulesEngine;					// Handles message processing
 	private Socket s;									// Connection socket
 	private static final Logger log = LogManager.getLogger();
+	
+	private static PublicKey serverPubKey;
+	private SecretKey secretKey;
 	
 	/* Getters and Setters */
 	public void setOpen(boolean open) { this.open = open; }
@@ -60,6 +67,7 @@ public class ClientSolution extends Thread {
 	private void initialiseConnection() {
 
 		connectToServer();
+		createSecretKey();
 
 		// If secret is null, attempt to register
 		if (Settings.getSecret() == null && !Settings.getUsername().equals("anonymous")) {
@@ -72,6 +80,21 @@ public class ClientSolution extends Thread {
 		}
 
 	}
+	
+	// TODO: Test
+	public static void decodePublicKey(String serverKey){
+		
+		serverPubKey = Helper.stringToPublicKey(serverKey);
+	}
+	
+	// TODO: Complete
+	public void createSecretKey(){
+		
+		// check if publicKey != null
+		// Create SecretKeyObject
+		// Encode SecretKeyObject using public Key
+		// Send encoded secret key to server when sending first message
+	}
 
 	/**
 	 * Creates a socket to connect to and instantiates a Connection object with that Socket 
@@ -81,6 +104,11 @@ public class ClientSolution extends Thread {
 		try {
 			s = new Socket(Settings.getRemoteHostname(), Settings.getRemotePort());
 			myConnection = new Connection(s);
+			
+			// TODO: Test
+			Connection krCon = new Connection(new Socket(Settings.getKeyRegisterHostname(), Settings.getKeyRegisterPort()));
+			rulesEngine.triggerGetKeyMessage(krCon);
+			
 		} catch(Exception e) {
 			System.out.print(e);
 		}

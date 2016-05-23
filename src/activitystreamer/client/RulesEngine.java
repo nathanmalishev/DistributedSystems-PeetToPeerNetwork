@@ -2,6 +2,7 @@ package activitystreamer.client;
 
 import activitystreamer.messages.*;
 import activitystreamer.client.Connection;
+import activitystreamer.util.Helper;
 import activitystreamer.util.Settings;
 
 import org.apache.logging.log4j.Logger;
@@ -63,10 +64,43 @@ public class RulesEngine {
 
             case "REGISTER_SUCCESS" :
                 return triggerRegisterSuccess((RegisterSuccess) msg, con);
+                
+            case "GET_KEY_SUCCESS" :
+            	return triggerGetKeySuccess((GetKeySuccess) msg, con);
+            	
+            case "GET_KEY_FAILED" :
+            	return triggerGetKeyFailed((GetKeyFailed) msg, con);
 
             default :
                 return triggerInvalidMessage(con, InvalidMessage.invalidMessageTypeError);
         }
+    }
+    
+    public boolean triggerGetKeyMessage(Connection con){
+    	
+    	String uniqueIdentifier = Helper.createUniqueServerIdentifier(Settings.getRemoteHostname(), Integer.toString(Settings.getRemotePort()));
+    	GetKey msg = new GetKey(uniqueIdentifier);
+    	
+    	con.writeMsg(msg.toData());
+    	
+    	return false;
+    }
+    
+    // TODO: Test
+    public boolean triggerGetKeySuccess(GetKeySuccess msg, Connection con){
+    	
+    	ClientSolution.decodePublicKey(msg.getServerKey());
+    	
+    	return false;
+    }
+    
+    // TODO: Complete
+    public boolean triggerGetKeyFailed(GetKeyFailed msg, Connection con){
+    	
+    	// What do we do when this occurs???
+    	
+    	
+    	return false;
     }
     
     /**

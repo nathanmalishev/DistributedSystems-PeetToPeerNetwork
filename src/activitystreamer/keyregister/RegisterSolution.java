@@ -113,7 +113,7 @@ public class RegisterSolution extends Thread{
         JsonMessage response = new InvalidMessage(info);
         con.writeMsg(response.toData());
 
-        return false;		// Do we want this connection to close??
+        return false;		// Do we want this connection to close - Change to true if so??
     }
 	
 	private boolean triggerRegisterKey(RegisterKey msg, Connection con){
@@ -150,16 +150,24 @@ public class RegisterSolution extends Thread{
 		con.writeMsg(new KeyRegisterResponse(info, result).toData());
 	}
 	
+	//TODO: Test
 	private boolean triggerGetKey(GetKey msg, Connection con){
 		
-		
-		
+		if(keyStore.containsKey(msg.getServerId())){
+			
+			// Send key to the Client
+			String publicKey = keyStore.get(msg.getServerId());
+			GetKeySuccess response = new GetKeySuccess(publicKey);
+			con.writeMsg(response.toData());
+		}
+		else{
+			
+			// Send failure message to the client
+			GetKeyFailed response = new GetKeyFailed(GetKeyFailed.serverKeyDoesntExist);
+			con.writeMsg(response.toData());
+		}
+
 		return false;
-	}
-	
-	private void triggetGetKeyResponse(){
-		
-		
 	}
 	
 	

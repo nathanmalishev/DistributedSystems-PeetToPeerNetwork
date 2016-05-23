@@ -22,6 +22,7 @@ public class JsonMessage {
     public static final String keyExists = "public key already exists in the register";
     public static final String invalidKey = "public key doesn't match key already registered for that ID";
     public static final String keyRegisterSuccess = "public key register was successful";
+    public static final String serverKeyDoesntExist = "unique identifier does not have a public key registered with this server";
 
 	protected String command;
 	

@@ -135,6 +135,18 @@ public class MessageFactory {
                 	Gson keyRegisterResponse = new GsonBuilder().registerTypeAdapter(KeyRegisterResponse.class, new EnforcedDeserializer<JsonMessage>(log)).create();
                 	return keyRegisterResponse.fromJson(msg, KeyRegisterResponse.class);
                 	
+                case "GET_KEY":
+                	Gson getKey = new GsonBuilder().registerTypeAdapter(GetKey.class, new EnforcedDeserializer<JsonMessage>(log)).create();
+                	return getKey.fromJson(msg, GetKey.class);
+                	
+                case "GET_KEY_SUCCESS":
+                	Gson getKeySuccess = new GsonBuilder().registerTypeAdapter(GetKeySuccess.class, new EnforcedDeserializer<JsonMessage>(log)).create();
+                	return getKeySuccess.fromJson(msg, GetKeySuccess.class);
+                	
+                case "GET_KEY_FAILED":
+                	Gson getKeyFailed = new GsonBuilder().registerTypeAdapter(GetKeyFailed.class, new EnforcedDeserializer<JsonMessage>(log)).create();
+                	return getKeyFailed.fromJson(msg, GetKeyFailed.class);
+                	
                 default:
                     return null;
 
