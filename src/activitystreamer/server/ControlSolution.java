@@ -93,14 +93,34 @@ public class ControlSolution extends Control {
 				log.error("failed to make connection to "+Settings.getRemoteHostname()+":"+Settings.getRemotePort()+" :"+e);
 				System.exit(-1);
 			}
+			setDBSettings();
+		} else {
+			setupDB();
 		}
-		/* DB needs to be setup (either take arguments or generate yourself) */
-
-		setupDB();
 
 		initialiseDBConnections();
 
 
+	}
+
+	public void setDBSettings() {
+
+		if (Settings.getShardAHostname() == null) {
+			Settings.setShardAPort(Settings.defaultShardAPort());
+			Settings.setShardAHostname(Settings.defaultShardHostname());
+		}
+		if (Settings.getShardBHostname() == null) {
+			Settings.setShardBPort(Settings.defaultShardBPort());
+			Settings.setShardBHostname(Settings.defaultShardHostname());
+		}
+		if (Settings.getShardCHostname() == null) {
+			Settings.setShardCPort(Settings.defaultShardCPort());
+			Settings.setShardCHostname(Settings.defaultShardHostname());
+		}
+		if (Settings.getShardDHostname() == null) {
+			Settings.setShardDPort(Settings.defaultShardDPort());
+			Settings.setShardDHostname(Settings.defaultShardHostname());
+		}
 	}
 
 	public void setupDB() {

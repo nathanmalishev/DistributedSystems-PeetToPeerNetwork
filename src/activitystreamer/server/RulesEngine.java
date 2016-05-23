@@ -383,21 +383,30 @@ public class RulesEngine {
         if (msg.passed()) {
             replyCon.writeMsg(new RegisterSuccess(username).toData());
         } else {
-            replyCon.writeMsg(new RegisterFailed(username).toData());
-            replyCon.closeCon();
-            ControlSolution.getInstance().connectionClosed(replyCon);
+            triggerRegisterFailed(username, replyCon);
         }
         return false;
     }
 
+
+    public boolean triggerRegisterFailed(String username, Connection con) {
+        con.writeMsg(new RegisterFailed(username).toData());
+        con.closeCon();
+        ControlSolution.getInstance().connectionClosed(con);
+        return false;
+    }
 
     /**
      * Processes incoming Register request. Closes the connection if invalid.
      */
     public boolean triggerRegisterRead(Register msg, Connection con) {
 
-
-        return triggerDBWrite(msg, con);
+        if (ControlSolution.getInstance().getRegisterWaiting().containsKey(msg.getUsername())) {
+            return triggerRegisterFailed(msg.getUsername(), con);
+        }
+        else {
+            return triggerDBWrite(msg, con);
+        }
 
     	/*ControlSolution server = ControlSolution.getInstance();
         String msgUsername = msg.getUsername();
@@ -442,12 +451,28 @@ public class RulesEngine {
         }*/
 
     }
-    
+
+
+    public boolean triggerLockDenied(String username, String secret, Connection con) {
+
+        LockDenied msg = new LockDenied(username, secret);
+        con.writeMsg(msg.toData());
+        return false;
+    }
+
     /**
-     * Processes Incoming Lock_Request
+     * Processes Incoming Lock_Request, has come from an old server
      */
     public boolean triggerLockRequestRead(LockRequest msg, Connection con) {
-        
+
+        if (ControlSolution.getInstance().getRegisterWaiting().containsKey(msg.getUsername())) {
+            return triggerLockDenied(msg.getUsername(), msg.getSecret(), con);
+        }
+        else {
+            Register registerMsg = new Register(msg.getUsername(), msg.getSecret());
+            return triggerDBWrite(registerMsg, con);
+        }
+        /*
     	ControlSolution server = ControlSolution.getInstance();
         String msgUsername = msg.getUsername();
         String msgSecret = msg.getSecret();
@@ -487,8 +512,7 @@ public class RulesEngine {
             if (otherServer != con)
                 otherServer.writeMsg(new LockRequest(msgUsername, msgSecret).toData());
         }
-
-        return false;
+        */
     }
     
     /**
@@ -597,34 +621,6 @@ public class RulesEngine {
 
     private boolean secretMatch(String secret) {
         return secret.equals(Settings.getSecret());
-    }
-
-    // Checks whether the username exists in the db
-    private boolean isClient(String username) {
-
-        HashMap<String, String> clientDB = ControlSolution.getInstance().getClientDB();
-
-        if (username == "anonymous") {
-            return true;
-        } else if (clientDB.containsKey(username)){
-            return true;
-        }
-        return false;
-    }
-
-    private boolean isCorrectClientSecret(Login msg) {
-
-        HashMap<String, String> clientDB = ControlSolution.getInstance().getClientDB();
-        if (msg.isAnonymous()) {
-            return true;
-        } else if (clientDB.containsKey(msg.getUsername())){
-
-            if (clientDB.get(msg.getUsername()).equals(msg.getSecret())) {
-                return true;
-            }
-        }
-        return false;
-
     }
 
 
