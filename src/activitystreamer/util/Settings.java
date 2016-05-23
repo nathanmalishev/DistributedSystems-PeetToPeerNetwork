@@ -130,6 +130,8 @@ public class Settings {
 		Settings.keyRegisterPort = keyRegisterPort;
 	}
 
+	public static int getDefaultKeyRegisterPort() { return 2005; }
+
 	public static String getShardBHostname() { return shardBHostname; }
 
 	public static String getShardCHostname() { return shardCHostname; }

@@ -79,7 +79,7 @@ public class KeyRegister {
 		log.info("starting register with secret: " + Settings.getSecret());
 		
 		
-		final RegisterSolution kr = new RegisterSolution();
+		final RegisterSolution kr = new RegisterSolution(Settings.getLocalPort());
 		
 		// the following shutdown hook doesn't really work, it doesn't give us enough time to
 		// cleanup all of our connections before the jvm is terminated.

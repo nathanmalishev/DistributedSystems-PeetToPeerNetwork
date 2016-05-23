@@ -24,10 +24,14 @@ public class RegisterSolution extends Thread{
     private String secret;
     private Listener listener;
     private boolean term=false;
-	
-	
-	public RegisterSolution(){
-		
+	private int portNumber;
+
+	public int getPortNumber() {
+		return portNumber;
+	}
+
+	public RegisterSolution(int portNumber){
+		this.portNumber = portNumber;
 		keyStore = new HashMap<String,String>();
 		
 		// start a listener

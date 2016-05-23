@@ -19,7 +19,7 @@ public class Listener extends Thread{
 	private RegisterSolution keyStore;
 	
 	public Listener(RegisterSolution keyStore) throws IOException{
-		portnum = Settings.getLocalPort(); // keep our own copy in case it changes later
+		portnum = keyStore.getPortNumber(); // keep our own copy in case it changes later
 		serverSocket = new ServerSocket(portnum);
 		this.keyStore = keyStore;
 		start();

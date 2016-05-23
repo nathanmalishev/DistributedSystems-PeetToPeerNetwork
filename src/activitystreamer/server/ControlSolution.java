@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.Socket;
 
 import activitystreamer.KeyRegister;
+import activitystreamer.keyregister.RegisterSolution;
 import activitystreamer.util.Helper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -131,11 +132,19 @@ public class ControlSolution extends Control {
 		/* DB needs to be setup (either take arguments or generate yourself) */
 		initialiseDBConnections();
 
+		/* set up key register if need*/
+		initialiseKeyRegister();
+
 		/* send public key to key register server */
 		sendPublicKeyToRegisterServer();
 
 
 	}
+
+	public void initialiseKeyRegister(){
+		RegisterSolution keyRegister = new RegisterSolution(Settings.getDefaultKeyRegisterPort());
+	}
+
 
 	/* creates a json message with the servers public key as a string,
 		and its unique identifier as a string. Unique identifier is hostname:port
