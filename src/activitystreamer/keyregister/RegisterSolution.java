@@ -66,7 +66,7 @@ public class RegisterSolution extends Thread{
      */
      public synchronized Connection incomingConnection(Socket s) throws IOException{
 		
-		log.debug("incomming connection: "+ Settings.socketAddress(s));
+		//log.debug("incomming connection: "+ Settings.socketAddress(s));
         Connection c = new Connection(s, this);
         return c;
 	}
@@ -97,10 +97,24 @@ public class RegisterSolution extends Thread{
         	
         	case "GET_KEY" :
         		return triggerGetKey((GetKey) receivedMessage, connection);
+        		
+        	default :
+                return triggerInvalidMessage(connection, InvalidMessage.invalidMessageTypeError);
         }
         
-		return false;
 	}
+	
+	/**
+     * Sends an Invalid_Message to the connection
+     */
+    public boolean triggerInvalidMessage(Connection con, String info) {
+
+        log.info("Sending Invalid Message Response: " + info);
+        JsonMessage response = new InvalidMessage(info);
+        con.writeMsg(response.toData());
+
+        return false;		// Do we want this connection to close??
+    }
 	
 	private boolean triggerRegisterKey(RegisterKey msg, Connection con){
 		
@@ -137,6 +151,8 @@ public class RegisterSolution extends Thread{
 	}
 	
 	private boolean triggerGetKey(GetKey msg, Connection con){
+		
+		
 		
 		return false;
 	}
