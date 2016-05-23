@@ -352,5 +352,7 @@ public class ControlSolution extends Control {
     public Connection getConnectionForLock(String username) { return lockConnections.get(username); }
     public boolean hasConnectionForLock(String username) { return lockConnections.containsKey(username); }
 
-
-}	
+	public PublicKey getPublicKey() {
+		return publicKey;
+	}
+}

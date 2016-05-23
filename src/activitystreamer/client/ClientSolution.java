@@ -107,7 +107,6 @@ public class ClientSolution extends Thread {
 	}
 
 	//Testing required
-
 	/**
 	 * Sends the secret key the server and client will use to communicate
 	 * from now on
@@ -129,10 +128,7 @@ public class ClientSolution extends Thread {
 		}catch(Exception e){
 			System.out.println(e);
 		}
-
-
-
-
+		return false;
 	}
 
 	/**

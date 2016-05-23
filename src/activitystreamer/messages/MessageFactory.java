@@ -145,6 +145,10 @@ public class MessageFactory {
                 case "GET_KEY_FAILED":
                 	Gson getKeyFailed = new GsonBuilder().registerTypeAdapter(GetKeyFailed.class, new EnforcedDeserializer<JsonMessage>(log)).create();
                 	return getKeyFailed.fromJson(msg, GetKeyFailed.class);
+
+                case "ENCRYPTED_KEY":
+                    Gson encryptedKey = new GsonBuilder().registerTypeAdapter(EncryptedKey.class, new EnforcedDeserializer<JsonMessage>(log)).create();
+                    return encryptedKey.fromJson(msg, EncryptedKey.class);
                 	
                 default:
                     return null;

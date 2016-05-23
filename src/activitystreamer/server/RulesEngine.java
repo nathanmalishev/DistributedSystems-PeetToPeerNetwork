@@ -2,9 +2,15 @@ package activitystreamer.server;
 
 import activitystreamer.messages.*;
 import activitystreamer.util.Settings;
+
+import java.security.PublicKey;
 import java.util.*;
 import org.json.simple.JSONObject;
 import org.apache.logging.log4j.Logger;
+
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 
 /**
  * Class controls the processing of incoming messages from the server side
@@ -78,9 +84,37 @@ public class RulesEngine {
             case "KEY_REGISTER_RESPONSE" :
             	return triggerKeyRegisterResponse((KeyRegisterResponse) msg, con);
 
+            case "ENCRYPTED_KEY":
+                return triggerEncryptedKey((EncryptedKey)msg, con);
+
             default :
                 return triggerInvalidMessage(con, InvalidMessage.invalidMessageTypeError);
         }
+    }
+
+    //TODO: Test
+    /**
+    * Takes a message, verifies the key was encrypted by the server
+     * Then saves it into a hash map
+     */
+    public boolean triggerEncryptedKey(EncryptedKey msg, Connection con){
+        PublicKey serverPublicKey = ControlSolution.getInstance().getPublicKey();
+        if(serverPublicKey != null){
+            try{
+                Cipher cipher = Cipher.getInstance("RSA");
+                cipher.init(Cipher.DECRYPT_MODE, serverPublicKey);
+                byte[] secretKeyByte = cipher.doFinal(msg.getEncryptedSecretKey());
+                // can we some how check secret key is all g
+                SecretKey secretKey = new SecretKeySpec(secretKeyByte, 0, secretKeyByte.length, "DES");
+
+                //TODO: Store secret key with conn in hashmap on server
+
+            }catch(Exception e){
+                System.out.println(e);
+            }
+        }
+
+        return false;
     }
     
     public boolean triggerKeyRegisterResponse(KeyRegisterResponse msg, Connection con){
