@@ -20,9 +20,7 @@ public class Control extends Thread {
 	private ArrayList<Connection> unauthConnections; 		/* A list of unauthorized connections
 															 (may be servers that havn't authorized or
 															 clients that havn't logged in) */
-	private DBManager dbManager;
 	public HashMap<Integer, Connection> dbLookup;
-	private HashMap<String, String> clientDB;				// Map of Registered Users
 	private HashMap<Connection, ServerAnnounce> serverLoads;// Map of current server loads
 
 	private boolean term=false;
@@ -34,7 +32,6 @@ public class Control extends Thread {
 	public final ArrayList<Connection> getAuthServers() {return authServers;}
 	public final ArrayList<Connection> getUnauthConnections() {return unauthConnections;}
 	public final ArrayList<Connection> getAuthClients() {return authClients;}
-	public final HashMap<String, String> getClientDB() { return clientDB; }
 	public final HashMap<Connection, ServerAnnounce> getServerLoads() { return serverLoads; }
 
 	
@@ -52,9 +49,7 @@ public class Control extends Thread {
 		unauthConnections = new ArrayList<Connection>();
 		authClients = new ArrayList<Connection>();
 		connections = new ArrayList<Connection>();
-		clientDB = new HashMap<String, String>();
 		serverLoads = new HashMap<Connection, ServerAnnounce>();
-		dbManager = new DBManager();
 
 		// start a listener
 		try {

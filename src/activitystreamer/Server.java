@@ -39,8 +39,16 @@ public class Server {
 		options.addOption("lh",true,"local hostname");
 		options.addOption("a",true,"activity interval in milliseconds");
 		options.addOption("s",true,"secret for the server to use");
-		
-		
+		options.addOption("dbah",true,"DB Shard A hostname");
+		options.addOption("dbbh",true,"DB Shard B hostname");
+		options.addOption("dbch",true,"DB Shard C hostname");
+		options.addOption("dbdh",true,"DB Shard D hostname");
+		options.addOption("dbap",true,"DB Shard A port");
+		options.addOption("dbbp",true,"DB Shard B port");
+		options.addOption("dbcp",true,"DB Shard C port");
+		options.addOption("dbdp",true,"DB Shard D port");
+
+
 		// build the parser
 		CommandLineParser parser = new DefaultParser();
 		
@@ -96,43 +104,27 @@ public class Server {
 		}
 		if(cmd.hasOption("dbah")){
 			Settings.setShardAHostname(cmd.getOptionValue("dbah"));
-		} else {
-			Settings.setShardAHostname("localhost");
 		}
 		if(cmd.hasOption("dbbh")){
 			Settings.setShardBHostname(cmd.getOptionValue("dbbh"));
-		} else {
-			Settings.setShardBHostname("localhost");
 		}
 		if(cmd.hasOption("dbch")){
 			Settings.setShardCHostname(cmd.getOptionValue("dbch"));
-		} else {
-			Settings.setShardCHostname("localhost");
 		}
 		if(cmd.hasOption("dbdh")){
 			Settings.setShardDHostname(cmd.getOptionValue("dbdh"));
-		} else {
-			Settings.setShardDHostname("localhost");
 		}
 		if(cmd.hasOption("dbap")){
 			Settings.setShardAPort(Integer.parseInt(cmd.getOptionValue("dbap")));
-		} else {
-			Settings.setShardAPort(2000);
 		}
 		if(cmd.hasOption("dbbp")){
 			Settings.setShardBPort(Integer.parseInt(cmd.getOptionValue("dbbp")));
-		} else {
-			Settings.setShardBPort(2001);
 		}
 		if(cmd.hasOption("dbcp")){
 			Settings.setShardCPort(Integer.parseInt(cmd.getOptionValue("dbcp")));
-		} else {
-			Settings.setShardCPort(2002);
 		}
 		if(cmd.hasOption("dbdp")){
 			Settings.setShardDPort(Integer.parseInt(cmd.getOptionValue("dbdp")));
-		} else {
-			Settings.setShardDPort(2003);
 		}
 
 		if(cmd.hasOption("krh")){

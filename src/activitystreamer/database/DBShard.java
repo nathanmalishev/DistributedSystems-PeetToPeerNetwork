@@ -20,6 +20,7 @@ public class DBShard extends Thread {
     private String secret;
     private HashMap<String, String> clientShard;				// Map of Registered Users
     private Listener listener;
+    private int portnum;
     private boolean term=false;
     private static final char[] startBoundaries = {'a', 'h', 'n', 'u'};
     private static final char[] endBoundaries = {'g', 'm', 't', 'z'};
@@ -27,11 +28,15 @@ public class DBShard extends Thread {
         term=t;
     }
 
-    public DBShard(int num) {
-        this.start = startBoundaries[num];
-        this.end = endBoundaries[num];
+    public int getPortnum() { return portnum; }
+
+    public DBShard(int dbnum, int portnum) {
+        this.start = startBoundaries[dbnum];
+        this.end = endBoundaries[dbnum];
+        this.portnum = portnum;
         connections = new ArrayList();
         unauthConnections = new ArrayList();
+        authConnections = new ArrayList();
         clientShard = new HashMap();
 
         // start a listener
@@ -83,13 +88,12 @@ public class DBShard extends Thread {
     public synchronized void connectionClosed(Connection con){
         if(!term) {
             connections.remove(con);
-            if (authConnections.contains(con)) authConnections.remove(con);
+            if (authConnections.contains(con)) { authConnections.remove(con); }
             if (unauthConnections.contains(con)) unauthConnections.remove(con);
         }
     }
 
-    public synchronized boolean process(Connection con, String msg) {
-        System.out.println("PROCESSING: " + msg);
+    public boolean process(Connection con, String msg) {
 
         MessageFactory msgFactory = new MessageFactory();
 
@@ -131,21 +135,19 @@ public class DBShard extends Thread {
 
     private boolean triggerReadReply(String username, Connection con, String result, String info) {
 
-        log.info("Read " + result + " for " + username);
+        log.info("Login " + result + " for " + username);
         con.writeMsg(new ReadReply(username, result, info).toData());
         return false;
 
     }
 
 
-    private boolean triggerWriteRequest(WriteRequest msg, Connection con) {
-        System.out.println("trying to write");
+    private synchronized boolean triggerWriteRequest(WriteRequest msg, Connection con) {
         String username = msg.getUsername();
         if (!checkBounds(username.charAt(0))) {
             return triggerInvalidMessage(con, InvalidMessage.invalidShardBoundaryError);
         }
 
-        System.out.println("Got the register for " + username);
         String result, info;
         if (clientShard.containsKey(username)) {
             result = "FAILED";
@@ -155,14 +157,14 @@ public class DBShard extends Thread {
             result = "SUCCESS";
             info = RegisterSuccess.registerSuccessMsg;
         }
-        return triggerWriteReply(username, con, result, info);
+        return triggerWriteReply(username, msg.getSecret(), con, result, info);
     }
 
 
-    private boolean triggerWriteReply(String username, Connection con, String result, String info) {
+    private synchronized boolean triggerWriteReply(String username, String secret, Connection con, String result, String info) {
 
-        log.info("Registration " + result + " for " + username + " .Notifying.");
-        con.writeMsg(new WriteReply(username, result, info).toData());
+        log.info("Registration " + result + " for " + username);
+        con.writeMsg(new WriteReply(username, result, info, secret).toData());
         return false;
 
     }

@@ -7,6 +7,7 @@ public class RegisterFailed extends JsonMessage {
     public String getInfo() { return info; }
 
     public RegisterFailed(String username) {
+        super();
         this.command = "REGISTER_FAILED";
         this.info = username + " is already registered with the system";
     }
