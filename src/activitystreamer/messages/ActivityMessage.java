@@ -10,7 +10,7 @@ public class ActivityMessage extends JsonMessage {
     public String getUsername() { return username; }
     public JSONObject getActivity() { return activity; }
     public ActivityMessage(String username, String secret, JSONObject activity) {
-
+        super();
         this.command = "ACTIVITY_MESSAGE";
         this.username = username;
         this.secret = secret;

@@ -30,7 +30,9 @@ public class ControlSolution extends Control {
 	private HashMap<Connection, String> loggedInUsernames;		// Current active users
 	private HashMap<String, Connection> registerWaiting;
 	private HashMap<String, Connection> loginWaiting;
+	private HashMap<String, Connection> lockRequestWaiting;
 
+	public HashMap<String, Connection> getLockRequestWaiting() { return lockRequestWaiting; }
 	public HashMap<String, Connection> getRegisterWaiting() { return registerWaiting; }
 	public HashMap<Connection, String> getLoggedInUsernames() { return loggedInUsernames; }
 	public HashMap<String, Connection> getLoginWaiting() { return loginWaiting; }
@@ -56,6 +58,8 @@ public class ControlSolution extends Control {
 		loggedInUsernames = new HashMap<>();
 		registerWaiting = new HashMap<>();
 		loginWaiting = new HashMap<>();
+		lockRequestWaiting = new HashMap<>();
+
 		// check if we should initiate a connection and do so if necessary
 		initiateConnection();
 		
@@ -262,40 +266,6 @@ public class ControlSolution extends Control {
 		return false;
 	}
 	
-	/**
-	 * Adds a user to the local storage
-	 */
-    public void addUser(String username, String secret) {
-        getClientDB().put(username, secret);
-    }
-
-    /**
-     * Tests if the user name and secret are not a match
-     */
-    public boolean userKnownDifferentSecret(String username, String secret) {
-        return getClientDB().containsKey(username) && !getClientDB().get(username).equals(secret);
-    }
-
-    /**
-     * Tests if the user name and secret are a match
-     */
-    public boolean userKnownSameSecret(String username, String secret) {
-        return userKnown(username) && getClientDB().get(username).equals(secret);
-    }
-    
-    /**
-     * Tests if the user name if contained in the local storage
-     */
-    public boolean userKnown(String username) {
-        return getClientDB().containsKey(username);
-    }
-    
-    /**
-     * Removes user from the local storage
-     */
-    public void removeUser(String username) {
-        getClientDB().remove(username);
-    }
 
     public void removeLockRequestsAndConnection(String username) {
         if (lockRequests.containsKey(username))

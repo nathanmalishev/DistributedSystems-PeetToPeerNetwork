@@ -30,10 +30,13 @@ public class JsonMessage {
 
 	public int getVersion() { return version; }
 
+	public JsonMessage() {
+		this.version = VERSION_NUMBER;
+	}
+
 	public String toData() {
 		Gson gson = new Gson();
 		String json = gson.toJson(this);
-		version = VERSION_NUMBER;
 		return json;
 	}
 

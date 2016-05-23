@@ -27,7 +27,6 @@ public class RulesEngine {
      * @return		True if connection is to be closed, false otherwise
      */
     public boolean triggerResponse(JsonMessage msg, Connection con) {
-        System.out.println("Message received: " + msg);
     	// If message factory returned null, means message was invalid
         if (msg == null) {
             return triggerInvalidMessage(con, InvalidMessage.invalidMessageTypeError);
@@ -75,12 +74,6 @@ public class RulesEngine {
 
             case "LOCK_REQUEST" :
                 return triggerLockRequestRead((LockRequest) msg, con);
-
-            case "LOCK_DENIED" :
-                return triggerLockDeniedRead((LockDenied)msg, con);
-
-            case "LOCK_ALLOWED" :
-                return triggerLockAllowedRead((LockAllowed)msg, con);
 
             default :
                 return triggerInvalidMessage(con, InvalidMessage.invalidMessageTypeError);
@@ -361,14 +354,14 @@ public class RulesEngine {
         return true;
     }
 
-    public boolean triggerDBWrite(Register msg, Connection con) {
-        Connection dbCon = ControlSolution.getInstance().map(msg.getUsername());
+    public boolean triggerDBWrite(String username, String secret, Connection con) {
+        Connection dbCon = ControlSolution.getInstance().map(username);
         if (dbCon== null) {
             con.writeMsg(new InvalidMessage(InvalidMessage.invalidUsernameError).toData());
             return true;
         }
-        ControlSolution.getInstance().getRegisterWaiting().put(msg.getUsername(), con);
-        dbCon.writeMsg(new WriteRequest(msg.getUsername(), msg.getSecret()).toData());
+        ControlSolution.getInstance().getRegisterWaiting().put(username, con);
+        dbCon.writeMsg(new WriteRequest(username, secret).toData());
 
         return false;
     }
@@ -380,11 +373,27 @@ public class RulesEngine {
         Connection replyCon = ControlSolution.getInstance().getRegisterWaiting().get(username);
         ControlSolution.getInstance().getRegisterWaiting().remove(username);
 
-        if (msg.passed()) {
-            replyCon.writeMsg(new RegisterSuccess(username).toData());
+        if (ControlSolution.getInstance().getLockRequestWaiting().get(username)!=null) {
+            // Responding to an old server
+
+            ControlSolution.getInstance().getLockRequestWaiting().remove(username);
+            if (msg.passed()) {
+                triggerLockAllowed(msg.getUsername(), msg.getSecret(), replyCon);
+            } else {
+                triggerLockDenied(msg.getUsername(), msg.getSecret(), replyCon);
+            }
+
         } else {
-            triggerRegisterFailed(username, replyCon);
+            // Responding directly to client
+
+            if (msg.passed()) {
+                replyCon.writeMsg(new RegisterSuccess(username).toData());
+            } else {
+                triggerRegisterFailed(username, replyCon);
+            }
+
         }
+
         return false;
     }
 
@@ -405,50 +414,8 @@ public class RulesEngine {
             return triggerRegisterFailed(msg.getUsername(), con);
         }
         else {
-            return triggerDBWrite(msg, con);
+            return triggerDBWrite(msg.getUsername(), msg.getSecret(), con);
         }
-
-    	/*ControlSolution server = ControlSolution.getInstance();
-        String msgUsername = msg.getUsername();
-        String msgSecret = msg.getSecret();
-
-        // Check if already logged in on this connection.
-        if (alreadyLoggedIn(msgUsername, con)) {
-            log.info("User attempting to register while logged in.");
-            con.writeMsg(new InvalidMessage(InvalidMessage.alreadyLoggedInError).toData());
-            return true;
-        }
-
-        // Check if already registered.
-        if (server.getClientDB().containsKey(msgUsername)) {
-            log.info(msgUsername + " already known.");
-            con.writeMsg(new RegisterFailed(msgUsername).toData());
-            return true;
-        }
-
-        // Get known servers.
-        ArrayList<Connection> knownServers = server.getAuthServers();
-
-        // If no other servers, register the user.
-        if (knownServers.size() == 0) {
-            log.info("Registering user " + msgUsername);
-            con.writeMsg(new RegisterSuccess(msgUsername).toData());
-            server.addUser(msgUsername, msgSecret);
-            return false;
-        }
-
-        // Setup Set of servers we are waiting to reply.
-        server.addLockRequest(msgUsername, new HashSet<>(knownServers));
-        server.addConnectionForLock(msgUsername, con);
-
-        // Add to list on unauth clients.
-        server.addUnauthClient(con);
-
-        // Send lock request to all servers.
-        log.info("Sending lock requests to all known servers regarding " + msgUsername);
-        for (Connection otherServer : knownServers) {
-            otherServer.writeMsg(new LockRequest(msgUsername, msgSecret).toData());
-        }*/
 
     }
 
@@ -456,6 +423,13 @@ public class RulesEngine {
     public boolean triggerLockDenied(String username, String secret, Connection con) {
 
         LockDenied msg = new LockDenied(username, secret);
+        con.writeMsg(msg.toData());
+        return false;
+    }
+
+    public boolean triggerLockAllowed(String username, String secret, Connection con) {
+
+        LockAllowed msg = new LockAllowed(username, secret);
         con.writeMsg(msg.toData());
         return false;
     }
@@ -469,152 +443,13 @@ public class RulesEngine {
             return triggerLockDenied(msg.getUsername(), msg.getSecret(), con);
         }
         else {
-            Register registerMsg = new Register(msg.getUsername(), msg.getSecret());
-            return triggerDBWrite(registerMsg, con);
+            ControlSolution.getInstance().getLockRequestWaiting().put(msg.getUsername(), con);
+            return triggerDBWrite(msg.getUsername(), msg.getSecret(), con);
         }
-        /*
-    	ControlSolution server = ControlSolution.getInstance();
-        String msgUsername = msg.getUsername();
-        String msgSecret = msg.getSecret();
-
-        // Get known servers.
-        ArrayList<Connection> knownServers = server.getAuthServers();
-
-        // Check if server authenticated.
-        if (!knownServers.contains(con))
-            return triggerInvalidMessage(con, InvalidMessage.unauthorisedServerError);
-
-        // Check already registered (same or different name), or already registering
-        if (server.userKnown(msgUsername) || server.hasLockRequest(msgUsername)) {
-            // Broadcast lock denied.
-            log.info(msgUsername + " already known. Sending lock denied.");
-            for (Connection otherServer : knownServers)
-                otherServer.writeMsg(new LockDenied(msgUsername, msgSecret).toData());
-            return false;
-        }
-
-        // Check if only other know server is that which sent message.
-        if (knownServers.size() == 1) {
-            // Register user
-            log.info("Registering user " + msgUsername);
-            con.writeMsg(new LockAllowed(msgUsername, msgSecret).toData());
-            server.addUser(msgUsername, msgSecret);
-            return false;
-        }
-
-        // Send LR to all but original.
-        HashSet<Connection> knownSet = new HashSet<>(knownServers);
-        knownSet.remove(con);
-        server.addLockRequest(msgUsername, knownSet);
-        server.addConnectionForLock(msgUsername, con);
-        log.info("Sending lock requests to all known servers regarding " + msgUsername);
-        for (Connection otherServer : knownSet) {
-            if (otherServer != con)
-                otherServer.writeMsg(new LockRequest(msgUsername, msgSecret).toData());
-        }
-        */
     }
     
-    /**
-     * Process incoming Lock_Allowed message
-     */
-    public boolean triggerLockAllowedRead(LockAllowed msg, Connection con) {
-        ControlSolution server = ControlSolution.getInstance();
 
-        // Check if server authenticated.
-        if (!server.getAuthServers().contains(con))
-            return triggerInvalidMessage(con, InvalidMessage.unauthorisedServerError);
 
-        // Get servers we are waiting for.
-        String msgUsername = msg.getUsername();
-        String msgSecret = msg.getSecret();
-        HashSet<Connection> waiting = server.getLockRequest(msgUsername);
-
-        // Remove received connection.
-        waiting.remove(con);
-
-        log.info("Lock allowed received regarding " + msgUsername + ". Waiting for " + waiting.size() + " more.");
-
-        // Check if no longer waiting.
-        if (waiting.size() == 0) {
-            if (server.hasConnectionForLock(msgUsername)) {
-                Connection replyCon = server.getConnectionForLock(msgUsername);
-
-                // Remove lock requests waiting.
-                server.removeLockRequestsAndConnection(msgUsername);
-
-                // If connection is client, send register success.
-                if (server.getUnauthClients().contains(replyCon)) {
-                    log.info("Registering " + msgUsername);
-                    replyCon.writeMsg(new RegisterSuccess(msgUsername).toData());
-
-                    // Register the user.
-                    server.addUser(msgUsername, msgSecret);
-                    server.removeUnauthClient(replyCon);
-                    return false;
-                }
-
-                // If connection is server, send lock allowed.
-                if (server.getAuthServers().contains(replyCon)) {
-                    log.info("Lock allowed for " + msgUsername);
-                    replyCon.writeMsg(new LockAllowed(msgUsername, msgSecret).toData());
-                    
-                    // Register the user.
-                    server.addUser(msgUsername, msgSecret);
-
-                    return false;
-                }
-                // Otherwise, send failure.
-                triggerInvalidMessage(con, InvalidMessage.userAlreadyRegistered);
-                return true;
-            }
-        }
-
-        return false;
-    }
-    
-    /**
-     * Process incoming Lock_denied message
-     */
-    public boolean triggerLockDeniedRead(LockDenied msg, Connection con) {
-        ControlSolution server = ControlSolution.getInstance();
-
-        // Check if server authenticated.
-        if (!server.getAuthServers().contains(con))
-            return triggerInvalidMessage(con, InvalidMessage.unauthorisedServerError);
-
-        String msgUsername = msg.getUsername();
-        String msgSecret = msg.getSecret();
-
-        log.info("Lock denied received " + msgUsername);
-
-        // Remove from storage.
-        if (server.userKnownSameSecret(msgUsername, msgSecret)) {
-            server.removeUser(msgUsername);
-        }
-
-        // Remove lock requests waiting.
-        Connection replyCon = null;
-        if (server.hasConnectionForLock(msgUsername))
-            replyCon = server.getConnectionForLock(msgUsername);
-        server.removeLockRequestsAndConnection(msgUsername);
-
-        // Propagate lock denied.
-        ArrayList<Connection> knownServers = server.getAuthServers();
-        for (Connection otherServer : knownServers) {
-            log.info("Sending lock denied regarding " + msgUsername);
-            if (otherServer != con) otherServer.writeMsg(new LockDenied(msgUsername, msgSecret).toData());
-        }
-
-        // If connected to client, send failure.
-        if (replyCon != null && server.getUnauthClients().contains(replyCon)) {
-            log.info("Registration failed for " + msgUsername + " .Notifying.");
-            replyCon.writeMsg(new RegisterFailed(msgUsername).toData());
-            return false;
-        }
-
-        return false;
-    }
 
 
     /* --- Helper Methods --- */
@@ -656,11 +491,9 @@ public class RulesEngine {
     private boolean currentVersion(JsonMessage msg) {
 
         if (msg.getVersion() == 2) {
-            System.out.println("version is current!");
             return true;
         }
 
-        System.out.println("version is not current");
         return false;
 
     }

@@ -11,6 +11,7 @@ public class Register extends JsonMessage {
     public String getSecret() { return secret; }
 
     public Register(String username, String secret) {
+        super();
         this.command = "REGISTER";
         this.username = username;
         this.secret = secret;

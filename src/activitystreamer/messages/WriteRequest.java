@@ -10,7 +10,7 @@ public class WriteRequest extends JsonMessage {
     private String secret;
 
     public WriteRequest(String username, String secret) {
-
+        super();
         this.username = username;
         this.secret = secret;
         this.command = "WRITE_REQUEST";

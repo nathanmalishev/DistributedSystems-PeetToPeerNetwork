@@ -8,6 +8,7 @@ public class LockRequest extends JsonMessage {
     public String getSecret() { return secret; }
 
     public LockRequest(String username, String secret) {
+        super();
         this.command = "LOCK_REQUEST";
         this.username = username;
         this.secret = secret;

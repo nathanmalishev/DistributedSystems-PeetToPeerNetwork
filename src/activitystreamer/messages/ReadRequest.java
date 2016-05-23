@@ -9,7 +9,7 @@ public class ReadRequest extends JsonMessage {
     private String secret;
 
     public ReadRequest(String username, String secret) {
-
+        super();
         this.username = username;
         this.secret = secret;
         this.command = "READ_REQUEST";

@@ -10,6 +10,7 @@ public class ReadReply extends JsonMessage {
     private String info;
 
     public ReadReply(String username, String result, String info) {
+        super();
         this.info = info;
         this.username = username;
         this.command = "READ_REPLY";
