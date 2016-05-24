@@ -68,7 +68,7 @@ public class ClientSolution extends Thread {
 	private void initialiseConnection() {
 
 		connectToServer();
-		createSecretKey();
+		connectToKeyRegister();
 
 		// If secret is null, attempt to register
 		if (Settings.getSecret() == null && !Settings.getUsername().equals("anonymous")) {
@@ -97,6 +97,23 @@ public class ClientSolution extends Thread {
 		// Encode SecretKeyObject using public Key
 		// Send encoded secret key to server when sending first message
 	}
+	
+	/**
+	 * Creates a socket to connect to and instantiates a Connection object with that Socket 
+	 */
+	public void connectToKeyRegister() {
+		
+		try {
+
+			log.info("Setting up connection with key register");
+			krCon = new Connection(new Socket(Settings.getKeyRegisterHostname(), Settings.getKeyRegisterPort()));
+			log.info("Sending GETKEY message");
+			rulesEngine.triggerGetKeyMessage(krCon);
+			
+		} catch(Exception e) {
+			System.out.print(e);
+		}
+	}
 
 	/**
 	 * Creates a socket to connect to and instantiates a Connection object with that Socket 
@@ -106,12 +123,6 @@ public class ClientSolution extends Thread {
 		try {
 			s = new Socket(Settings.getRemoteHostname(), Settings.getRemotePort());
 			myConnection = new Connection(s);
-			
-			// TODO: Test
-			log.info("Setting up connection with key register");
-			krCon = new Connection(new Socket(Settings.getKeyRegisterHostname(), Settings.getKeyRegisterPort()));
-			log.info("Sending GETKEY message");
-			rulesEngine.triggerGetKeyMessage(krCon);
 			
 		} catch(Exception e) {
 			System.out.print(e);
@@ -187,15 +198,16 @@ public class ClientSolution extends Thread {
 			}
 			else {
 				try{
+					if(krCon.isOpen()){
+						krCon.listen();
+					}
 					myConnection.listen();
 				}catch(Exception e){
 					log.error("connection "+Settings.socketAddress(s)+ "" +
 							"closed with exception: "+e );
 				}
 			}
-			if(krCon.isOpen()){
-				krCon.listen();
-			}
+			
 		}
 	}
 	
