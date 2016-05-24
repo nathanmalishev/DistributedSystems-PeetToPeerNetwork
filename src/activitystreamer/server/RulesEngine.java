@@ -1,6 +1,7 @@
 package activitystreamer.server;
 
 import activitystreamer.messages.*;
+import activitystreamer.util.Helper;
 import activitystreamer.util.Settings;
 
 import java.security.KeyFactory;
@@ -10,6 +11,10 @@ import java.util.*;
 import org.json.simple.JSONObject;
 import org.apache.logging.log4j.Logger;
 import sun.misc.BASE64Decoder;
+
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
 
 /**
  * Class controls the processing of incoming messages from the server side
@@ -94,7 +99,7 @@ public class RulesEngine {
         }
     }
 
-    //TODO: delete prints
+    //TODO: delete prints & tidy? Refactor
     public boolean triggerGetKeySuccess(GetKeySuccess msg, Connection con){
         System.out.println("Get key success");
         System.out.println("The key we got back was "+msg.getServerKey());
@@ -106,7 +111,24 @@ public class RulesEngine {
             PublicKey pubKey2 = keyFact.generatePublic(x509KeySpec);
 
             System.out.println("After unstringing "+pubKey2);
-            ControlSolution.getInstance().getSecureServerHash().put(msg.getServerId(), pubKey2);
+
+            //Use public key to create secret key
+            KeyGenerator keyGenerator = KeyGenerator.getInstance("DES");
+            SecretKey secretKey = keyGenerator.generateKey();
+
+            //turn secret key to bytes
+            byte secretKeyByte[] = secretKey.getEncoded();
+
+            //encrypt secret key with public key
+            Cipher cipher = Cipher.getInstance("RSA");
+            cipher.init(Cipher.ENCRYPT_MODE, pubKey2);
+            byte secretKeyEncrypted[] = cipher.doFinal(secretKeyByte);
+
+            //send secret key to the specific server
+           System.out.println(msg.getServerId());
+
+
+            ControlSolution.getInstance().getSecureServerHash().put(msg.getServerId(), secretKey);
         }catch(Exception e){
             System.out.println("err "+e);
         }

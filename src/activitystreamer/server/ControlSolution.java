@@ -15,6 +15,7 @@ import activitystreamer.util.Settings;
 
 import activitystreamer.database.DBShard;
 
+import javax.crypto.SecretKey;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
@@ -42,7 +43,7 @@ public class ControlSolution extends Control {
 	private HashMap<String, Connection> lockRequestWaiting;
 
 	private Connection krCONN;
-	private HashMap<String, PublicKey> secureServerHash = new HashMap<String, PublicKey>();
+	private HashMap<String, SecretKey> secureServerHash = new HashMap<String, SecretKey>();
 
 	public HashMap<String, Connection> getLockRequestWaiting() { return lockRequestWaiting; }
 	public HashMap<String, Connection> getRegisterWaiting() { return registerWaiting; }
@@ -355,7 +356,7 @@ public class ControlSolution extends Control {
 
 			String hostname = c.getSocket().getLocalAddress().getHostName();
 			String port = Integer.toString(c.getSocket().getLocalPort());
-			String serverId = Helper.createUniqueServerIdentifier(hostname,port);
+			String serverId = Helper.createUniqueServerIdentifier(hostname, port);
 
 			System.out.println(secureServerHash.keySet());
 			if(secureServerHash.containsKey(serverId)){
@@ -387,7 +388,7 @@ public class ControlSolution extends Control {
     public Connection getConnectionForLock(String username) { return lockConnections.get(username); }
     public boolean hasConnectionForLock(String username) { return lockConnections.containsKey(username); }
 
-	public HashMap<String, PublicKey> getSecureServerHash() {
+	public HashMap<String, SecretKey> getSecureServerHash() {
 		return secureServerHash;
 	}
 }

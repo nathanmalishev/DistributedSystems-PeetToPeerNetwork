@@ -98,7 +98,13 @@ public class Control extends Thread {
 
 
 		/* asks key register for connections public key and updates
-		the hash map in control solution when it recieves its repsponse
+		the hash map in control solution when it recieves its response
+		//TODO: this is a bit of a hack
+		// isSecure.. sends of request to key register to find key
+		// then server process that like any other request and updates
+		// the hash in the control solution accordingly
+		// but if something happens like the response takes a  long time
+		// or never, this connection will not be secure ( or until response returns)
 		 */
 		ControlSolution.getInstance().isSecureConnectionAndUpdate(c);
 
