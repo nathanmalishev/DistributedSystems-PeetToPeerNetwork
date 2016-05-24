@@ -12,8 +12,10 @@ import org.json.simple.parser.JSONParser;
 
 import java.io.*;
 import java.net.Socket;
+import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 
+import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 
 
@@ -27,7 +29,7 @@ public class ClientSolution extends Thread {
 	private boolean open = false;						// Connection open flag
 	private boolean redirect = false;					// Redirect needed flag
 
-	public Connection myConnection;						// Connection to Server
+	public static Connection myConnection;						// Connection to Server
 	public Connection krCon;
 	private JSONParser parser = new JSONParser();		
 	private RulesEngine rulesEngine;					// Handles message processing
@@ -35,7 +37,7 @@ public class ClientSolution extends Thread {
 	private static final Logger log = LogManager.getLogger();
 	
 	private static PublicKey serverPubKey;
-	private SecretKey secretKey;
+	private static SecretKey secretKey;
 	
 	/* Getters and Setters */
 	public void setOpen(boolean open) { this.open = open; }
@@ -82,21 +84,26 @@ public class ClientSolution extends Thread {
 
 	}
 	
-	// TODO: Test
-	public static void decodePublicKey(String serverKey){
+	public static PublicKey decodePublicKey(String serverKey){
 		
 		serverPubKey = Helper.stringToPublicKey(serverKey);
-		log.info("Decoding Public Key: " + serverPubKey);
+		return serverPubKey;
 	}
 	
 	// TODO: Complete
-	public void createSecretKey(){
+	public static SecretKey createSecretKey(){
 		
-		// check if publicKey != null
-		// Create SecretKeyObject
-		// Encode SecretKeyObject using public Key
-		// Send encoded secret key to server when sending first message
+		try {
+			KeyGenerator keyGenerator = KeyGenerator.getInstance("DES");
+			secretKey = keyGenerator.generateKey();
+			
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		}
+		
+		return secretKey;
 	}
+	
 	
 	/**
 	 * Creates a socket to connect to and instantiates a Connection object with that Socket 
@@ -104,10 +111,7 @@ public class ClientSolution extends Thread {
 	public void connectToKeyRegister() {
 		
 		try {
-
-			log.info("Setting up connection with key register");
 			krCon = new Connection(new Socket(Settings.getKeyRegisterHostname(), Settings.getKeyRegisterPort()));
-			log.info("Sending GETKEY message");
 			rulesEngine.triggerGetKeyMessage(krCon);
 			
 		} catch(Exception e) {

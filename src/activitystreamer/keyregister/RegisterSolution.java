@@ -160,7 +160,6 @@ public class RegisterSolution extends Thread{
 			GetKeySuccess response = new GetKeySuccess(publicKey);
 			
 			con.writeMsg(response.toData());
-			log.info("Response sent");
 		}
 		else{
 			

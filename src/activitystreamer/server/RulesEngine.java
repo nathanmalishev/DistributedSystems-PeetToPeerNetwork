@@ -1,8 +1,13 @@
 package activitystreamer.server;
 
 import activitystreamer.messages.*;
+import activitystreamer.util.Helper;
 import activitystreamer.util.Settings;
+
 import java.util.*;
+
+import javax.crypto.SecretKey;
+
 import org.json.simple.JSONObject;
 import org.apache.logging.log4j.Logger;
 
@@ -84,10 +89,34 @@ public class RulesEngine {
                 
             case "KEY_REGISTER_RESPONSE" :
             	return triggerKeyRegisterResponse((KeyRegisterResponse) msg, con);
+            	
+            case "SECRET_KEY_MESSAGE" :
+            	return triggerSecretKeyMessage((SecretKeyMessage) msg, con);
 
             default :
                 return triggerInvalidMessage(con, InvalidMessage.invalidMessageTypeError);
         }
+    }
+    
+    public boolean triggerSecretKeyMessage(SecretKeyMessage msg, Connection con){
+    	
+    	log.info("Receiving SecretKeyMessage at Server");
+    	ControlSolution server = ControlSolution.getInstance();
+    	
+    	// Decrypt msg.getKey()
+    	String keyString = Helper.asymmetricDecryption(server.getPrivateKey(), msg.getKey());
+    	
+    	log.info("Converting keyString into SecretKey");
+    	// Convert decrypted String back into SecretKey Object
+    	SecretKey secretKey = Helper.stringToSecretKey(keyString);
+    	
+    	// Store SecretKey
+    	if(!server.getKeyMap().containsKey(con)){
+    		log.info("new secret key, adding to map");
+    		server.getKeyMap().put(con, secretKey);
+    	}
+    	
+    	return false;
     }
     
     public boolean triggerKeyRegisterResponse(KeyRegisterResponse msg, Connection con){

@@ -12,7 +12,10 @@ import org.json.simple.parser.JSONParser;
 import com.google.gson.*;
 import com.google.gson.stream.MalformedJsonException;
 
+import java.security.PublicKey;
 import java.util.HashMap;
+
+import javax.crypto.SecretKey;
 
 /**
  * Class controls the processing of incoming messages from the client side
@@ -82,23 +85,44 @@ public class RulesEngine {
     	GetKey msg = new GetKey(uniqueIdentifier);
     	
     	con.writeMsg(msg.toData());
-    	log.info("GETKEY Sent");
     	return false;
     }
     
     // TODO: Test
+    /**
+     * If we receive this message we know the server is compatible with security
+     */
     public boolean triggerGetKeySuccess(GetKeySuccess msg, Connection con){
     	
-    	log.info("Received Public Key from KeyRegister: " + msg.getServerKey());
-    	ClientSolution.decodePublicKey(msg.getServerKey());
+    	// Decode String into PublicKey
+    	PublicKey pubKey = ClientSolution.decodePublicKey(msg.getServerKey());
+    	
+    	// Create SecretKey
+    	SecretKey key = ClientSolution.createSecretKey();
+    	
+    	// Send SecretKeyMessage
+    	triggerSecretKeyMessage(key, pubKey, ClientSolution.myConnection);
     	
     	return false;
     }
     
-    // TODO: Complete
+    // TODO: Test
+    private void triggerSecretKeyMessage(SecretKey secretKey, PublicKey publicKey, Connection con) {
+		
+		String keyString = Helper.secretKeyToString(secretKey);
+		log.info("Encrypting Secret Key with Servers Public Key");
+		String encoded = Helper.asymmetricEncryption(publicKey, keyString);
+		
+		SecretKeyMessage msg = new SecretKeyMessage(encoded);
+		
+		log.info("Sending SecretKeyMessage to Server");
+		con.writeMsg(msg.toData());
+	}
+
+	// TODO: Complete
     public boolean triggerGetKeyFailed(GetKeyFailed msg, Connection con){
     	
-    	// What do we do when this occurs???
+    	// Now we dont use encryption cause the server is an old server
     	
     	
     	return false;
