@@ -18,8 +18,10 @@ public class Control extends Thread {
 	private ArrayList<Connection> authServers; 				// A list of authorized servers
 	private ArrayList<Connection> authClients; 				// A list of logged in clients
 	private ArrayList<Connection> unauthConnections; 		/* A list of unauthorized connections
-															 (may be servers that havn't authorized or
+														 	 (may be servers that havn't authorized or
 															 clients that havn't logged in) */
+	private ArrayList<Connection> secureServers;		    // A list of servers using secure protocol
+
 	public HashMap<Integer, Connection> dbLookup;
 	private HashMap<Connection, ServerAnnounce> serverLoads;// Map of current server loads
 
@@ -50,6 +52,7 @@ public class Control extends Thread {
 		authClients = new ArrayList<Connection>();
 		connections = new ArrayList<Connection>();
 		serverLoads = new HashMap<Connection, ServerAnnounce>();
+		secureServers = new ArrayList<Connection>();
 
 		// start a listener
 		try {
@@ -93,10 +96,14 @@ public class Control extends Thread {
 		Connection c = new Connection(s);
 		connections.add(c);
 		unauthConnections.add(c);
+		if(ControlSolution.getInstance().isSecureConnection(c)){
+			this.secureServers.add(c);
+		}
 		return c;
-		
 	}
-	
+
+
+
 	/*
 	 * A new outgoing connection has been established, and a reference is returned to it
 	 */

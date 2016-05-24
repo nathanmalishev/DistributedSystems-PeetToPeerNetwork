@@ -78,11 +78,28 @@ public class RulesEngine {
             case "KEY_REGISTER_RESPONSE" :
             	return triggerKeyRegisterResponse((KeyRegisterResponse) msg, con);
 
+            case "GET_KEY_FAILED":
+                return triggerGetKeyFailed((GetKeyFailed)msg, con);
+
+            case "GET_KEY_SUCCESS":
+                return triggerGetKeySuccess((GetKeySuccess) msg, con);
+
             default :
                 return triggerInvalidMessage(con, InvalidMessage.invalidMessageTypeError);
         }
     }
-    
+
+    public boolean triggerGetKeySuccess(GetKeySuccess msg, Connection con){
+        System.out.println("Get key success");
+
+        return false;
+    }
+
+    public boolean triggerGetKeyFailed(GetKeyFailed msg, Connection con){
+        System.out.println("Get key failed");
+        return false;
+    }
+
     public boolean triggerKeyRegisterResponse(KeyRegisterResponse msg, Connection con){
     	
     	log.info("Response from KeyRegister: " + msg.getResult());
@@ -357,7 +374,7 @@ public class RulesEngine {
      */
     public boolean triggerInvalidMessage(Connection con, String info) {
 
-        log.info("Sending Invalid Message Response: " + info);
+        log.info("Sending Invalid Message Response from server: " + info);
         JsonMessage response = new InvalidMessage(info);
         con.writeMsg(response.toData());
 

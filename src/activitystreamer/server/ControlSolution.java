@@ -1,5 +1,6 @@
 package activitystreamer.server;
 
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.Socket;
 
@@ -43,6 +44,7 @@ public class ControlSolution extends Control {
 	private PublicKey publicKey;
 	private PrivateKey privateKey;
 	private HashMap<String, Connection> lockRequestWaiting;
+	private Connection krCONN;
 
 	public HashMap<String, Connection> getLockRequestWaiting() { return lockRequestWaiting; }
 	public HashMap<String, Connection> getRegisterWaiting() { return registerWaiting; }
@@ -140,7 +142,7 @@ public class ControlSolution extends Control {
 		initialiseDBConnections();
 
 		/* set up key register if need*/
-		initialiseKeyRegister();
+//		initialiseKeyRegister();
 
 		/* send public key to key register server */
 		sendPublicKeyToRegisterServer();
@@ -151,6 +153,7 @@ public class ControlSolution extends Control {
 	public void initialiseKeyRegister(){
 		if(Helper.available(Settings.getDefaultKeyRegisterPort())){
 			RegisterSolution keyRegister = new RegisterSolution(Settings.getDefaultKeyRegisterPort());
+
 		}
 	}
 
@@ -168,10 +171,32 @@ public class ControlSolution extends Control {
 			/* Send to Key Register Server now */
 			Connection krCONN = outgoingConnection(new Socket(Settings.getKeyRegisterHostname(), Settings.getKeyRegisterPort()));
 			krCONN.writeMsg(keyRegisterMsg.toData());
+			this.krCONN = krCONN;
 		}catch(Exception e){
 			System.out.println("err: "+e);
 		}
 
+	}
+
+	/**
+	 * Asks key register if connection is secure
+	 */
+	public boolean isSecureConnection(Connection conn){
+
+		System.out.println("Entering is secure connection");
+		String hostname = conn.getSocket().getLocalAddress().getHostName();
+		String port = Integer.toString(Settings.getLocalPort()); //Integer.toString(conn.getSocket().getPort());
+
+		System.out.println("Local Port: "+Settings.getLocalPort());
+
+		GetKey attemptGetKey = new GetKey(Helper.createUniqueServerIdentifier(hostname, port));
+		System.out.println("Trying to send "+attemptGetKey.toData());
+		krCONN.writeMsg(attemptGetKey.toData());
+
+
+		// should wait here for response or somethign
+
+		return false;
 	}
 
 	public void setDBSettings() {

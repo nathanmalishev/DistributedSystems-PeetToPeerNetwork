@@ -109,13 +109,13 @@ public class RegisterSolution extends Thread{
 	}
 	
 	/**
-     * Sends an Invalid_Message to the connection
+     * Swallows all random messages from other servers
      */
     public boolean triggerInvalidMessage(Connection con, String info) {
 
-        log.info("Sending Invalid Message Response: " + info);
-        JsonMessage response = new InvalidMessage(info);
-        con.writeMsg(response.toData());
+//        log.info("Sending Invalid Message Response: " + info);
+//        JsonMessage response = new InvalidMessage(info);
+//        con.writeMsg(response.toData());
 
         return false;		// Do we want this connection to close - Change to true if so??
     }
