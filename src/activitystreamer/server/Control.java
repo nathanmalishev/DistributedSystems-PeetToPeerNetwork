@@ -52,7 +52,6 @@ public class Control extends Thread {
 		authClients = new ArrayList<Connection>();
 		connections = new ArrayList<Connection>();
 		serverLoads = new HashMap<Connection, ServerAnnounce>();
-		secureServers = new ArrayList<Connection>();
 
 		// start a listener
 		try {
@@ -96,9 +95,13 @@ public class Control extends Thread {
 		Connection c = new Connection(s);
 		connections.add(c);
 		unauthConnections.add(c);
-		if(ControlSolution.getInstance().isSecureConnection(c)){
-			this.secureServers.add(c);
-		}
+
+
+		/* asks key register for connections public key and updates
+		the hash map in control solution when it recieves its repsponse
+		 */
+		ControlSolution.getInstance().isSecureConnectionAndUpdate(c);
+
 		return c;
 	}
 

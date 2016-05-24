@@ -1,18 +1,14 @@
 package activitystreamer.server;
 
-import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.Socket;
 
-import activitystreamer.KeyRegister;
 import activitystreamer.keyregister.RegisterSolution;
 import activitystreamer.util.Helper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.json.simple.*;
 
 // Need to change this so it is importing the one in our library
-import com.google.gson.Gson;
 
 import activitystreamer.messages.*;
 import activitystreamer.util.Settings;
@@ -44,7 +40,9 @@ public class ControlSolution extends Control {
 	private PublicKey publicKey;
 	private PrivateKey privateKey;
 	private HashMap<String, Connection> lockRequestWaiting;
+
 	private Connection krCONN;
+	private HashMap<String, PublicKey> secureServerHash = new HashMap<String, PublicKey>();
 
 	public HashMap<String, Connection> getLockRequestWaiting() { return lockRequestWaiting; }
 	public HashMap<String, Connection> getRegisterWaiting() { return registerWaiting; }
@@ -180,14 +178,16 @@ public class ControlSolution extends Control {
 
 	/**
 	 * Asks key register if connection is secure
+	 * When the reponse is recieved the hash map is updated
 	 */
-	public boolean isSecureConnection(Connection conn){
+	public boolean isSecureConnectionAndUpdate(Connection conn){
 
 		System.out.println("Entering is secure connection");
 		String hostname = conn.getSocket().getLocalAddress().getHostName();
-		String port = Integer.toString(Settings.getLocalPort()); //Integer.toString(conn.getSocket().getPort());
+		String port = Integer.toString(conn.getSocket().getLocalPort()); //Integer.toString(conn.getSocket().getPort());
 
 		System.out.println("Local Port: "+Settings.getLocalPort());
+		System.out.println("Local Host: "+conn.getSocket().getLocalAddress().getHostName());
 
 		GetKey attemptGetKey = new GetKey(Helper.createUniqueServerIdentifier(hostname, port));
 		System.out.println("Trying to send "+attemptGetKey.toData());
@@ -352,6 +352,16 @@ public class ControlSolution extends Control {
 
 		// Sends Activity Boradcast to Authorized Servers only
 		for(Connection c : getAuthServers()){
+
+			String hostname = c.getSocket().getLocalAddress().getHostName();
+			String port = Integer.toString(c.getSocket().getLocalPort());
+			String serverId = Helper.createUniqueServerIdentifier(hostname,port);
+
+			System.out.println(secureServerHash.keySet());
+			if(secureServerHash.containsKey(serverId)){
+				System.out.print("SECURE!");
+			}
+
 			c.writeMsg(serverAnnounce.toData());
 		}
 
@@ -377,5 +387,7 @@ public class ControlSolution extends Control {
     public Connection getConnectionForLock(String username) { return lockConnections.get(username); }
     public boolean hasConnectionForLock(String username) { return lockConnections.containsKey(username); }
 
-
-}	
+	public HashMap<String, PublicKey> getSecureServerHash() {
+		return secureServerHash;
+	}
+}

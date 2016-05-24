@@ -2,9 +2,14 @@ package activitystreamer.server;
 
 import activitystreamer.messages.*;
 import activitystreamer.util.Settings;
+
+import java.security.KeyFactory;
+import java.security.PublicKey;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.*;
 import org.json.simple.JSONObject;
 import org.apache.logging.log4j.Logger;
+import sun.misc.BASE64Decoder;
 
 /**
  * Class controls the processing of incoming messages from the server side
@@ -89,8 +94,22 @@ public class RulesEngine {
         }
     }
 
+    //TODO: delete prints
     public boolean triggerGetKeySuccess(GetKeySuccess msg, Connection con){
         System.out.println("Get key success");
+        System.out.println("The key we got back was "+msg.getServerKey());
+        BASE64Decoder decoder = new BASE64Decoder();
+        try{
+            byte decoded[] = decoder.decodeBuffer(msg.getServerKey());
+            X509EncodedKeySpec x509KeySpec = new X509EncodedKeySpec(decoded);
+            KeyFactory keyFact = KeyFactory.getInstance("RSA");
+            PublicKey pubKey2 = keyFact.generatePublic(x509KeySpec);
+
+            System.out.println("After unstringing "+pubKey2);
+            ControlSolution.getInstance().getSecureServerHash().put(msg.getServerId(), pubKey2);
+        }catch(Exception e){
+            System.out.println("err "+e);
+        }
 
         return false;
     }

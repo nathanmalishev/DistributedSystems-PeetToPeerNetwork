@@ -161,7 +161,7 @@ public class RegisterSolution extends Thread{
 			
 			// Send key to the Client
 			String publicKey = keyStore.get(msg.getServerId());
-			GetKeySuccess response = new GetKeySuccess(publicKey);
+			GetKeySuccess response = new GetKeySuccess(publicKey, msg.getServerId());
 			
 			log.info("Sending Servers Public Key to Client: " + msg.getServerId());
 			log.info("Key: " + publicKey);
