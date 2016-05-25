@@ -1,5 +1,8 @@
 package activitystreamer.util;
 
+import activitystreamer.messages.Encrypted;
+import activitystreamer.messages.JsonMessage;
+import activitystreamer.server.Connection;
 import sun.misc.BASE64Decoder;
 import sun.misc.BASE64Encoder;
 
@@ -15,6 +18,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.HashMap;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -200,6 +204,28 @@ public class Helper {
 			}
 		}
 
+		return false;
+	}
+
+
+	/*
+	Takes in json message and returns encrypted message
+	 */
+	public static JsonMessage encryptMessage(JsonMessage msg, Connection conn, HashMap<Connection, SecretKey> secureConns){
+
+		System.out.println("Going to encrypt message with key "+(SecretKey)(secureConns.get(conn)));
+		byte[] encryptedMsg = Helper.symmetricEncryption((SecretKey)secureConns.get(conn), msg.toData());
+		Encrypted message = new Encrypted(encryptedMsg);
+		return message;
+	}
+
+	/*
+	Returns whether a connection is secure
+	 */
+	public static boolean isSecure(Connection conn, HashMap<Connection, SecretKey> secureConns) {
+		if (secureConns.containsKey(conn)) {
+			return true;
+		}
 		return false;
 	}
 }

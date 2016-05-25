@@ -352,22 +352,17 @@ public class ControlSolution extends Control {
 	public boolean doActivity(){
 
 		ServerAnnounce serverAnnounce = new ServerAnnounce(Settings.getId(), getAuthClients().size(), Settings.getLocalHostname(), Settings.getLocalPort());
-
+		HashMap<Connection, SecretKey> secureConnections = ControlSolution.getInstance().getKeyMap();
 		// Sends Activity Boradcast to Authorized Servers only
-		for(Connection c : getAuthServers()){
+		for(Connection c : getAuthServers()) {
 
-
-
-			String hostname = c.getSocket().getLocalAddress().getHostName();
-			String port = Integer.toString(c.getSocket().getLocalPort());
-			String serverId = Helper.createUniqueServerIdentifier(hostname, port);
-
-			System.out.println(secureServerHash.keySet());
-			if(secureServerHash.containsKey(serverId)){
-				System.out.print("SECURE!");
+			if (Helper.isSecure(c, secureConnections)) {
+				Encrypted encryptedMessage = (Encrypted)Helper.encryptMessage(serverAnnounce,c,secureConnections);
+				c.writeMsg(encryptedMessage.toString());
+			}else{
+				c.writeMsg(serverAnnounce.toData());
 			}
 
-			c.writeMsg(serverAnnounce.toData());
 		}
 
 		return false;

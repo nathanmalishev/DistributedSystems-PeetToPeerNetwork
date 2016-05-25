@@ -160,9 +160,9 @@ public class RulesEngine {
     }
     
     public boolean triggerEncryptedMessage(String msg, Connection con){
-    	
     	ClientSolution client = ClientSolution.getInstance();
-    	byte[] encrypted = Helper.symmetricEncryption(client.getSecretKey(), msg);
+
+        byte[] encrypted = Helper.symmetricEncryption(client.getSecretKey(), msg);
     	
     	Encrypted message = new Encrypted(encrypted);
     	con.writeMsg(message.toData());
@@ -202,6 +202,7 @@ public class RulesEngine {
     	
 		String keyString = Helper.secretKeyToString(secretKey);
 		log.info("Encrypting Secret Key with Servers Public Key");
+        System.out.println(secretKey);
 
 		byte[] encrypted = Helper.asymmetricEncryption(publicKey, keyString);
 		System.out.println("Text Encrypted: " + new String(encrypted));
