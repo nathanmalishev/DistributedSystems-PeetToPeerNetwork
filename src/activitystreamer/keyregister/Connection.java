@@ -73,7 +73,6 @@ public class Connection extends Thread{
 				System.out.println("Finished processing");
 			}
 			log.debug("connection closed to "+Settings.socketAddress(socket));
-			keyStore.connectionClosed(this);
 			in.close();
 		} catch (IOException e) {
 			log.error("connection "+Settings.socketAddress(socket)+" closed with exception: "+e);

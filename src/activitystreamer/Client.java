@@ -74,7 +74,7 @@ public class Client {
 		if(cmd.hasOption("krp")){
 			Settings.setKeyRegisterPort(Integer.parseInt(cmd.getOptionValue("krp")));
 		} else{
-			Settings.setKeyRegisterPort(2005);
+			Settings.setKeyRegisterPort(2004);
 		}
 		
 		

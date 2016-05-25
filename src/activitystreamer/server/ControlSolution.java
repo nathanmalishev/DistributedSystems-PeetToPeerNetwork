@@ -6,6 +6,7 @@ import java.net.Socket;
 
 import activitystreamer.keyregister.RegisterSolution;
 import activitystreamer.util.Helper;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -26,6 +27,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import javax.crypto.SecretKey;
+
 /** 
  * Class handles the Server Functionality. */
 public class ControlSolution extends Control {
@@ -39,6 +42,8 @@ public class ControlSolution extends Control {
 	private HashMap<String, Connection> registerWaiting;
 	private HashMap<String, Connection> loginWaiting;
 	private Connection KRCon;
+	private HashMap<Connection, SecretKey> keyMap;
+	
 	private PublicKey publicKey;
 	private PrivateKey privateKey;
 	private HashMap<String, Connection> lockRequestWaiting;
@@ -46,6 +51,7 @@ public class ControlSolution extends Control {
 	private HashMap<String, SecretKey> secureServerHash = new HashMap<String, SecretKey>();
 
 	public HashMap<String, Connection> getLockRequestWaiting() { return lockRequestWaiting; }
+	public HashMap<Connection, SecretKey> getKeyMap() {return keyMap;}
 	public HashMap<String, Connection> getRegisterWaiting() { return registerWaiting; }
 	public HashMap<Connection, String> getLoggedInUsernames() { return loggedInUsernames; }
 	public HashMap<String, Connection> getLoginWaiting() { return loginWaiting; }
@@ -71,7 +77,8 @@ public class ControlSolution extends Control {
 		loggedInUsernames = new HashMap<>();
 		registerWaiting = new HashMap<>();
 		loginWaiting = new HashMap<>();
-
+		keyMap = new HashMap<>();
+		
 		// Create Public and Private Key
 		generateKeyPair();
 		
@@ -416,4 +423,6 @@ public class ControlSolution extends Control {
 	public HashMap<String, SecretKey> getSecureServerHash() {
 		return secureServerHash;
 	}
-}
+    public PrivateKey getPrivateKey() {return privateKey;}
+
+}	

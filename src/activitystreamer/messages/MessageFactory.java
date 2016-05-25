@@ -30,6 +30,7 @@ public class MessageFactory {
             return null;
         }
         System.out.println(message.toData());
+
         try {
             // Process accordingly
             switch (message.getCommand()) {
@@ -146,6 +147,22 @@ public class MessageFactory {
                 	Gson getKeyFailed = new GsonBuilder().registerTypeAdapter(GetKeyFailed.class, new EnforcedDeserializer<JsonMessage>(log)).create();
                 	return getKeyFailed.fromJson(msg, GetKeyFailed.class);
 
+                case "SECRET_KEY_MESSAGE":
+                	Gson secretKeyMessage = new GsonBuilder().registerTypeAdapter(SecretKeyMessage.class, new EnforcedDeserializer<JsonMessage>(log)).create();
+                	return secretKeyMessage.fromJson(msg, SecretKeyMessage.class);
+                	
+                case "SECRET_KEY_SUCCESS":
+                	Gson secretKeySuccess = new GsonBuilder().registerTypeAdapter(SecretKeySuccess.class, new EnforcedDeserializer<JsonMessage>(log)).create();
+                	return secretKeySuccess.fromJson(msg, SecretKeySuccess.class);
+                	
+                case "SECRET_KEY_FAILED":
+                	Gson secretKeyFailed = new GsonBuilder().registerTypeAdapter(SecretKeyFailed.class, new EnforcedDeserializer<JsonMessage>(log)).create();
+                	return secretKeyFailed.fromJson(msg, SecretKeyFailed.class);
+                	
+                case "ENCRYPTED":
+                	Gson encrypted = new GsonBuilder().registerTypeAdapter(Encrypted.class, new EnforcedDeserializer<JsonMessage>(log)).create();
+                	return encrypted.fromJson(msg, Encrypted.class);
+                	
                 default:
                     return null;
 

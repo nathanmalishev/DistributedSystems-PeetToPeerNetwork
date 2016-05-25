@@ -78,9 +78,11 @@ public class RegisterSolution extends Thread{
 	}
 
 
-
+     // UNUSED
     public synchronized void connectionClosed(Connection con){
+    	
          if(!term) {
+        	 log.info("HERE_--------");
              connections.remove(con);
              if (authConnections.contains(con)) authConnections.remove(con);
              if (unauthConnections.contains(con)) unauthConnections.remove(con);
@@ -148,12 +150,15 @@ public class RegisterSolution extends Thread{
 
 		triggerRegisterKeyResponse(info, msg.getServerId(), result, con);
 		return false;
+
 	}
 	
-	public void triggerRegisterKeyResponse(String info, String serverId, String result, Connection con){
+	public boolean triggerRegisterKeyResponse(String info, String serverId, String result, Connection con){
 		
 		log.info("Key Register for: " + serverId + " " + result);
 		con.writeMsg(new KeyRegisterResponse(info, result).toData());
+		
+		return false;
 	}
 	
 	//TODO: Test
@@ -173,6 +178,7 @@ public class RegisterSolution extends Thread{
 
 			System.out.println("Sending Servers Public Key to Client: " + msg.getServerId());
 			System.out.println("Key: " + publicKey);
+
 			con.writeMsg(response.toData());
 		}
 		else{

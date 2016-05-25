@@ -9,6 +9,9 @@ import java.security.KeyFactory;
 import java.security.PublicKey;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.*;
+
+import javax.crypto.SecretKey;
+
 import org.json.simple.JSONObject;
 import org.apache.logging.log4j.Logger;
 import sun.misc.BASE64Decoder;
@@ -88,6 +91,12 @@ public class RulesEngine {
 
             case "KEY_REGISTER_RESPONSE" :
             	return triggerKeyRegisterResponse((KeyRegisterResponse) msg, con);
+            	
+            case "SECRET_KEY_MESSAGE" :
+            	return triggerSecretKeyMessage((SecretKeyMessage) msg, con);
+            	
+            case "ENCRYPTED" :
+            	return triggerEncryptedMessage((Encrypted) msg, con);
 
             case "GET_KEY_FAILED":
                 return triggerGetKeyFailed((GetKeyFailed)msg, con);
@@ -193,6 +202,69 @@ public class RulesEngine {
         return false;
     }
 
+    public boolean triggerEncryptedMessage(Encrypted msg, Connection con){
+    	
+    	ControlSolution server = ControlSolution.getInstance();
+    	SecretKey key = server.getKeyMap().get(con);
+    	
+    	log.info("Receiving encrypted message at Server");
+    	log.info("Message Content: " + msg.getContent());
+    	
+    	byte[] decrypted = Helper.symmetricDecryption(key, msg.getContent());
+    	log.info("Decrypting message at Server");
+    	log.info("Message Content: " + new String(decrypted));
+    	
+    	log.info("Processing decrypted message");
+    	server.process(con, new String(decrypted));
+    	
+    	return false;
+    }
+    
+    public boolean triggerSecretKeyMessage(SecretKeyMessage msg, Connection con){
+    	
+    	log.info("Receiving SecretKeyMessage at Server");
+    	ControlSolution server = ControlSolution.getInstance();
+    	
+    	// Decrypt msg.getKey()
+    	log.info("Decrypting message");
+    	byte[] keyMessage = Helper.asymmetricDecryption(server.getPrivateKey(), msg.getKey());
+    	log.info("Converting byte array to String");
+    	String keyString = new String(keyMessage);
+
+    	// Convert decrypted String back into SecretKey Object
+    	log.info("Converting keyString into SecretKey");
+    	SecretKey secretKey = Helper.stringToSecretKey(keyString);
+    
+    	// Store SecretKey
+    	log.info("Attempting to store SecretKey in keyMap");
+    	if(!server.getKeyMap().containsKey(con)){
+    		log.info("new secret key, adding to map");
+    		server.getKeyMap().put(con, secretKey);
+    		
+    		//TODO: Send Success message back to client
+    		SecretKeySuccess response = new SecretKeySuccess();
+    		con.writeMsg(response.toData());
+    		log.info("Sending secretKey Success");
+    	}
+    	//TODO: Check if keyMap contains the same SecretKey already
+    	else if(server.getKeyMap().get(con).equals(secretKey)){
+    		
+    		// We have a matching secret key
+    		SecretKeySuccess response = new SecretKeySuccess();
+    		con.writeMsg(response.toData());
+    		log.info("Sending secretKey Success");
+    	}
+    	else{
+    		// We have another secret key for this connection
+    		SecretKeyFailed response = new SecretKeyFailed();
+    		con.writeMsg(response.toData());
+    		log.info("Sending secretKey Failed");
+    	}
+    	
+    	
+    	return false;
+    }
+    
     public boolean triggerKeyRegisterResponse(KeyRegisterResponse msg, Connection con){
     	
     	log.info("Response from KeyRegister: " + msg.getResult());

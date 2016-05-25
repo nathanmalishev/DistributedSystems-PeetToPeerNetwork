@@ -12,8 +12,10 @@ import org.json.simple.parser.JSONParser;
 
 import java.io.*;
 import java.net.Socket;
+import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 
+import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 
 
@@ -27,7 +29,7 @@ public class ClientSolution extends Thread {
 	private boolean open = false;						// Connection open flag
 	private boolean redirect = false;					// Redirect needed flag
 
-	public Connection myConnection;						// Connection to Server
+	public static Connection myConnection;						// Connection to Server
 	public Connection krCon;
 	private JSONParser parser = new JSONParser();		
 	private RulesEngine rulesEngine;					// Handles message processing
@@ -35,12 +37,17 @@ public class ClientSolution extends Thread {
 	private static final Logger log = LogManager.getLogger();
 	
 	private static PublicKey serverPubKey;
-	private SecretKey secretKey;
+	private static SecretKey secretKey;
+	
+	private boolean secureServer;
 	
 	/* Getters and Setters */
 	public void setOpen(boolean open) { this.open = open; }
 	public void setRedirect(boolean redirect) { this.redirect = redirect; }
 	public TextFrame getTextFrame() { return textFrame; }
+	public void setSecureServer(boolean result) {this.secureServer = result;}
+	public boolean getSecureServer() {return secureServer;}
+	public SecretKey getSecretKey() {return secretKey;}
 
 	// this is a singleton object
 	public static ClientSolution getInstance(){
@@ -53,6 +60,7 @@ public class ClientSolution extends Thread {
 	public ClientSolution(){
 		open = true;
 		rulesEngine = new RulesEngine(log);
+		secureServer = false;
 		initialiseConnection();
 
 		// open the gui
@@ -68,34 +76,43 @@ public class ClientSolution extends Thread {
 	private void initialiseConnection() {
 
 		connectToServer();
-		createSecretKey();
-
-		// If secret is null, attempt to register
-		if (Settings.getSecret() == null && !Settings.getUsername().equals("anonymous")) {
-			Settings.setSecret(Settings.nextSecret());
-			rulesEngine.triggerRegister(myConnection);
-		}
-		// Otherwise attempt to login
-		else {
-			rulesEngine.triggerLogin(myConnection);
-		}
+		connectToKeyRegister();
 
 	}
 	
-	// TODO: Test
-	public static void decodePublicKey(String serverKey){
+	public static PublicKey decodePublicKey(String serverKey){
 		
 		serverPubKey = Helper.stringToPublicKey(serverKey);
-		log.info("Decoding Public Key: " + serverPubKey);
+		return serverPubKey;
 	}
 	
 	// TODO: Complete
-	public void createSecretKey(){
+	public static SecretKey createSecretKey(){
 		
-		// check if publicKey != null
-		// Create SecretKeyObject
-		// Encode SecretKeyObject using public Key
-		// Send encoded secret key to server when sending first message
+		try {
+			KeyGenerator keyGenerator = KeyGenerator.getInstance("DES");
+			secretKey = keyGenerator.generateKey();
+			
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		}
+		
+		return secretKey;
+	}
+	
+	
+	/**
+	 * Creates a socket to connect to and instantiates a Connection object with that Socket 
+	 */
+	public void connectToKeyRegister() {
+		
+		try {
+			krCon = new Connection(new Socket(Settings.getKeyRegisterHostname(), Settings.getKeyRegisterPort()));
+			rulesEngine.triggerGetKeyMessage(krCon);
+			
+		} catch(Exception e) {
+			System.out.print(e);
+		}
 	}
 
 	/**
@@ -106,12 +123,6 @@ public class ClientSolution extends Thread {
 		try {
 			s = new Socket(Settings.getRemoteHostname(), Settings.getRemotePort());
 			myConnection = new Connection(s);
-			
-			// TODO: Test
-			log.info("Setting up connection with key register");
-			krCon = new Connection(new Socket(Settings.getKeyRegisterHostname(), Settings.getKeyRegisterPort()));
-			log.info("Sending GETKEY message");
-			rulesEngine.triggerGetKeyMessage(krCon);
 			
 		} catch(Exception e) {
 			System.out.print(e);
@@ -172,6 +183,8 @@ public class ClientSolution extends Thread {
 	@Override
 	public void run(){
 		
+		boolean firstMessage = true;
+		
 		// Continues until the connection is closed with the client
 		while (open) {
 			
@@ -187,15 +200,17 @@ public class ClientSolution extends Thread {
 			}
 			else {
 				try{
+					if(firstMessage && krCon.isOpen()){
+						krCon.listen();
+						firstMessage = false;
+					}
 					myConnection.listen();
 				}catch(Exception e){
 					log.error("connection "+Settings.socketAddress(s)+ "" +
 							"closed with exception: "+e );
 				}
 			}
-			if(krCon.isOpen()){
-				krCon.listen();
-			}
+			
 		}
 	}
 	
