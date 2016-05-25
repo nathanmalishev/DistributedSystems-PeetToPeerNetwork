@@ -47,6 +47,7 @@ public class ClientSolution extends Thread {
 	public TextFrame getTextFrame() { return textFrame; }
 	public void setSecureServer(boolean result) {this.secureServer = result;}
 	public boolean getSecureServer() {return secureServer;}
+	public SecretKey getSecretKey() {return secretKey;}
 
 	// this is a singleton object
 	public static ClientSolution getInstance(){

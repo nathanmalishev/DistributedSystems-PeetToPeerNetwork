@@ -30,7 +30,7 @@ public class Helper {
         return publicKeyString;
     }
     
-    // TODO: Test
+   
     public static String secretKeyToString(SecretKey secretKey){
         byte array[] = secretKey.getEncoded();
         BASE64Encoder encoder = new BASE64Encoder();
@@ -60,7 +60,7 @@ public class Helper {
     	return publicKey;
     }
     
-    //TODO: Test
+
     public static SecretKey stringToSecretKey(String keyString){
     	
     	byte array[];
@@ -80,7 +80,7 @@ public class Helper {
     	return secretKey;
     }
     
-    // TODO: Test
+
     public static byte[] asymmetricEncryption(PublicKey key, String msg){
     	
     	byte[] message = msg.getBytes();
@@ -93,14 +93,14 @@ public class Helper {
 			textEncrypted = cipher.doFinal(message);
 			
 		} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
-			// TODO Auto-generated catch block
+		
 			e.printStackTrace();
 		}
 	    
 	    return textEncrypted;
     }
     
-    // TODO: Test
+
     public static byte[] asymmetricDecryption(PrivateKey key, byte[] message){
     	
     	byte[] textDecrypted = null;
@@ -112,39 +112,44 @@ public class Helper {
 			textDecrypted = cipher.doFinal(message);
 			
 		} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
 		return textDecrypted;
-//    	
-//    	
-//    	
-//    	byte[] encoded = encrypted.getBytes();
-//    	System.out.println("Size of message: "+ encoded.length + " bytes");
-//    	byte[] textDecoded = null;
-//    	
-//    	
-//    	try {
-//    		Cipher cipher = Cipher.getInstance("RSA");
-//			cipher.init(Cipher.DECRYPT_MODE, key);
-//			textDecoded = cipher.doFinal(encoded);
-//			
-//		} catch (InvalidKeyException e) {
-//			e.printStackTrace();
-//		} catch (NoSuchAlgorithmException e) {
-//			e.printStackTrace();
-//		} catch (NoSuchPaddingException e) {
-//			e.printStackTrace();
-//		} catch (IllegalBlockSizeException e) {
-//			e.printStackTrace();
-//		} catch (BadPaddingException e) {
-//			e.printStackTrace();
-//		}
-//    	
-//    	String decodedMessage = new String(textDecoded);
-//    	
-//    	return decodedMessage;
+    }
+    
+    public static byte[] symmetricEncryption(SecretKey key, String msg){
+    	
+    	byte[] message = msg.getBytes();
+    	byte[] textEncrypted = null;
+    	
+    	Cipher desCipher;
+		try {
+			desCipher = Cipher.getInstance("DES");
+			desCipher.init(Cipher.ENCRYPT_MODE, key);
+			textEncrypted = desCipher.doFinal(message);
+			
+		} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
+			e.printStackTrace();
+		}
+    	
+    	return textEncrypted;
+    }
+    
+    public static byte[] symmetricDecryption(SecretKey key, byte[] encrypted){
+    	
+    	byte[] textDecrypted = null;
+    	
+    	Cipher desCipher;
+    	try {
+    		desCipher = Cipher.getInstance("DES");
+			desCipher.init(Cipher.DECRYPT_MODE, key);
+			textDecrypted = desCipher.doFinal(encrypted);
+		} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException e) {
+			e.printStackTrace();
+		}
+		
+		return textDecrypted;    
     }
     
     

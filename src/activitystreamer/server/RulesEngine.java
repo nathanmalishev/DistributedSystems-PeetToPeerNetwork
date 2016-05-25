@@ -92,10 +92,28 @@ public class RulesEngine {
             	
             case "SECRET_KEY_MESSAGE" :
             	return triggerSecretKeyMessage((SecretKeyMessage) msg, con);
+            	
+            case "ENCRYPTED" :
+            	return triggerEncryptedMessage((Encrypted) msg, con);
 
             default :
                 return triggerInvalidMessage(con, InvalidMessage.invalidMessageTypeError);
         }
+    }
+    
+    public boolean triggerEncryptedMessage(Encrypted msg, Connection con){
+    	
+    	ControlSolution server = ControlSolution.getInstance();
+    	SecretKey key = server.getKeyMap().get(con);
+    	
+    	log.info("Receiving encrypted message at Server");
+    	log.info("Message Content: " + msg.getContent());
+    	
+    	byte[] decrypted = Helper.symmetricDecryption(key, msg.getContent());
+    	log.info("Decrypting message at Server");
+    	log.info("Message Content: " + new String(decrypted));
+    	
+    	return false;
     }
     
     public boolean triggerSecretKeyMessage(SecretKeyMessage msg, Connection con){

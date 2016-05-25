@@ -23,6 +23,7 @@ import java.util.HashMap;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 
@@ -138,11 +139,27 @@ public class RulesEngine {
     	}
     	else{
     		
+    		// Wrap message in ENCRYPTED
+    		
     		log.info("Attempting to register to secure server");
 
     		// If secret is null, attempt to register
     		if (Settings.getSecret() == null && !Settings.getUsername().equals("anonymous")) {
     			Settings.setSecret(Settings.nextSecret());
+    			
+    			Register registerMsg = new Register(Settings.getUsername(), Settings.getSecret());
+    	        
+    			triggerEncryptedMessage(registerMsg.toData(), con);
+    			
+    			//--------------
+    			String temp = "Hello";
+    			System.out.println("Before Encrypting: " + temp);
+				byte[] encrypted = Helper.symmetricEncryption(ClientSolution.getInstance().getSecretKey(), temp);
+    			System.out.println("Encrypted: " + new String(encrypted));
+    			byte[] decrypted = Helper.symmetricDecryption(ClientSolution.getInstance().getSecretKey(), encrypted);
+    			System.out.println("Decrypted: " + new String(decrypted));
+				//--------------
+    			
     			triggerRegister(con);
     		}
     		// Otherwise attempt to login
@@ -151,6 +168,17 @@ public class RulesEngine {
     		}
     		
     	}
+    	
+    	return false;
+    }
+    
+    public boolean triggerEncryptedMessage(String msg, Connection con){
+    	
+    	ClientSolution client = ClientSolution.getInstance();
+    	byte[] encrypted = Helper.symmetricEncryption(client.getSecretKey(), msg);
+    	
+    	Encrypted message = new Encrypted(encrypted);
+    	con.writeMsg(message.toData());
     	
     	return false;
     }
