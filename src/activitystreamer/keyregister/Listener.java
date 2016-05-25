@@ -22,6 +22,7 @@ public class Listener extends Thread{
 		portnum = keyStore.getPortNumber(); // keep our own copy in case it changes later
 		serverSocket = new ServerSocket(portnum);
 		this.keyStore = keyStore;
+		System.out.println("Listener for key registry created");
 		start();
 	}
 	
@@ -33,6 +34,7 @@ public class Listener extends Thread{
 			try {
 				clientSocket = serverSocket.accept();
 				keyStore.incomingConnection(clientSocket);
+				System.out.println("Received incoiong connection in registry");
 			} catch (IOException e) {
 				log.info("received exception, shutting down");
 				term=true;

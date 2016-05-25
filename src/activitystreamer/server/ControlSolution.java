@@ -37,12 +37,11 @@ public class ControlSolution extends Control {
 	private HashMap<Connection, String> loggedInUsernames;		// Current active users
 	private HashMap<String, Connection> registerWaiting;
 	private HashMap<String, Connection> loginWaiting;
-
+	private Connection KRCon;
 	private PublicKey publicKey;
 	private PrivateKey privateKey;
 	private HashMap<String, Connection> lockRequestWaiting;
 
-	private Connection krCONN = null;
 	private HashMap<String, SecretKey> secureServerHash = new HashMap<String, SecretKey>();
 
 	public HashMap<String, Connection> getLockRequestWaiting() { return lockRequestWaiting; }
@@ -77,11 +76,6 @@ public class ControlSolution extends Control {
 		
 		lockRequestWaiting = new HashMap<>();
 
-		// check if we should initiate a connection and do so if necessary
-		initiateConnection();
-		
-		// start the server's activity loop
-		// it will call doActivity every few seconds
 		start();
 	}
 	
@@ -111,91 +105,62 @@ public class ControlSolution extends Control {
 	 */
 	public void initiateConnection(){
 
-		/* set up key register if need*/
-		initialiseKeyRegister();
-
-		//Connect to key REGISTER SERVER
-		connectToKeyRegisterServer();
-
-
 		// make a connection to another server if remote hostname is supplied
 		if(Settings.getRemoteHostname()!=null){
 
-			setDBSettings();
-
+			//setDBSettings();
+			setKRSettings();
 			// We want to try and get public key from key register
-			checkKeyRegister(Settings.getRemoteHostname(), Settings.getRemotePort());
 		} else {
-			setupDB();
-
-
-		}
-		initialiseDBConnections();
-
-		/* send public key to key register server */
-		sendPublicKeyToRegisterServer(Settings.getLocalPort());
-	}
-
-	public void initialiseKeyRegister(){
-		if(Helper.available(Settings.getDefaultKeyRegisterPort())){
-			RegisterSolution keyRegister = new RegisterSolution(Settings.getDefaultKeyRegisterPort());
+			//setupDB();
+			setupKR();
 
 		}
+		//initialiseDBConnections();
+		initialiseKRConnections();
+		publicKeyRead(Settings.getRemoteHostname(), String.valueOf(Settings.getRemotePort()));
+		publicKeyWrite(Settings.getLocalHostname(), Settings.getLocalPort());
+		System.out.println("finished initiate connection");
 	}
 
 
-	public synchronized void  connectToKeyRegisterServer(){
-		try{
-			Connection krCONN = new Connection(new Socket(Settings.getKeyRegisterHostname(), Settings.getKeyRegisterPort()));
-			this.krCONN = krCONN;
-		}catch(Exception e){
-			System.out.println("ConnectToKeyRegisterServer"+e);
-		}
+	public void publicKeyRead(String hostname, String port) {
+
+		String query = hostname + ":" + port;
+
+		GetKey getKeyMsg = new GetKey(query);
+		KRCon.writeMsg(getKeyMsg.toData());
 	}
 
-	/* creates a json message with the servers public key as a string,
-		and its unique identifier as a string. Unique identifier is hostname:port
-	 */
-	public void sendPublicKeyToRegisterServer(int port){
+	public void publicKeyWrite(String hostname, int port) {
 
 		String publicKeyString = Helper.publicKeyToString(this.publicKey);
-		String uniqueIdentifier = Helper.createUniqueServerIdentifier(Settings.getLocalHostname(), Integer.toString(port));
 
-		RegisterKey keyRegisterMsg = new RegisterKey(publicKeyString, uniqueIdentifier);
-		try{
-			/* Send to Key Register Server now */
-		System.out.println("BEFORE");
-		krCONN.writeMsg(keyRegisterMsg.toData());
-		System.out.println("AFTER");
-		}catch(Exception e){
-			System.out.println("err: "+e);
-		}
+		RegisterKey keyRegisterMsg = new RegisterKey(publicKeyString, Settings.getLocalHostname());
+
+		KRCon.writeMsg(keyRegisterMsg.toData());
 
 	}
 
-	/**
-	 * Asks key register if connection is secure
-	 * When the reponse is recieved the hash map is updated
-	 */
-	public synchronized boolean checkKeyRegister(String hostname,int port){
-		String uniqueServerId = Helper.createUniqueServerIdentifier(hostname, Integer.toString(port));
-		GetKey attemptGetKey = new GetKey(uniqueServerId);
-
-		System.out.println(uniqueServerId);
-		System.out.println("Trying to send "+attemptGetKey.toData());
 
 
-		try{
-			krCONN.writeMsg(attemptGetKey.toData());
-		}catch(Exception e){
-			System.out.println("err: "+e);
+	public void setKRSettings() {
+		System.out.println("Setting kr settings");
+		if (Settings.getKeyRegisterHostname() == null) {
+			System.out.println("the settings were null");
+			Settings.setKeyRegisterHostname(Settings.defaultKRHostname());
+			Settings.setKeyRegisterPort(Settings.defaultKRPort());
 		}
+	}
 
-
-
-		// should wait here for response or somethign
-
-		return false;
+	public void setupKR() {
+		System.out.println("starting the KR");
+		if (Settings.getKeyRegisterHostname() == null) {
+			System.out.println("The KR was null");
+			Settings.setKeyRegisterHostname(Settings.defaultKRHostname());
+			Settings.setKeyRegisterPort(Settings.defaultKRPort());
+			final RegisterSolution KeyRegistry = new RegisterSolution(Settings.getKeyRegisterPort());
+		}
 	}
 
 	public void setDBSettings() {
@@ -261,6 +226,19 @@ public class ControlSolution extends Control {
 			log.error("failed to make connection to " + Settings.getRemoteHostname() + ":" + Settings.getRemotePort() + " :" + e);
 			System.exit(-1);
 		}
+	}
+
+	public void initialiseKRConnections() {
+		System.out.println("initialising KR");
+		try {
+			System.out.println("outgoing");
+			Connection c = outgoingConnection(new Socket(Settings.getKeyRegisterHostname(), Settings.getKeyRegisterPort()));
+			this.KRCon = c;
+		} catch (IOException e) {
+			log.error("failed to make connection to " + Settings.getRemoteHostname() + ":" + Settings.getRemotePort() + " :" + e);
+			System.exit(-1);
+		}
+
 	}
 
 
@@ -368,7 +346,35 @@ public class ControlSolution extends Control {
 
 		return false;
 	}
-	
+
+	public void run(){
+		initiateConnection();
+		System.out.println("run run");
+		while(!getTerm()){
+			System.out.println("running");
+			// do something with 5 second intervals in between
+			try {
+				Thread.sleep(Settings.getActivityInterval());
+			} catch (InterruptedException e) {
+				log.info("received an interrupt, system is shutting down");
+				break;
+			}
+			if(!getTerm()){
+				System.out.println("doing activity");
+				setTerm(doActivity());
+				System.out.println("activity done");
+			}
+
+		}
+		log.info("closing "+getConnections().size()+" connections");
+		// clean up
+		for(Connection connection : getConnections()){
+			connection.closeCon();
+		}
+		getListener().setTerm(true);
+
+	}
+
 
     public void removeLockRequestsAndConnection(String username) {
         if (lockRequests.containsKey(username))

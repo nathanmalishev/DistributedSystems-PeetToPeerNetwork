@@ -26,6 +26,7 @@ public class Control extends Thread {
 	private HashMap<Connection, ServerAnnounce> serverLoads;// Map of current server loads
 
 	private boolean term=false;
+	public boolean getTerm() { return term; }
 	private Listener listener;
 	protected static Control control = null;				// Singleton Object
 
@@ -35,7 +36,7 @@ public class Control extends Thread {
 	public final ArrayList<Connection> getUnauthConnections() {return unauthConnections;}
 	public final ArrayList<Connection> getAuthClients() {return authClients;}
 	public final HashMap<Connection, ServerAnnounce> getServerLoads() { return serverLoads; }
-
+	public Listener getListener() { return listener; }
 	
 	public static Control getInstance() {
 		if(control==null){
@@ -127,7 +128,9 @@ public class Control extends Thread {
 	
 	@Override
 	public void run(){
+		System.out.println("run run");
 		while(!term){
+			System.out.println("running");
 			// do something with 5 second intervals in between
 			try {
 				Thread.sleep(Settings.getActivityInterval());
@@ -136,7 +139,9 @@ public class Control extends Thread {
 				break;
 			}
 			if(!term){
+				System.out.println("doing activity");
 				term=doActivity();
+				System.out.println("activity done");
 			}
 			
 		}

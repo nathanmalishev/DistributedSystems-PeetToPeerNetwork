@@ -31,9 +31,10 @@ public class RegisterSolution extends Thread{
 	}
 
 	public RegisterSolution(int portNumber){
+		System.out.println("Registry created!!");
 		this.portNumber = portNumber;
 		keyStore = new HashMap<String,String>();
-		
+		connections = new ArrayList();
 		// start a listener
         try {
             listener = new Listener(this);
@@ -69,9 +70,10 @@ public class RegisterSolution extends Thread{
      * A new incoming connection has been established, and a reference is returned to it
      */
      public synchronized Connection incomingConnection(Socket s) throws IOException{
-		
+		System.out.println("key registry received incoming connections");
 		//log.debug("incomming connection: "+ Settings.socketAddress(s));
         Connection c = new Connection(s, this);
+		 connections.add(c);
         return c;
 	}
 
@@ -121,8 +123,8 @@ public class RegisterSolution extends Thread{
     }
 	
 	private boolean triggerRegisterKey(RegisterKey msg, Connection con){
-		
-		String info, result;
+		System.out.println("trigger key register!");
+		/*String info, result;
 		
 		if(keyStore.containsKey(msg.getServerId())){
 			
@@ -144,7 +146,7 @@ public class RegisterSolution extends Thread{
 			result = "SUCCESS";
 		}
 		
-		triggerRegisterKeyResponse(info, msg.getServerId(), result, con);
+		triggerRegisterKeyResponse(info, msg.getServerId(), result, con);*/
 		return false;
 	}
 	

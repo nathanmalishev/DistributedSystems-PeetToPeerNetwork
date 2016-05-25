@@ -172,4 +172,7 @@ public class Settings {
 
 	public static String defaultShardHostname() { return "localhost"; }
 
+	public static String defaultKRHostname() { return "localhost"; }
+
+	public static int defaultKRPort() { return 2004; }
 }
