@@ -124,10 +124,10 @@ public class RegisterSolution extends Thread{
 	
 	private boolean triggerRegisterKey(RegisterKey msg, Connection con){
 		System.out.println("trigger key register!");
-		/*String info, result;
-		
+		String info, result;
+
 		if(keyStore.containsKey(msg.getServerId())){
-			
+
 			// Check to see if key already exists
 			if(keyStore.get(msg.getServerId()).equals(msg.getPublicKeyStr())){
 				info = KeyRegisterResponse.keyExists;
@@ -145,8 +145,8 @@ public class RegisterSolution extends Thread{
 			info = KeyRegisterResponse.keyRegisterSuccess;
 			result = "SUCCESS";
 		}
-		
-		triggerRegisterKeyResponse(info, msg.getServerId(), result, con);*/
+
+		triggerRegisterKeyResponse(info, msg.getServerId(), result, con);
 		return false;
 	}
 	
@@ -160,23 +160,27 @@ public class RegisterSolution extends Thread{
 	private boolean triggerGetKey(GetKey msg, Connection con){
 
 		System.out.println("triggerGetKey "+msg.toData());
-		
+
+		System.out.println("getServerId "+msg.getServerId());
+		System.out.println("keyStore "+keyStore.keySet());
+
+
 		if(keyStore.containsKey(msg.getServerId())){
 			
 			// Send key to the Client
 			String publicKey = keyStore.get(msg.getServerId());
 			GetKeySuccess response = new GetKeySuccess(publicKey, msg.getServerId());
-			
-			log.info("Sending Servers Public Key to Client: " + msg.getServerId());
-			log.info("Key: " + publicKey);
+
+			System.out.println("Sending Servers Public Key to Client: " + msg.getServerId());
+			System.out.println("Key: " + publicKey);
 			con.writeMsg(response.toData());
 		}
 		else{
 			
 			// Send failure message to the client
 			GetKeyFailed response = new GetKeyFailed(GetKeyFailed.serverKeyDoesntExist);
-			
-			log.info("Failed to find Servers Public Key: " + msg.getServerId());
+
+			System.out.println("Failed to find Servers Public Key: " + msg.getServerId());
 			con.writeMsg(response.toData());
 		}
 

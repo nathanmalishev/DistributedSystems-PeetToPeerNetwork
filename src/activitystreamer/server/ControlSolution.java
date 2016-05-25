@@ -1,6 +1,7 @@
 package activitystreamer.server;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.Socket;
 
 import activitystreamer.keyregister.RegisterSolution;
@@ -105,38 +106,56 @@ public class ControlSolution extends Control {
 	 */
 	public void initiateConnection(){
 
+
 		// make a connection to another server if remote hostname is supplied
 		if(Settings.getRemoteHostname()!=null){
 
 			//setDBSettings();
 			setKRSettings();
+
+			initialiseKRConnections();
+
 			// We want to try and get public key from key register
+			publicKeyRead(Settings.getRemoteHostname(), String.valueOf(Settings.getRemotePort()));
+
 		} else {
 			//setupDB();
 			setupKR();
 
+			initialiseKRConnections();
+
+
 		}
 		//initialiseDBConnections();
-		initialiseKRConnections();
-		publicKeyRead(Settings.getRemoteHostname(), String.valueOf(Settings.getRemotePort()));
+
 		publicKeyWrite(Settings.getLocalHostname(), Settings.getLocalPort());
+
 		System.out.println("finished initiate connection");
 	}
 
 
 	public void publicKeyRead(String hostname, String port) {
 
-		String query = hostname + ":" + port;
+		try{
+			System.out.println("publicKeyRead");
+			String query = Helper.createUniqueServerIdentifier(hostname,port);
+			GetKey getKeyMsg = new GetKey(query);
+			System.out.println("GET KEY MESSAGE"+getKeyMsg);
+			KRCon.writeMsg(getKeyMsg.toData());
+		}catch( Exception e){
+			System.out.println("ERRROROROR");
+			System.out.println(e);
+		}
 
-		GetKey getKeyMsg = new GetKey(query);
-		KRCon.writeMsg(getKeyMsg.toData());
+
 	}
 
 	public void publicKeyWrite(String hostname, int port) {
 
 		String publicKeyString = Helper.publicKeyToString(this.publicKey);
+		String uniqueId = Helper.createUniqueServerIdentifier(hostname, Integer.toString(port));
 
-		RegisterKey keyRegisterMsg = new RegisterKey(publicKeyString, Settings.getLocalHostname());
+		RegisterKey keyRegisterMsg = new RegisterKey(publicKeyString, uniqueId);
 
 		KRCon.writeMsg(keyRegisterMsg.toData());
 
