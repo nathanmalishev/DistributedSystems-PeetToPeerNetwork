@@ -3,14 +3,14 @@ package activitystreamer.messages;
 
 public class SecretKeyMessage extends JsonMessage{
 
-	private String key;
+	private byte[] key;
 	
-	public SecretKeyMessage(String key){
+	public SecretKeyMessage(byte[] key){
 		
 		this.command = "SECRET_KEY_MESSAGE";
 		this.key = key;
 	}
 	
-	public String getKey() {return key;}
+	public byte[] getKey() {return key;}
 }
 

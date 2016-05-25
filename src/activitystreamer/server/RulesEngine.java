@@ -104,13 +104,17 @@ public class RulesEngine {
     	ControlSolution server = ControlSolution.getInstance();
     	
     	// Decrypt msg.getKey()
-    	String keyString = Helper.asymmetricDecryption(server.getPrivateKey(), msg.getKey());
-    	
-    	log.info("Converting keyString into SecretKey");
+    	log.info("Decrypting message");
+    	byte[] keyMessage = Helper.asymmetricDecryption(server.getPrivateKey(), msg.getKey());
+    	log.info("Converting byte array to String");
+    	String keyString = new String(keyMessage);
+
     	// Convert decrypted String back into SecretKey Object
+    	log.info("Converting keyString into SecretKey");
     	SecretKey secretKey = Helper.stringToSecretKey(keyString);
-    	
+    
     	// Store SecretKey
+    	log.info("Attempting to store SecretKey in keyMap");
     	if(!server.getKeyMap().containsKey(con)){
     		log.info("new secret key, adding to map");
     		server.getKeyMap().put(con, secretKey);

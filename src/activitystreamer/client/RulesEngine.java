@@ -12,9 +12,18 @@ import org.json.simple.parser.JSONParser;
 import com.google.gson.*;
 import com.google.gson.stream.MalformedJsonException;
 
+import java.security.InvalidKeyException;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.HashMap;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 
 /**
@@ -111,9 +120,11 @@ public class RulesEngine {
 		
 		String keyString = Helper.secretKeyToString(secretKey);
 		log.info("Encrypting Secret Key with Servers Public Key");
-		String encoded = Helper.asymmetricEncryption(publicKey, keyString);
-		
-		SecretKeyMessage msg = new SecretKeyMessage(encoded);
+
+		byte[] encrypted = Helper.asymmetricEncryption(publicKey, keyString);
+		System.out.println("Text Encrypted: " + new String(encrypted));
+
+		SecretKeyMessage msg = new SecretKeyMessage(encrypted);
 		
 		log.info("Sending SecretKeyMessage to Server");
 		con.writeMsg(msg.toData());
