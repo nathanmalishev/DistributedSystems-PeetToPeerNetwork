@@ -4,7 +4,7 @@ public class GetKeySuccess extends JsonMessage{
 	
 	private String serverKey;
 	private String serverId;
-	
+
 	public GetKeySuccess(String serverKey, String serverId){
 		
 		this.command = "GET_KEY_SUCCESS";

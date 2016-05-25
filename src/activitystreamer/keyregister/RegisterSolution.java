@@ -156,6 +156,8 @@ public class RegisterSolution extends Thread{
 	
 	//TODO: Test
 	private boolean triggerGetKey(GetKey msg, Connection con){
+
+		System.out.println("triggerGetKey "+msg.toData());
 		
 		if(keyStore.containsKey(msg.getServerId())){
 			

@@ -106,7 +106,7 @@ public class Control extends Thread {
 		// but if something happens like the response takes a  long time
 		// or never, this connection will not be secure ( or until response returns)
 		 */
-		ControlSolution.getInstance().isSecureConnectionAndUpdate(c);
+		//ControlSolution.getInstance().isSecureConnectionAndUpdate(c);
 
 		return c;
 	}

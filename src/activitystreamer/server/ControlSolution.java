@@ -42,7 +42,7 @@ public class ControlSolution extends Control {
 	private PrivateKey privateKey;
 	private HashMap<String, Connection> lockRequestWaiting;
 
-	private Connection krCONN;
+	private Connection krCONN = null;
 	private HashMap<String, SecretKey> secureServerHash = new HashMap<String, SecretKey>();
 
 	public HashMap<String, Connection> getLockRequestWaiting() { return lockRequestWaiting; }
@@ -110,43 +110,30 @@ public class ControlSolution extends Control {
 	 * To successfully connect the secret must match that of the given remote host.
 	 */
 	public void initiateConnection(){
-		// make a connection to another server if remote hostname is supplied
-		if(Settings.getRemoteHostname()!=null){
-			try {
-				// Establish a connection
-				Connection c = outgoingConnection(new Socket(Settings.getRemoteHostname(),Settings.getRemotePort()));
-
-				// Send JSON Authenticate message
-				Authenticate authenticateMsg = new Authenticate(Settings.getSecret());
-				log.info("Sending Authentication Request to: " + Settings.getRemoteHostname() + ", with Secret: " + authenticateMsg.getSecret());
-				c.writeMsg(authenticateMsg.toData());
-
-				// Will need to then receive a message with db info
-
-				// Add to authorized connections
-				getAuthServers().add(c);
-
-				// Remove from unauthorized connections
-				getUnauthConnections().remove(c);
-
-			} catch (IOException e) {
-				log.error("failed to make connection to "+Settings.getRemoteHostname()+":"+Settings.getRemotePort()+" :"+e);
-				System.exit(-1);
-			}
-			setDBSettings();
-		} else {
-			setupDB();
-		}
-
-		initialiseDBConnections();
 
 		/* set up key register if need*/
-//		initialiseKeyRegister();
+		initialiseKeyRegister();
+
+		//Connect to key REGISTER SERVER
+		connectToKeyRegisterServer();
+
+
+		// make a connection to another server if remote hostname is supplied
+		if(Settings.getRemoteHostname()!=null){
+
+			setDBSettings();
+
+			// We want to try and get public key from key register
+			checkKeyRegister(Settings.getRemoteHostname(), Settings.getRemotePort());
+		} else {
+			setupDB();
+
+
+		}
+		initialiseDBConnections();
 
 		/* send public key to key register server */
-		sendPublicKeyToRegisterServer();
-
-
+		sendPublicKeyToRegisterServer(Settings.getLocalPort());
 	}
 
 	public void initialiseKeyRegister(){
@@ -157,20 +144,29 @@ public class ControlSolution extends Control {
 	}
 
 
+	public synchronized void  connectToKeyRegisterServer(){
+		try{
+			Connection krCONN = new Connection(new Socket(Settings.getKeyRegisterHostname(), Settings.getKeyRegisterPort()));
+			this.krCONN = krCONN;
+		}catch(Exception e){
+			System.out.println("ConnectToKeyRegisterServer"+e);
+		}
+	}
+
 	/* creates a json message with the servers public key as a string,
 		and its unique identifier as a string. Unique identifier is hostname:port
 	 */
-	public void sendPublicKeyToRegisterServer(){
+	public void sendPublicKeyToRegisterServer(int port){
 
 		String publicKeyString = Helper.publicKeyToString(this.publicKey);
-		String uniqueIdentifier = Helper.createUniqueServerIdentifier(Settings.getLocalHostname(), Integer.toString(Settings.getLocalPort()));
+		String uniqueIdentifier = Helper.createUniqueServerIdentifier(Settings.getLocalHostname(), Integer.toString(port));
 
 		RegisterKey keyRegisterMsg = new RegisterKey(publicKeyString, uniqueIdentifier);
 		try{
 			/* Send to Key Register Server now */
-			Connection krCONN = outgoingConnection(new Socket(Settings.getKeyRegisterHostname(), Settings.getKeyRegisterPort()));
-			krCONN.writeMsg(keyRegisterMsg.toData());
-			this.krCONN = krCONN;
+		System.out.println("BEFORE");
+		krCONN.writeMsg(keyRegisterMsg.toData());
+		System.out.println("AFTER");
 		}catch(Exception e){
 			System.out.println("err: "+e);
 		}
@@ -181,18 +177,20 @@ public class ControlSolution extends Control {
 	 * Asks key register if connection is secure
 	 * When the reponse is recieved the hash map is updated
 	 */
-	public boolean isSecureConnectionAndUpdate(Connection conn){
+	public synchronized boolean checkKeyRegister(String hostname,int port){
+		String uniqueServerId = Helper.createUniqueServerIdentifier(hostname, Integer.toString(port));
+		GetKey attemptGetKey = new GetKey(uniqueServerId);
 
-		System.out.println("Entering is secure connection");
-		String hostname = conn.getSocket().getLocalAddress().getHostName();
-		String port = Integer.toString(conn.getSocket().getLocalPort()); //Integer.toString(conn.getSocket().getPort());
-
-		System.out.println("Local Port: "+Settings.getLocalPort());
-		System.out.println("Local Host: "+conn.getSocket().getLocalAddress().getHostName());
-
-		GetKey attemptGetKey = new GetKey(Helper.createUniqueServerIdentifier(hostname, port));
+		System.out.println(uniqueServerId);
 		System.out.println("Trying to send "+attemptGetKey.toData());
-		krCONN.writeMsg(attemptGetKey.toData());
+
+
+		try{
+			krCONN.writeMsg(attemptGetKey.toData());
+		}catch(Exception e){
+			System.out.println("err: "+e);
+		}
+
 
 
 		// should wait here for response or somethign
@@ -353,6 +351,8 @@ public class ControlSolution extends Control {
 
 		// Sends Activity Boradcast to Authorized Servers only
 		for(Connection c : getAuthServers()){
+
+
 
 			String hostname = c.getSocket().getLocalAddress().getHostName();
 			String port = Integer.toString(c.getSocket().getLocalPort());

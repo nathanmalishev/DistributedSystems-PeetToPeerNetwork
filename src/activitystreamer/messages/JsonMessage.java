@@ -26,6 +26,7 @@ public class JsonMessage {
 
 	protected String command;
 
+
 	public String getCommand() {
 		return command;
 	}

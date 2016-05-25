@@ -4,6 +4,7 @@ import activitystreamer.messages.*;
 import activitystreamer.util.Helper;
 import activitystreamer.util.Settings;
 
+import java.net.Socket;
 import java.security.KeyFactory;
 import java.security.PublicKey;
 import java.security.spec.X509EncodedKeySpec;
@@ -101,37 +102,88 @@ public class RulesEngine {
 
     //TODO: delete prints & tidy? Refactor
     public boolean triggerGetKeySuccess(GetKeySuccess msg, Connection con){
-        System.out.println("Get key success");
+        System.out.println("Get key success "+msg.getServerId());
         System.out.println("The key we got back was "+msg.getServerKey());
-        BASE64Decoder decoder = new BASE64Decoder();
-        try{
-            byte decoded[] = decoder.decodeBuffer(msg.getServerKey());
-            X509EncodedKeySpec x509KeySpec = new X509EncodedKeySpec(decoded);
-            KeyFactory keyFact = KeyFactory.getInstance("RSA");
-            PublicKey pubKey2 = keyFact.generatePublic(x509KeySpec);
 
-            System.out.println("After unstringing "+pubKey2);
+        try {
+//            // Establish a connection
+//            Connection c = new Connection(new Socket(Settings.getRemoteHostname(), Settings.getRemotePort()));
+//
+//            // Send JSON Authenticate message
+//            Authenticate authenticateMsg = new Authenticate(Settings.getSecret());
+//            log.info("Sending Authentication Request to: " + Settings.getRemoteHostname() + ", with Secret: " + authenticateMsg.getSecret());
+//            c.writeMsg(authenticateMsg.toData());
+//
+//            // Will need to then receive a message with db info
+//
+//            // Add to authorized connections
+//            ControlSolution.getInstance().getAuthServers().add(c);
+//
+//            // Remove from unauthorized connections
+//            ControlSolution.getInstance().getUnauthConnections().remove(c);
+//
+//
+//            /* CREATE SECRET KEY FROM PRIVATE KEY */
+//            BASE64Decoder decoder = new BASE64Decoder();
+//            byte decoded[] = decoder.decodeBuffer(msg.getServerKey());
+//            X509EncodedKeySpec x509KeySpec = new X509EncodedKeySpec(decoded);
+//            KeyFactory keyFact = KeyFactory.getInstance("RSA");
+//            PublicKey pubKey2 = keyFact.generatePublic(x509KeySpec);
+//
+//            System.out.println("After unstringing "+pubKey2);
+//
+//            //Use public key to create secret key
+//            KeyGenerator keyGenerator = KeyGenerator.getInstance("DES");
+//            SecretKey secretKey = keyGenerator.generateKey();
+//
+//            //turn secret key to bytes
+//            byte secretKeyByte[] = secretKey.getEncoded();
+//
+//            //encrypt secret key with public key
+//            Cipher cipher = Cipher.getInstance("RSA");
+//            cipher.init(Cipher.ENCRYPT_MODE, pubKey2);
+//            byte secretKeyEncrypted[] = cipher.doFinal(secretKeyByte);
 
-            //Use public key to create secret key
-            KeyGenerator keyGenerator = KeyGenerator.getInstance("DES");
-            SecretKey secretKey = keyGenerator.generateKey();
-
-            //turn secret key to bytes
-            byte secretKeyByte[] = secretKey.getEncoded();
-
-            //encrypt secret key with public key
-            Cipher cipher = Cipher.getInstance("RSA");
-            cipher.init(Cipher.ENCRYPT_MODE, pubKey2);
-            byte secretKeyEncrypted[] = cipher.doFinal(secretKeyByte);
-
-            //send secret key to the specific server
-           System.out.println(msg.getServerId());
+            /* SEND ENCRYPTED SECRET KEY TO other Connection */
+//            c.writeMsg("apple");
 
 
-            ControlSolution.getInstance().getSecureServerHash().put(msg.getServerId(), secretKey);
+//            ControlSolution.getInstance().getSecureServerHash().put(msg.getServerId(), secretKey);
+
+
         }catch(Exception e){
-            System.out.println("err "+e);
+            System.out.println(e);
         }
+
+//        BASE64Decoder decoder = new BASE64Decoder();
+//        try{
+//            byte decoded[] = decoder.decodeBuffer(msg.getServerKey());
+//            X509EncodedKeySpec x509KeySpec = new X509EncodedKeySpec(decoded);
+//            KeyFactory keyFact = KeyFactory.getInstance("RSA");
+//            PublicKey pubKey2 = keyFact.generatePublic(x509KeySpec);
+//
+//            System.out.println("After unstringing "+pubKey2);
+//
+//            //Use public key to create secret key
+//            KeyGenerator keyGenerator = KeyGenerator.getInstance("DES");
+//            SecretKey secretKey = keyGenerator.generateKey();
+//
+//            //turn secret key to bytes
+//            byte secretKeyByte[] = secretKey.getEncoded();
+//
+//            //encrypt secret key with public key
+//            Cipher cipher = Cipher.getInstance("RSA");
+//            cipher.init(Cipher.ENCRYPT_MODE, pubKey2);
+//            byte secretKeyEncrypted[] = cipher.doFinal(secretKeyByte);
+//
+//            //send secret key to the specific server
+//           System.out.println(msg.getServerId());
+//
+//
+//            ControlSolution.getInstance().getSecureServerHash().put(msg.getServerId(), secretKey);
+//        }catch(Exception e){
+//            System.out.println("err "+e);
+//        }
 
         return false;
     }
