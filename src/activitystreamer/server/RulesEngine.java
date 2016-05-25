@@ -113,6 +113,9 @@ public class RulesEngine {
     	log.info("Decrypting message at Server");
     	log.info("Message Content: " + new String(decrypted));
     	
+    	log.info("Processing decrypted message");
+    	server.process(con, new String(decrypted));
+    	
     	return false;
     }
     

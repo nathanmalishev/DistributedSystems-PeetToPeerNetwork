@@ -138,33 +138,20 @@ public class RulesEngine {
     		}
     	}
     	else{
-    		
-    		// Wrap message in ENCRYPTED
-    		
+
     		log.info("Attempting to register to secure server");
 
     		// If secret is null, attempt to register
     		if (Settings.getSecret() == null && !Settings.getUsername().equals("anonymous")) {
     			Settings.setSecret(Settings.nextSecret());
     			
-    			Register registerMsg = new Register(Settings.getUsername(), Settings.getSecret());
-    	        
+    			Register registerMsg = new Register(Settings.getUsername(), Settings.getSecret());  
     			triggerEncryptedMessage(registerMsg.toData(), con);
-    			
-    			//--------------
-    			String temp = "Hello";
-    			System.out.println("Before Encrypting: " + temp);
-				byte[] encrypted = Helper.symmetricEncryption(ClientSolution.getInstance().getSecretKey(), temp);
-    			System.out.println("Encrypted: " + new String(encrypted));
-    			byte[] decrypted = Helper.symmetricDecryption(ClientSolution.getInstance().getSecretKey(), encrypted);
-    			System.out.println("Decrypted: " + new String(decrypted));
-				//--------------
-    			
-    			triggerRegister(con);
     		}
     		// Otherwise attempt to login
     		else {
-    			triggerLogin(con);
+    			Login loginMsg = new Login(Settings.getUsername(), Settings.getSecret());
+    			triggerEncryptedMessage(loginMsg.toData(), con);
     		}
     		
     	}
@@ -259,12 +246,23 @@ public class RulesEngine {
      * connection.
      */
     public boolean triggerRegisterSuccess(RegisterSuccess msg, Connection con) {
-        log.info("Register successful: " + msg.getInfo());
-
-        // Once registration has succeeded, attempt to login
+       
+    	log.info("Register successful: " + msg.getInfo());
+    	
+    	// Once registration has succeeded, attempt to login
         Login loginMsg = new Login(Settings.getUsername(), Settings.getSecret());
-        con.writeMsg(loginMsg.toData());
-
+        ClientSolution client = ClientSolution.getInstance();
+        
+    	// Send Encrypted Message
+    	if(client.getSecureServer()){
+    		
+    		triggerEncryptedMessage(loginMsg.toData(), con);
+    	}
+    	else{
+    		
+            con.writeMsg(loginMsg.toData());
+    	}
+    	
         return false;
     }
     
