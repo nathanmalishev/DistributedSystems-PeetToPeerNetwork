@@ -118,7 +118,15 @@ public class RulesEngine {
     	if(!server.getKeyMap().containsKey(con)){
     		log.info("new secret key, adding to map");
     		server.getKeyMap().put(con, secretKey);
+    		
+    		//TODO: Send Success message back to client
+    		// Client then proceeds to send ENCRYPTED messages to server
     	}
+    	//TODO: Check if keyMap contains the same SecretKey already
+    	// If so send success and client proceeds to send ENCRYPTED messages to server
+    	//TODO: Send Failure message otherwise
+    	// Client proceeds to send messages without encryption
+    	
     	
     	return false;
     }
