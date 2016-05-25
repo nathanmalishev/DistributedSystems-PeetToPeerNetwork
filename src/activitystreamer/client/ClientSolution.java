@@ -39,10 +39,14 @@ public class ClientSolution extends Thread {
 	private static PublicKey serverPubKey;
 	private static SecretKey secretKey;
 	
+	private boolean secureServer;
+	
 	/* Getters and Setters */
 	public void setOpen(boolean open) { this.open = open; }
 	public void setRedirect(boolean redirect) { this.redirect = redirect; }
 	public TextFrame getTextFrame() { return textFrame; }
+	public void setSecureServer(boolean result) {this.secureServer = result;}
+	public boolean getSecureServer() {return secureServer;}
 
 	// this is a singleton object
 	public static ClientSolution getInstance(){
@@ -55,6 +59,7 @@ public class ClientSolution extends Thread {
 	public ClientSolution(){
 		open = true;
 		rulesEngine = new RulesEngine(log);
+		secureServer = false;
 		initialiseConnection();
 
 		// open the gui
@@ -71,16 +76,6 @@ public class ClientSolution extends Thread {
 
 		connectToServer();
 		connectToKeyRegister();
-
-		// If secret is null, attempt to register
-		if (Settings.getSecret() == null && !Settings.getUsername().equals("anonymous")) {
-			Settings.setSecret(Settings.nextSecret());
-			rulesEngine.triggerRegister(myConnection);
-		}
-		// Otherwise attempt to login
-		else {
-			rulesEngine.triggerLogin(myConnection);
-		}
 
 	}
 	
@@ -187,6 +182,8 @@ public class ClientSolution extends Thread {
 	@Override
 	public void run(){
 		
+		boolean firstMessage = true;
+		
 		// Continues until the connection is closed with the client
 		while (open) {
 			
@@ -202,8 +199,9 @@ public class ClientSolution extends Thread {
 			}
 			else {
 				try{
-					if(krCon.isOpen()){
+					if(firstMessage && krCon.isOpen()){
 						krCon.listen();
+						firstMessage = false;
 					}
 					myConnection.listen();
 				}catch(Exception e){

@@ -120,12 +120,24 @@ public class RulesEngine {
     		server.getKeyMap().put(con, secretKey);
     		
     		//TODO: Send Success message back to client
-    		// Client then proceeds to send ENCRYPTED messages to server
+    		SecretKeySuccess response = new SecretKeySuccess();
+    		con.writeMsg(response.toData());
+    		log.info("Sending secretKey Success");
     	}
     	//TODO: Check if keyMap contains the same SecretKey already
-    	// If so send success and client proceeds to send ENCRYPTED messages to server
-    	//TODO: Send Failure message otherwise
-    	// Client proceeds to send messages without encryption
+    	else if(server.getKeyMap().get(con).equals(secretKey)){
+    		
+    		// We have a matching secret key
+    		SecretKeySuccess response = new SecretKeySuccess();
+    		con.writeMsg(response.toData());
+    		log.info("Sending secretKey Success");
+    	}
+    	else{
+    		// We have another secret key for this connection
+    		SecretKeyFailed response = new SecretKeyFailed();
+    		con.writeMsg(response.toData());
+    		log.info("Sending secretKey Failed");
+    	}
     	
     	
     	return false;
@@ -135,7 +147,7 @@ public class RulesEngine {
     	
     	log.info("Response from KeyRegister: " + msg.getResult());
     	
-    	return false;
+    	return true;
     }
 
 

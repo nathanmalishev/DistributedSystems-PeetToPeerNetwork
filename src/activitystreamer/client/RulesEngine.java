@@ -82,10 +82,77 @@ public class RulesEngine {
             	
             case "GET_KEY_FAILED" :
             	return triggerGetKeyFailed((GetKeyFailed) msg, con);
+            	
+            case "SECRET_KEY_SUCCESS" :
+            	return triggerSecretKeySuccess((SecretKeySuccess) msg, con);
+            	
+            case "SECRET_KEY_FAILED" :
+            	return triggerSecretKeyFailed((SecretKeyFailed) msg, con);
 
             default :
                 return triggerInvalidMessage(con, InvalidMessage.invalidMessageTypeError);
         }
+    }
+    
+    public boolean triggerSecretKeyFailed(SecretKeyFailed msg, Connection con){
+    	
+    	ClientSolution client = ClientSolution.getInstance();
+    	
+    	// triggerFirstMessage(secureServer, con);
+    	triggerFirstMessage(client.getSecureServer(), con);
+    	
+    	return false;
+    }
+    
+    public boolean triggerSecretKeySuccess(SecretKeySuccess msg, Connection con){
+    	
+    	log.info("Received Secret Key Success");
+    	
+    	ClientSolution client = ClientSolution.getInstance();
+    	
+    	// Set boolean secureServer to true
+    	client.setSecureServer(true);
+    	
+    	// triggerFirstMessage(secureServer, con);
+    	triggerFirstMessage(client.getSecureServer(), con);
+    	
+    	return false;
+    }
+    
+    public boolean triggerFirstMessage(boolean secure, Connection con){
+    	
+    	
+    	if(!secure){
+    		
+    		log.info("Attempting to connection to unsecure server");
+
+    		// If secret is null, attempt to register
+    		if (Settings.getSecret() == null && !Settings.getUsername().equals("anonymous")) {
+    			Settings.setSecret(Settings.nextSecret());
+    			triggerRegister(con);
+    		}
+    		// Otherwise attempt to login
+    		else {
+    			triggerLogin(con);
+    		}
+    	}
+    	else{
+    		
+    		log.info("Attempting to register to secure server");
+
+    		// If secret is null, attempt to register
+    		if (Settings.getSecret() == null && !Settings.getUsername().equals("anonymous")) {
+    			Settings.setSecret(Settings.nextSecret());
+    			triggerRegister(con);
+    		}
+    		// Otherwise attempt to login
+    		else {
+    			triggerLogin(con);
+    		}
+    		
+    	}
+    	
+    	return false;
     }
     
     public boolean triggerGetKeyMessage(Connection con){
@@ -136,7 +203,7 @@ public class RulesEngine {
     	// Now we dont use encryption cause the server is an old server
     	
     	
-    	return false;
+    	return true;
     }
     
     /**
