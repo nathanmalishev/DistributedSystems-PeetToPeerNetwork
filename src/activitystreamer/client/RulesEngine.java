@@ -117,7 +117,7 @@ public class RulesEngine {
     
     // TODO: Test
     private void triggerSecretKeyMessage(SecretKey secretKey, PublicKey publicKey, Connection con) {
-		
+    	
 		String keyString = Helper.secretKeyToString(secretKey);
 		log.info("Encrypting Secret Key with Servers Public Key");
 
