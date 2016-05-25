@@ -209,17 +209,6 @@ public class Helper {
 
 
 	/*
-	Takes in json message and returns encrypted message
-	 */
-	public static JsonMessage encryptMessage(JsonMessage msg, Connection conn, HashMap<Connection, SecretKey> secureConns){
-
-		System.out.println("Going to encrypt message with key "+(SecretKey)(secureConns.get(conn)));
-		byte[] encryptedMsg = Helper.symmetricEncryption((SecretKey)secureConns.get(conn), msg.toData());
-		Encrypted message = new Encrypted(encryptedMsg);
-		return message;
-	}
-
-	/*
 	Returns whether a connection is secure
 	 */
 	public static boolean isSecure(Connection conn, HashMap<Connection, SecretKey> secureConns) {

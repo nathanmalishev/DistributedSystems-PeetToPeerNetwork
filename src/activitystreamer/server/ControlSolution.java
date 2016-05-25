@@ -26,6 +26,7 @@ import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 
 import javax.crypto.SecretKey;
 
@@ -354,11 +355,15 @@ public class ControlSolution extends Control {
 		ServerAnnounce serverAnnounce = new ServerAnnounce(Settings.getId(), getAuthClients().size(), Settings.getLocalHostname(), Settings.getLocalPort());
 		HashMap<Connection, SecretKey> secureConnections = ControlSolution.getInstance().getKeyMap();
 		// Sends Activity Boradcast to Authorized Servers only
-		for(Connection c : getAuthServers()) {
+		Iterator itr = getAuthServers().iterator();
+		while(itr.hasNext()) {
+			Connection c = (Connection)itr.next();
 
 			if (Helper.isSecure(c, secureConnections)) {
-				Encrypted encryptedMessage = (Encrypted)Helper.encryptMessage(serverAnnounce,c,secureConnections);
-				c.writeMsg(encryptedMessage.toString());
+
+				byte[] encryptedBytes = Helper.symmetricEncryption(secureConnections.get(c),serverAnnounce.toData());
+				Encrypted encryptedMessage = new Encrypted(encryptedBytes);
+				c.writeMsg(encryptedMessage.toData());
 			}else{
 				c.writeMsg(serverAnnounce.toData());
 			}

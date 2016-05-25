@@ -18,6 +18,7 @@ import sun.misc.BASE64Decoder;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
+import javax.crypto.spec.SecretKeySpec;
 
 /**
  * Class controls the processing of incoming messages from the server side
@@ -44,6 +45,8 @@ public class RulesEngine {
         if (msg == null) {
             return triggerInvalidMessage(con, InvalidMessage.invalidMessageTypeError);
         }
+
+        System.out.println(msg.toData());
         // Process accordingly
         switch(msg.getCommand()){
 
@@ -222,14 +225,14 @@ public class RulesEngine {
     	
     	// Decrypt msg.getKey()
     	log.info("Decrypting message");
-    	byte[] keyMessage = Helper.asymmetricDecryption(server.getPrivateKey(), msg.getKey());
+    	byte[] secretKeyBytes = Helper.asymmetricDecryption(server.getPrivateKey(), msg.getKey());
     	log.info("Converting byte array to String");
-    	String keyString = new String(keyMessage);
-
+//    	String keyString = new String(keyMessage);
+        SecretKey secretKey = new SecretKeySpec(secretKeyBytes, 0, secretKeyBytes.length, "DES");
     	// Convert decrypted String back into SecretKey Object
-    	log.info("Converting keyString into SecretKey");
-    	SecretKey secretKey = Helper.stringToSecretKey(keyString);
-        System.out.println("secret key is "+secretKey);
+//    	log.info("Converting keyString into SecretKey");
+//    	SecretKey secretKey = Helper.stringToSecretKey(keyString);
+//        System.out.println("secret key is "+secretKey);
 
     	// Store SecretKey
     	log.info("Attempting to store SecretKey in keyMap");
