@@ -7,6 +7,7 @@ public class RegisterSuccess extends JsonMessage {
     public String getInfo() { return info; }
 
     public RegisterSuccess(String username) {
+        super();
         this.command = "REGISTER_SUCCESS";
         this.info = "register success for " + username;
     }

@@ -26,8 +26,8 @@ class EnforcedDeserializer<JsonMessage> implements JsonDeserializer<JsonMessage>
             for (Field f : attributes) {
                 attributeNames.add(f.getName());
             }
-
             attributeNames.add("command");
+            attributeNames.remove("version");
 
             for (Field f : attributes) {
                 try {
@@ -42,6 +42,7 @@ class EnforcedDeserializer<JsonMessage> implements JsonDeserializer<JsonMessage>
                 }
             }
 
+            attributeNames.add("version");
             for ( Map.Entry<String, JsonElement> entry : msg.getAsJsonObject().entrySet() ) {
                 if (!attributeNames.contains(entry.getKey())) {
                     throw new JsonParseException("Extra field");

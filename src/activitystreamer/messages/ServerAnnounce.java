@@ -21,7 +21,7 @@ public class ServerAnnounce extends JsonMessage {
 	}
 
 	public ServerAnnounce(String id, int load, String hostname, int port) {
-
+		super();
 		this.id = id;
 		this.load = load;
 		this.hostname = hostname;

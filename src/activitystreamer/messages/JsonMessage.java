@@ -3,7 +3,7 @@ package activitystreamer.messages;
 import com.google.gson.Gson;
 
 public class JsonMessage {
-
+	public static final int VERSION_NUMBER = 2;
 	public static final String invalidMessageTypeError = "the message type was not recognised";
 	public static final String alreadyAuthenticatedError = "this server has already authenticated";
 	public static final String unauthorisedServerError = "message sent from an unauthorised server";
@@ -21,9 +21,17 @@ public class JsonMessage {
     public static final String registerSuccessMsg = "successful registration";
 
 	protected String command;
-	
+
 	public String getCommand() {
 		return command;
+	}
+
+	protected int version;
+
+	public int getVersion() { return version; }
+
+	public JsonMessage() {
+		this.version = VERSION_NUMBER;
 	}
 
 	public String toData() {

@@ -8,7 +8,7 @@ public class ActivityBroadcast extends JsonMessage {
     public JSONObject getActivity() { return activity; }
 
     public ActivityBroadcast(JSONObject activity) {
-
+        super();
         this.command = "ACTIVITY_BROADCAST";
         this.activity = activity;
     }

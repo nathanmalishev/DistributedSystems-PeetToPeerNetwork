@@ -12,6 +12,7 @@ import com.google.gson.Gson;
 
 import activitystreamer.messages.*;
 import activitystreamer.util.Settings;
+import activitystreamer.database.DBShard;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,7 +30,9 @@ public class ControlSolution extends Control {
 	private HashMap<Connection, String> loggedInUsernames;		// Current active users
 	private HashMap<String, Connection> registerWaiting;
 	private HashMap<String, Connection> loginWaiting;
+	private HashMap<String, Connection> lockRequestWaiting;
 
+	public HashMap<String, Connection> getLockRequestWaiting() { return lockRequestWaiting; }
 	public HashMap<String, Connection> getRegisterWaiting() { return registerWaiting; }
 	public HashMap<Connection, String> getLoggedInUsernames() { return loggedInUsernames; }
 	public HashMap<String, Connection> getLoginWaiting() { return loginWaiting; }
@@ -55,6 +58,8 @@ public class ControlSolution extends Control {
 		loggedInUsernames = new HashMap<>();
 		registerWaiting = new HashMap<>();
 		loginWaiting = new HashMap<>();
+		lockRequestWaiting = new HashMap<>();
+
 		// check if we should initiate a connection and do so if necessary
 		initiateConnection();
 		
@@ -71,7 +76,6 @@ public class ControlSolution extends Control {
 	public void initiateConnection(){
 		// make a connection to another server if remote hostname is supplied
 		if(Settings.getRemoteHostname()!=null){
-
 			try {
 				// Establish a connection
 				Connection c = outgoingConnection(new Socket(Settings.getRemoteHostname(),Settings.getRemotePort()));
@@ -93,12 +97,61 @@ public class ControlSolution extends Control {
 				log.error("failed to make connection to "+Settings.getRemoteHostname()+":"+Settings.getRemotePort()+" :"+e);
 				System.exit(-1);
 			}
+			setDBSettings();
+		} else {
+			setupDB();
 		}
-		/* DB needs to be setup (either take arguments or generate yourself) */
+
 		initialiseDBConnections();
 
 
 	}
+
+	public void setDBSettings() {
+
+		if (Settings.getShardAHostname() == null) {
+			Settings.setShardAPort(Settings.defaultShardAPort());
+			Settings.setShardAHostname(Settings.defaultShardHostname());
+		}
+		if (Settings.getShardBHostname() == null) {
+			Settings.setShardBPort(Settings.defaultShardBPort());
+			Settings.setShardBHostname(Settings.defaultShardHostname());
+		}
+		if (Settings.getShardCHostname() == null) {
+			Settings.setShardCPort(Settings.defaultShardCPort());
+			Settings.setShardCHostname(Settings.defaultShardHostname());
+		}
+		if (Settings.getShardDHostname() == null) {
+			Settings.setShardDPort(Settings.defaultShardDPort());
+			Settings.setShardDHostname(Settings.defaultShardHostname());
+		}
+	}
+
+	public void setupDB() {
+
+		if (Settings.getShardAHostname() == null) {
+			final DBShard db1 = new DBShard(0, Settings.defaultShardAPort());
+			Settings.setShardAPort(Settings.defaultShardAPort());
+			Settings.setShardAHostname(Settings.defaultShardHostname());
+		}
+		if (Settings.getShardBHostname() == null) {
+			final DBShard db2 = new DBShard(1, Settings.defaultShardBPort());
+			Settings.setShardBPort(Settings.defaultShardBPort());
+			Settings.setShardBHostname(Settings.defaultShardHostname());
+		}
+		if (Settings.getShardCHostname() == null) {
+			final DBShard db3 = new DBShard(2, Settings.defaultShardCPort());
+			Settings.setShardCPort(Settings.defaultShardCPort());
+			Settings.setShardCHostname(Settings.defaultShardHostname());
+		}
+		if (Settings.getShardDHostname() == null) {
+			final DBShard db4 = new DBShard(3, Settings.defaultShardDPort());
+			Settings.setShardDPort(Settings.defaultShardDPort());
+			Settings.setShardDHostname(Settings.defaultShardHostname());
+		}
+
+	}
+
 
 	public void initialiseDBConnections() {
 
@@ -213,40 +266,6 @@ public class ControlSolution extends Control {
 		return false;
 	}
 	
-	/**
-	 * Adds a user to the local storage
-	 */
-    public void addUser(String username, String secret) {
-        getClientDB().put(username, secret);
-    }
-
-    /**
-     * Tests if the user name and secret are not a match
-     */
-    public boolean userKnownDifferentSecret(String username, String secret) {
-        return getClientDB().containsKey(username) && !getClientDB().get(username).equals(secret);
-    }
-
-    /**
-     * Tests if the user name and secret are a match
-     */
-    public boolean userKnownSameSecret(String username, String secret) {
-        return userKnown(username) && getClientDB().get(username).equals(secret);
-    }
-    
-    /**
-     * Tests if the user name if contained in the local storage
-     */
-    public boolean userKnown(String username) {
-        return getClientDB().containsKey(username);
-    }
-    
-    /**
-     * Removes user from the local storage
-     */
-    public void removeUser(String username) {
-        getClientDB().remove(username);
-    }
 
     public void removeLockRequestsAndConnection(String username) {
         if (lockRequests.containsKey(username))

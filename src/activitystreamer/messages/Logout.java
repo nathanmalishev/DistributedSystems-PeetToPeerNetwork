@@ -6,6 +6,7 @@ package activitystreamer.messages;
 public class Logout extends JsonMessage{
 
     public Logout(String info) {
+        super();
         this.command = "LOGOUT";
     }
 }

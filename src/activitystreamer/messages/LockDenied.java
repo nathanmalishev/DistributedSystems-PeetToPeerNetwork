@@ -8,6 +8,7 @@ public class LockDenied extends JsonMessage {
     public String getSecret() { return secret; }
 
     public LockDenied(String username, String secret) {
+        super();
         this.command = "LOCK_DENIED";
         this.username = username;
         this.secret = secret;

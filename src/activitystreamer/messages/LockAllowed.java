@@ -9,6 +9,7 @@ public class LockAllowed extends JsonMessage {
     public String getSecret() { return secret; }
 
     public LockAllowed(String username, String secret) {
+        super();
         this.command = "LOCK_ALLOWED";
         this.username = username;
         this.secret = secret;

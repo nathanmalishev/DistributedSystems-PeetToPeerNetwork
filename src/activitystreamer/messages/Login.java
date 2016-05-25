@@ -15,7 +15,7 @@ public class Login extends JsonMessage {
     public String getSecret() { return secret; }
 
     public Login(String username, String secret) {
-
+        super();
         this.command = "LOGIN";
         this.username = username;
         // Going to use null values for when username is anonymous
