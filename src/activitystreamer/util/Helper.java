@@ -105,6 +105,25 @@ public class Helper {
 	    
 	    return textEncrypted;
     }
+
+	public static byte[] asymmetricEncryptionBytes(PublicKey key, byte[] msg){
+
+		byte[] message = msg;
+		byte[] textEncrypted = null;
+
+		Cipher cipher;
+		try {
+			cipher = Cipher.getInstance("RSA");
+			cipher.init(Cipher.ENCRYPT_MODE, key);
+			textEncrypted = cipher.doFinal(message);
+
+		} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
+
+			e.printStackTrace();
+		}
+
+		return textEncrypted;
+	}
     
 
     public static byte[] asymmetricDecryption(PrivateKey key, byte[] message){

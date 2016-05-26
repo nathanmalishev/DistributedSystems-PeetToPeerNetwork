@@ -90,6 +90,10 @@ public class RulesEngine {
             case "SECRET_KEY_FAILED" :
             	return triggerSecretKeyFailed((SecretKeyFailed) msg, con);
 
+            case "ENCRYPTED" :
+                return triggerEncryptedMessage( msg, con);
+
+
             default :
                 return triggerInvalidMessage(con, InvalidMessage.invalidMessageTypeError);
         }
@@ -146,12 +150,12 @@ public class RulesEngine {
     			Settings.setSecret(Settings.nextSecret());
     			
     			Register registerMsg = new Register(Settings.getUsername(), Settings.getSecret());  
-    			triggerEncryptedMessage(registerMsg.toData(), con);
+    			triggerEncryptedMessage(registerMsg, con);
     		}
     		// Otherwise attempt to login
     		else {
     			Login loginMsg = new Login(Settings.getUsername(), Settings.getSecret());
-    			triggerEncryptedMessage(loginMsg.toData(), con);
+    			triggerEncryptedMessage(loginMsg, con);
     		}
     		
     	}
@@ -159,10 +163,10 @@ public class RulesEngine {
     	return false;
     }
     
-    public boolean triggerEncryptedMessage(String msg, Connection con){
+    public boolean triggerEncryptedMessage(JsonMessage msg, Connection con){
     	ClientSolution client = ClientSolution.getInstance();
 
-        byte[] encrypted = Helper.symmetricEncryption(client.getSecretKey(), msg);
+        byte[] encrypted = Helper.symmetricEncryption(client.getSecretKey(), msg.toData());
     	
     	Encrypted message = new Encrypted(encrypted);
     	con.writeMsg(message.toData());
@@ -200,10 +204,9 @@ public class RulesEngine {
     // TODO: Test
     private void triggerSecretKeyMessage(SecretKey secretKey, PublicKey publicKey, Connection con) {
     	
-		String keyString = Helper.secretKeyToString(secretKey);
 		log.info("Encrypting Secret Key with Servers Public Key");
 
-		byte[] encrypted = Helper.asymmetricEncryption(publicKey, keyString);
+		byte[] encrypted = Helper.asymmetricEncryptionBytes(publicKey, secretKey.getEncoded());
 
 		SecretKeyMessage msg = new SecretKeyMessage(encrypted);
 		
@@ -255,7 +258,7 @@ public class RulesEngine {
     	// Send Encrypted Message
     	if(client.getSecureServer()){
     		
-    		triggerEncryptedMessage(loginMsg.toData(), con);
+    		triggerEncryptedMessage(loginMsg, con);
     	}
     	else{
     		
