@@ -393,14 +393,5 @@ public class RulesEngine {
         return false;
     }
 
-    private boolean currentVersion(JsonMessage msg) {
-
-        if (msg.getVersion() == 2) {
-            return true;
-        }
-
-        return false;
-
-    }
 
 }

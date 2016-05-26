@@ -318,7 +318,6 @@ public class RulesEngine {
      */
     public boolean triggerAuthenticateAttempt(Authenticate msg, Connection con) {
         
-    	currentVersion(msg);
         log.info("Authentication request received with secret: " + msg.getSecret());
 
         // Check if secret is valid
@@ -381,7 +380,6 @@ public class RulesEngine {
      * if valid.
      */
     public boolean triggerLoginRead(Login msg, Connection con) {
-        currentVersion(msg);
         log.info("Login Attempt Received: " + msg.getUsername());
         if (msg.getUsername().equals("anonymous")) {
             triggerLoginSuccess(msg.getUsername(), con);
@@ -712,14 +710,5 @@ public class RulesEngine {
         return false;
     }
 
-    private boolean currentVersion(JsonMessage msg) {
-
-        if (msg.getVersion() == 2) {
-            return true;
-        }
-
-        return false;
-
-    }
 
 }

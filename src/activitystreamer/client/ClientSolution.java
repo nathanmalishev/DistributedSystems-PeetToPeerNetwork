@@ -197,7 +197,6 @@ public class ClientSolution extends Thread {
 		while (open) {
 			try {
 				System.out.println("sleeping");
-				Thread.sleep(Settings.getActivityInterval());
 			} catch (Exception e) {
 
 				System.out.println(e);
