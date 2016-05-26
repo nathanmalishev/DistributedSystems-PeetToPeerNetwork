@@ -188,28 +188,15 @@ public class ClientSolution extends Thread {
 	 */
 	@Override
 	public void run(){
-		System.out.println("running");
 
 		// start the client's thread
 		initialiseConnection();
 
 		// Continues until the connection is closed with the client
 		while (open) {
-			try {
-				System.out.println("sleeping");
-				Thread.sleep(Settings.getActivityInterval());
-			} catch (Exception e) {
-
-				System.out.println(e);
-			}
 			// Redirect if required
-			System.out.println("yes i am looping");
-			System.out.println(myConnection);
-			System.out.println(myConnection.isOpen());
 			if (!myConnection.isOpen()) {
-				System.out.println("my connection is not open anymore");
 				if (redirect) {
-					System.out.println("redirectinnnnnggg");
 					redirectConnection();
 					this.redirect = false;
 				}

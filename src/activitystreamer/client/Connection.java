@@ -78,7 +78,6 @@ public class Connection extends Thread {
 	}
 	
 	public boolean isOpen() {
-		System.out.println("CHECKING IF OPEN");
 		return open;
 	}
 
