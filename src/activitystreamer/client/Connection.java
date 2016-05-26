@@ -41,17 +41,14 @@ public class Connection extends Thread {
 		}
 		return false;
 	}
-	
-	
+
 	public void closeCon(){
 		log.info("closing connection "+Settings.socketAddress(socket));
 		try {
 			term=true;
 			open = false;
 			inreader.close();
-			in.close();
 			out.close();
-			socket.close();
 		} catch (IOException e) {
 			// already closed?
 			log.error("received exception closing the connection "+Settings.socketAddress(socket)+": "+e);
@@ -63,7 +60,7 @@ public class Connection extends Thread {
 
 		try {
 			String data;
-			while(!term && (data = inreader.readLine())!=null){
+			while(!term && open && (data = inreader.readLine())!=null){
 				term = ClientSolution.getInstance().process(this, data);
 			}
 			log.debug("connection closed to "+Settings.socketAddress(socket));
@@ -81,9 +78,12 @@ public class Connection extends Thread {
 	}
 	
 	public boolean isOpen() {
+		System.out.println("CHECKING IF OPEN");
 		return open;
 	}
-	
+
+	public void setTerm(boolean term) { this.term = term; }
+
 	public PrintWriter getOutwriter(){
 		return outwriter;
 	}

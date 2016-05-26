@@ -232,8 +232,8 @@ public class RulesEngine {
     	byte[] decrypted = Helper.symmetricDecryption(key, msg.getContent());
 
     	server.process(con, new String(decrypted));
-    	
-    	return false;
+
+        return false;
     }
     
     public boolean triggerSecretKeyMessage(SecretKeyMessage msg, Connection con){

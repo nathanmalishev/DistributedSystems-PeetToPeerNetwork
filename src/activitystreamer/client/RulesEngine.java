@@ -192,7 +192,6 @@ public class RulesEngine {
         byte[] decrypted = Helper.symmetricDecryption(key, msg.getContent());
 
         client.process(con, new String(decrypted));
-
         return false;
     }
     
@@ -227,6 +226,7 @@ public class RulesEngine {
     	log.info("Being Redirected to, Hostname: " + msg.getHostname() + " Port: " + msg.getPort());
         ClientSolution.getInstance().resetServer(msg.getHostname(), msg.getPort());
         ClientSolution.getInstance().setRedirect(true);
+        con.closeCon();
     	return true;
     }
     

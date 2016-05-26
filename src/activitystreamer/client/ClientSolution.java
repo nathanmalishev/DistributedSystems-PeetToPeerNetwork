@@ -65,8 +65,6 @@ public class ClientSolution extends Thread {
 		// open the gui
 		log.debug("opening the gui");
 		textFrame = new TextFrame();
-		// start the client's thread
-		initialiseConnection();
 
 		start();
 	}
@@ -146,8 +144,8 @@ public class ClientSolution extends Thread {
 	 * Connects to the newly given hostname and port, and attempts to login.
 	 */
 	public void redirectConnection() {
-		initialiseConnection();
-		rulesEngine.triggerLogin(myConnection);
+		connectToServer();
+		rulesEngine.triggerGetKeyMessage(krCon);
 	}
 
 	/** called by the GUI when the user clicks "send"
@@ -190,14 +188,28 @@ public class ClientSolution extends Thread {
 	 */
 	@Override
 	public void run(){
-		
-		boolean firstMessage = true;
-		
+		System.out.println("running");
+
+		// start the client's thread
+		initialiseConnection();
+
 		// Continues until the connection is closed with the client
 		while (open) {
+			try {
+				System.out.println("sleeping");
+				Thread.sleep(Settings.getActivityInterval());
+			} catch (Exception e) {
+
+				System.out.println(e);
+			}
 			// Redirect if required
+			System.out.println("yes i am looping");
+			System.out.println(myConnection);
+			System.out.println(myConnection.isOpen());
 			if (!myConnection.isOpen()) {
+				System.out.println("my connection is not open anymore");
 				if (redirect) {
+					System.out.println("redirectinnnnnggg");
 					redirectConnection();
 					this.redirect = false;
 				}
@@ -216,7 +228,7 @@ public class ClientSolution extends Thread {
 	 * @param msg Message received
 	 * @return True if the connection is to be closed, false otherwise
 	 */
-	public boolean process(Connection con, String msg){
+	public synchronized boolean process(Connection con, String msg){
 
 		MessageFactory msgFactory = new MessageFactory();
 		JsonMessage receivedMessage = msgFactory.buildMessage(msg, log);
