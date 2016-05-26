@@ -1,30 +1,14 @@
 package activitystreamer.client;
 
 import activitystreamer.messages.*;
-import activitystreamer.client.Connection;
+import activitystreamer.server.ControlSolution;
 import activitystreamer.util.Helper;
 import activitystreamer.util.Settings;
 
 import org.apache.logging.log4j.Logger;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 
-import com.google.gson.*;
-import com.google.gson.stream.MalformedJsonException;
-
-import java.security.InvalidKeyException;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.util.HashMap;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.KeyGenerator;
-import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 
 /**
@@ -90,6 +74,10 @@ public class RulesEngine {
             case "SECRET_KEY_FAILED" :
             	return triggerSecretKeyFailed((SecretKeyFailed) msg, con);
 
+            case "ENCRYPTED" :
+                return triggerEncryptedMessage((Encrypted)msg, con);
+
+
             default :
                 return triggerInvalidMessage(con, InvalidMessage.invalidMessageTypeError);
         }
@@ -146,12 +134,12 @@ public class RulesEngine {
     			Settings.setSecret(Settings.nextSecret());
     			
     			Register registerMsg = new Register(Settings.getUsername(), Settings.getSecret());  
-    			triggerEncryptedMessage(registerMsg.toData(), con);
+    			SendEncryptedMessage(registerMsg, con);
     		}
     		// Otherwise attempt to login
     		else {
     			Login loginMsg = new Login(Settings.getUsername(), Settings.getSecret());
-    			triggerEncryptedMessage(loginMsg.toData(), con);
+    			SendEncryptedMessage(loginMsg, con);
     		}
     		
     	}
@@ -159,10 +147,10 @@ public class RulesEngine {
     	return false;
     }
     
-    public boolean triggerEncryptedMessage(String msg, Connection con){
+    public boolean SendEncryptedMessage(JsonMessage msg, Connection con){
     	ClientSolution client = ClientSolution.getInstance();
 
-        byte[] encrypted = Helper.symmetricEncryption(client.getSecretKey(), msg);
+        byte[] encrypted = Helper.symmetricEncryption(client.getSecretKey(), msg.toData());
     	
     	Encrypted message = new Encrypted(encrypted);
     	con.writeMsg(message.toData());
@@ -196,14 +184,25 @@ public class RulesEngine {
     	
     	return false;
     }
+
+
+    public boolean triggerEncryptedMessage(Encrypted msg, Connection con){
+        ClientSolution client = ClientSolution.getInstance();
+        SecretKey key = client.getSecretKey();
+
+        byte[] decrypted = Helper.symmetricDecryption(key, msg.getContent());
+
+        client.process(con, new String(decrypted));
+
+        return false;
+    }
     
     // TODO: Test
     private void triggerSecretKeyMessage(SecretKey secretKey, PublicKey publicKey, Connection con) {
     	
-		String keyString = Helper.secretKeyToString(secretKey);
 		log.info("Encrypting Secret Key with Servers Public Key");
 
-		byte[] encrypted = Helper.asymmetricEncryption(publicKey, keyString);
+		byte[] encrypted = Helper.asymmetricEncryptionBytes(publicKey, secretKey.getEncoded());
 
 		SecretKeyMessage msg = new SecretKeyMessage(encrypted);
 		
@@ -255,7 +254,7 @@ public class RulesEngine {
     	// Send Encrypted Message
     	if(client.getSecureServer()){
     		
-    		triggerEncryptedMessage(loginMsg.toData(), con);
+    		SendEncryptedMessage(loginMsg, con);
     	}
     	else{
     		
