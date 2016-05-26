@@ -31,7 +31,8 @@ public class Client {
 		options.addOption("rp",true,"remote port number");
 		options.addOption("rh",true,"remote hostname");
 		options.addOption("s",true,"secret for username");
-		
+		options.addOption("krh",true,"key registry hostname");
+		options.addOption("krp",true,"key registry port");
 		
 		// build the parser
 		CommandLineParser parser = new DefaultParser();
