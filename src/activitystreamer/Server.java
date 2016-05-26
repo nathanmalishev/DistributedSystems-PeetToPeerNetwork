@@ -47,6 +47,8 @@ public class Server {
 		options.addOption("dbbp",true,"DB Shard B port");
 		options.addOption("dbcp",true,"DB Shard C port");
 		options.addOption("dbdp",true,"DB Shard D port");
+		options.addOption("krp",true,"krp");
+		options.addOption("krh",true,"krh");
 
 
 		// build the parser
