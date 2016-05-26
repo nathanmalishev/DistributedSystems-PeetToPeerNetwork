@@ -493,6 +493,7 @@ public class RulesEngine {
     public boolean triggerActivityMessageRead(ActivityMessage msg, Connection con) {
         
     	ControlSolution server = ControlSolution.getInstance();
+    	
         if (!alreadyLoggedIn(msg.getUsername(), con)) {
             return triggerAuthenticationFail(con, ActivityMessage.alreadyAuthenticatedError);
         } else {
@@ -504,7 +505,7 @@ public class RulesEngine {
 
             // Resend the message back to the original client so they display it
             ActivityBroadcast activityBroadcast = new ActivityBroadcast(msgActivity);
-            con.writeMsg(activityBroadcast.toData());
+            con.writeMsg(activityBroadcast, con, server.getKeyMap());
 
             return triggerActivityBroadcast(msgActivity, con);
         }
@@ -524,14 +525,14 @@ public class RulesEngine {
         // Send to every connection, but the one you received from
         for (Connection connection : server.getAuthClients()) {
             if (!connection.equals(con)) {
-                connection.writeMsg(activityBroadcast.toData());
+                connection.writeMsg(activityBroadcast, connection, server.getKeyMap());
             }
         }
 
         // Send to every connection, but the one you received from
         for (Connection connection : server.getAuthServers()) {
             if (!connection.equals(con)) {
-                connection.writeMsg(activityBroadcast.toData());
+                connection.writeMsg(activityBroadcast, connection, server.getKeyMap());
             }
         }
         return false;
@@ -569,7 +570,7 @@ public class RulesEngine {
 
         log.info("Sending Invalid Message Response from server: " + info);
         JsonMessage response = new InvalidMessage(info);
-        con.writeMsg(response.toData());
+        con.writeMsg(response, con, ControlSolution.getInstance().getKeyMap());
 
         return true;
     }
@@ -619,7 +620,10 @@ public class RulesEngine {
 
 
     public boolean triggerRegisterFailed(String username, Connection con) {
-        con.writeMsg(new RegisterFailed(username).toData());
+    	
+    	RegisterFailed registerFail = new RegisterFailed(username);
+    	
+        con.writeMsg(registerFail, con, ControlSolution.getInstance().getKeyMap());
         con.closeCon();
         ControlSolution.getInstance().connectionClosed(con);
         return false;
