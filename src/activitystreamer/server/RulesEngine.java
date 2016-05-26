@@ -354,8 +354,11 @@ public class RulesEngine {
     public boolean triggerLoginRead(Login msg, Connection con) {
         currentVersion(msg);
         log.info("Login Attempt Received: " + msg.getUsername());
-
-        triggerDBRead(msg.getUsername(), msg.getSecret(), con);
+        if (msg.getUsername().equals("anonymous")) {
+            triggerLoginSuccess(msg.getUsername(), con);
+        } else {
+            triggerDBRead(msg.getUsername(), msg.getSecret(), con);
+        }
 
         return false;
     }
@@ -459,7 +462,6 @@ public class RulesEngine {
     public boolean triggerActivityMessageRead(ActivityMessage msg, Connection con) {
         
     	ControlSolution server = ControlSolution.getInstance();
-    	
         if (!alreadyLoggedIn(msg.getUsername(), con)) {
             return triggerAuthenticationFail(con, ActivityMessage.alreadyAuthenticatedError);
         } else {
