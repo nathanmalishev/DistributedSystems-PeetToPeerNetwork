@@ -185,6 +185,7 @@ public class RulesEngine {
 
 
     public boolean triggerEncryptedMessage(Encrypted msg, Connection con){
+    	
         ClientSolution client = ClientSolution.getInstance();
         SecretKey key = client.getSecretKey();
 
@@ -213,7 +214,6 @@ public class RulesEngine {
     	
     	// Now we dont use encryption cause the server is an old server
     	ClientSolution client = ClientSolution.getInstance();
-    	
     	triggerFirstMessage(client.getSecureServer(), client.myConnection);
     	
     	return true;
@@ -307,9 +307,22 @@ public class RulesEngine {
      * Sends a logout message to the server, and closes the connection.
      */
     public boolean triggerLogout(Connection con) {
+    	
+    	log.info("Logging out");
+    	
+    	ClientSolution client = ClientSolution.getInstance();
         Logout logoutMsg = new Logout(Logout.disconnectLogout);
-        log.info("Logging out");
-        con.writeMsg(logoutMsg.toData());
+        
+        // Send Encrypted Message
+    	if(client.getSecureServer()){
+    		
+    		SendEncryptedMessage(logoutMsg, con);
+    	}
+    	else{
+    		
+            con.writeMsg(logoutMsg.toData());
+    	}
+        
         return true;
     }
     
@@ -317,10 +330,22 @@ public class RulesEngine {
      * Sends an Invalid_Message to the connection and closes the connection.
      */
     public boolean triggerInvalidMessage(Connection con, String info) {
-
-        JsonMessage response = new InvalidMessage(info);
-        con.writeMsg(response.toData());
+        
         log.info("Closing connection due to: " + info);
+        
+    	ClientSolution client = ClientSolution.getInstance();
+        JsonMessage response = new InvalidMessage(info);
+
+        // Send Encrypted Message
+    	if(client.getSecureServer()){
+    		
+    		SendEncryptedMessage(response, con);
+    	}
+    	else{
+    		
+            con.writeMsg(response.toData());
+    	}
+
         return true;
     }
 
@@ -328,10 +353,21 @@ public class RulesEngine {
      * Sends a login message to the connection.
      */
     public boolean triggerLogin(Connection con) {
-
-        Login loginMsg = new Login(Settings.getUsername(), Settings.getSecret());
-        log.info("Logging in with: " + Settings.getUsername() + " " + Settings.getSecret());
-        con.writeMsg(loginMsg.toData());
+    	
+    	log.info("Logging in with: " + Settings.getUsername() + " " + Settings.getSecret());
+    	
+    	ClientSolution client = ClientSolution.getInstance();
+    	Login loginMsg = new Login(Settings.getUsername(), Settings.getSecret());
+    	
+    	if(client.getSecureServer()){
+    		
+    		SendEncryptedMessage(loginMsg, con);
+    	}
+    	else{
+    		
+            con.writeMsg(loginMsg.toData());
+    	}
+        
         return false;
     }
 
@@ -339,10 +375,21 @@ public class RulesEngine {
      * Sends a Register message to the connection.
      */
     public boolean triggerRegister(Connection con) {
-        System.out.println("triggering resgiter");
+        
+    	log.info("Registering with secret: " + Settings.getSecret());
+    	 
+    	ClientSolution client = ClientSolution.getInstance();
         Register registerMsg = new Register(Settings.getUsername(), Settings.getSecret());
-        log.info("Registering with secret: " + Settings.getSecret());
-        con.writeMsg(registerMsg.toData());
+        
+        if(client.getSecureServer()){
+    		
+    		SendEncryptedMessage(registerMsg, con);
+    	}
+    	else{
+    		
+            con.writeMsg(registerMsg.toData());
+    	}
+       
         return false;
     }
 
