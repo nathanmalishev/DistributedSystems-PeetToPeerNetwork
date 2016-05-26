@@ -157,8 +157,14 @@ public class ClientSolution extends Thread {
 		
 		try{
 			ActivityMessage activityMessage = new ActivityMessage(Settings.getUsername(), Settings.getSecret(), activityObj);
-			myConnection.writeMsg(activityMessage.toData());
-
+			
+			if(secureServer){
+				rulesEngine.SendEncryptedMessage(activityMessage, myConnection);
+			}	
+			else{
+				myConnection.writeMsg(activityMessage.toData());
+			}
+			
 			log.debug("Message successfully sent: " + activityObj.toString());
 
 		}catch(Exception e){
