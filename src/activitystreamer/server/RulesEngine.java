@@ -122,6 +122,11 @@ public class RulesEngine {
         // we have secure connection continue with proccess
 
         log.info("Secret key success");
+        
+        // Send JSON Authenticate message
+        Authenticate authenticateMsg = new Authenticate(Settings.getSecret());
+        log.info("Sending Authentication Request to: " + Settings.getRemoteHostname() + ", with Secret: " + authenticateMsg.getSecret());
+        con.writeMsg(authenticateMsg, con, ControlSolution.getInstance().getKeyMap());
 
         return false;
     }
@@ -133,6 +138,11 @@ public class RulesEngine {
         log.info("Secret key fail");
         //Delete secret key from hashmap
         ControlSolution.getInstance().getKeyMap().remove(con);
+        
+        // Send JSON Authenticate message
+        Authenticate authenticateMsg = new Authenticate(Settings.getSecret());
+        log.info("Sending Authentication Request to: " + Settings.getRemoteHostname() + ", with Secret: " + authenticateMsg.getSecret());
+        con.writeMsg(authenticateMsg.toData());
 
         return false;
     }
@@ -143,11 +153,6 @@ public class RulesEngine {
         try {
             // Establish a connection
             Connection c = new Connection(new Socket(Settings.getRemoteHostname(), Settings.getRemotePort()));
-
-            // Send JSON Authenticate message
-            Authenticate authenticateMsg = new Authenticate(Settings.getSecret());
-            log.info("Sending Authentication Request to: " + Settings.getRemoteHostname() + ", with Secret: " + authenticateMsg.getSecret());
-            c.writeMsg(authenticateMsg.toData());
 
             // Will need to then receive a message with db info
 
@@ -233,7 +238,7 @@ public class RulesEngine {
     		
     		//TODO: Send Success message back to client
     		SecretKeySuccess response = new SecretKeySuccess();
-    		con.writeMsg(response, con, server.getKeyMap());
+    		con.writeMsg(response.toData());
     		log.info("Sending secretKey Success");
     	}
     	//TODO: Check if keyMap contains the same SecretKey already
@@ -241,13 +246,13 @@ public class RulesEngine {
     		
     		// We have a matching secret key
     		SecretKeySuccess response = new SecretKeySuccess();
-            con.writeMsg(response, con, server.getKeyMap());
+            con.writeMsg(response.toData());
     		log.info("Sending secretKey Success");
     	}
     	else{
     		// We have another secret key for this connection
     		SecretKeyFailed response = new SecretKeyFailed();
-            con.writeMsg(response, con, server.getKeyMap());
+            con.writeMsg(response.toData());
     		log.info("Sending secretKey Failed");
     	}
     	
