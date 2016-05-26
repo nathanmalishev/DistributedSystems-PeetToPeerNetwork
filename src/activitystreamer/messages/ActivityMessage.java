@@ -16,6 +16,7 @@ public class ActivityMessage extends JsonMessage {
         this.secret = secret;
         this.activity = activity;
 
+        if (secret == null) this.secret = "-";
     }
 
 
