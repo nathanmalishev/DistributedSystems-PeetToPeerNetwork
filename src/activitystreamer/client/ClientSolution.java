@@ -145,7 +145,7 @@ public class ClientSolution extends Thread {
 	 * Connects to the newly given hostname and port, and attempts to login.
 	 */
 	public void redirectConnection() {
-		connectToServer();
+		initialiseConnection();
 		rulesEngine.triggerLogin(myConnection);
 	}
 

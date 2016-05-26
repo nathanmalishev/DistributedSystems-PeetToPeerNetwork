@@ -454,7 +454,7 @@ public class RulesEngine {
     			Redirect response = new Redirect(server.getValue().getHostname(), server.getValue().getPort());
                 log.info("Redirecting client to: " + response.getHostname());
 
-                con.writeMsg(response.toData());
+                con.writeMsg(response, con, ControlSolution.getInstance().getKeyMap());
                 logout(con);
     			con.closeCon();
                 ControlSolution.getInstance().connectionClosed(con);
@@ -481,7 +481,7 @@ public class RulesEngine {
 
         log.info("Login Failed: " + info);
         JsonMessage response = new LoginFailed(info);
-        con.writeMsg(response.toData());
+        con.writeMsg(response, con, ControlSolution.getInstance().getKeyMap());
         con.closeCon();
         ControlSolution.getInstance().connectionClosed(con);
         return true;
