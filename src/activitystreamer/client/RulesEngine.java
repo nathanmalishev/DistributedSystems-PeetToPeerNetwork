@@ -77,7 +77,6 @@ public class RulesEngine {
             case "ENCRYPTED" :
                 return triggerEncryptedMessage((Encrypted)msg, con);
 
-
             default :
                 return triggerInvalidMessage(con, InvalidMessage.invalidMessageTypeError);
         }
@@ -87,7 +86,6 @@ public class RulesEngine {
     	
     	ClientSolution client = ClientSolution.getInstance();
     	
-    	// triggerFirstMessage(secureServer, con);
     	triggerFirstMessage(client.getSecureServer(), con);
     	
     	return false;
