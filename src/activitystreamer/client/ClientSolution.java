@@ -61,12 +61,13 @@ public class ClientSolution extends Thread {
 		open = true;
 		rulesEngine = new RulesEngine(log);
 		secureServer = false;
-		initialiseConnection();
 
 		// open the gui
 		log.debug("opening the gui");
 		textFrame = new TextFrame();
 		// start the client's thread
+		initialiseConnection();
+
 		start();
 	}
 
@@ -187,7 +188,6 @@ public class ClientSolution extends Thread {
 		
 		// Continues until the connection is closed with the client
 		while (open) {
-			
 			// Redirect if required
 			if (!myConnection.isOpen()) {
 				if (redirect) {
@@ -196,18 +196,6 @@ public class ClientSolution extends Thread {
 				}
 				else {
 					this.open = false;
-				}
-			}
-			else {
-				try{
-					if(firstMessage && krCon.isOpen()){
-						krCon.listen();
-						firstMessage = false;
-					}
-					myConnection.listen();
-				}catch(Exception e){
-					log.error("connection "+Settings.socketAddress(s)+ "" +
-							"closed with exception: "+e );
 				}
 			}
 			

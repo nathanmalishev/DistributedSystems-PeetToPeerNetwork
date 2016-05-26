@@ -198,15 +198,9 @@ public class RulesEngine {
     	
     	ControlSolution server = ControlSolution.getInstance();
     	SecretKey key = server.getKeyMap().get(con);
-    	
-    	log.info("Receiving encrypted message at Server");
-    	log.info("Message Content: " + msg.getContent());
-    	
+
     	byte[] decrypted = Helper.symmetricDecryption(key, msg.getContent());
-    	log.info("Decrypting message at Server");
-    	log.info("Message Content: " + new String(decrypted));
-    	
-    	log.info("Processing decrypted message");
+
     	server.process(con, new String(decrypted));
     	
     	return false;

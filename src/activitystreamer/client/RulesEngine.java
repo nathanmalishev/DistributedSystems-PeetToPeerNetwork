@@ -340,7 +340,7 @@ public class RulesEngine {
      * Sends a Register message to the connection.
      */
     public boolean triggerRegister(Connection con) {
-
+        System.out.println("triggering resgiter");
         Register registerMsg = new Register(Settings.getUsername(), Settings.getSecret());
         log.info("Registering with secret: " + Settings.getSecret());
         con.writeMsg(registerMsg.toData());
