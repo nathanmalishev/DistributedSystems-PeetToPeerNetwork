@@ -317,7 +317,8 @@ public class RulesEngine {
      * the list of authorised connections if valid.
      */
     public boolean triggerAuthenticateAttempt(Authenticate msg, Connection con) {
-        currentVersion(msg);
+        
+    	currentVersion(msg);
         log.info("Authentication request received with secret: " + msg.getSecret());
 
         // Check if secret is valid
@@ -351,7 +352,7 @@ public class RulesEngine {
         log.info("Failing Authentication Request: " + info);
 
         JsonMessage response = new AuthenticationFail(info);
-        con.writeMsg(response.toData());
+        con.writeMsg(response, con, ControlSolution.getInstance().getKeyMap());
 
         return true;
     }
@@ -423,9 +424,11 @@ public class RulesEngine {
     }
 
     public boolean triggerLoginSuccess(String username, Connection con) {
-        login(username, con);
+        
+    	login(username, con);
         log.info("Login Success: " + username);
-        con.writeMsg((new LoginSuccess(LoginSuccess.loginSuccess + username)).toData());
+        LoginSuccess loginSuccess = new LoginSuccess(LoginSuccess.loginSuccess + username);
+        con.writeMsg(loginSuccess, con, ControlSolution.getInstance().getKeyMap());
 
         // Determine if we need to redirect
         return triggerRedirect(con);
