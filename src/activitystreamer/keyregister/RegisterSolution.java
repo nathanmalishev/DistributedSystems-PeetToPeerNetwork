@@ -31,7 +31,6 @@ public class RegisterSolution extends Thread{
 	}
 
 	public RegisterSolution(int portNumber){
-		System.out.println("Registry created!!");
 		this.portNumber = portNumber;
 		keyStore = new HashMap<String,String>();
 		connections = new ArrayList();
@@ -70,8 +69,7 @@ public class RegisterSolution extends Thread{
      * A new incoming connection has been established, and a reference is returned to it
      */
      public synchronized Connection incomingConnection(Socket s) throws IOException{
-		System.out.println("key registry received incoming connections");
-		//log.debug("incomming connection: "+ Settings.socketAddress(s));
+		log.info("incomming connection: "+ Settings.socketAddress(s));
         Connection c = new Connection(s, this);
 		 connections.add(c);
         return c;
@@ -82,7 +80,6 @@ public class RegisterSolution extends Thread{
     public synchronized void connectionClosed(Connection con){
     	
          if(!term) {
-        	 log.info("HERE_--------");
              connections.remove(con);
              if (authConnections.contains(con)) authConnections.remove(con);
              if (unauthConnections.contains(con)) unauthConnections.remove(con);
@@ -91,8 +88,6 @@ public class RegisterSolution extends Thread{
     
 	
 	public synchronized boolean process(Connection connection, String msg) {
-		//TODO: delete print
-		System.out.println("process "+msg);
 
 		MessageFactory msgFactory = new MessageFactory();
 
@@ -125,7 +120,7 @@ public class RegisterSolution extends Thread{
     }
 	
 	private boolean triggerRegisterKey(RegisterKey msg, Connection con){
-		System.out.println("trigger key register!");
+		log.info("Attmepting to register a new key");
 		String info, result;
 
 		if(keyStore.containsKey(msg.getServerId())){
@@ -133,11 +128,13 @@ public class RegisterSolution extends Thread{
 			// Check to see if key already exists
 			if(keyStore.get(msg.getServerId()).equals(msg.getPublicKeyStr())){
 				info = KeyRegisterResponse.keyExists;
+				log.info("Server already registered with key registry");
 				result = "SUCCESS";
 			}
 			// Else Public Key supplied doesn't match
 			else{
 				info = KeyRegisterResponse.invalidKey;
+				log.info("Invalid key register");
 				result = "FAILED";
 			}
 		}
@@ -145,6 +142,7 @@ public class RegisterSolution extends Thread{
 			// Store new key in register
 			keyStore.put(msg.getServerId(), msg.getPublicKeyStr());
 			info = KeyRegisterResponse.keyRegisterSuccess;
+			log.info("Successfully registered new public key");
 			result = "SUCCESS";
 		}
 
@@ -164,29 +162,21 @@ public class RegisterSolution extends Thread{
 	//TODO: Test
 	private boolean triggerGetKey(GetKey msg, Connection con){
 
-		System.out.println("triggerGetKey "+msg.toData());
-
-		System.out.println("getServerId "+msg.getServerId());
-		System.out.println("keyStore "+keyStore.keySet());
-
-
+		log.info("Triggering key retrieval");
 		if(keyStore.containsKey(msg.getServerId())){
-			
+			log.info("Successful key retrieval");
+
 			// Send key to the Client
 			String publicKey = keyStore.get(msg.getServerId());
 			GetKeySuccess response = new GetKeySuccess(publicKey, msg.getServerId());
 
-			System.out.println("Sending Servers Public Key to Client: " + msg.getServerId());
-			System.out.println("Key: " + publicKey);
-
 			con.writeMsg(response.toData());
 		}
 		else{
-			
+			log.info("Unsuccessful key retrieval");
 			// Send failure message to the client
 			GetKeyFailed response = new GetKeyFailed(GetKeyFailed.serverKeyDoesntExist);
 
-			System.out.println("Failed to find Servers Public Key: " + msg.getServerId());
 			con.writeMsg(response.toData());
 		}
 

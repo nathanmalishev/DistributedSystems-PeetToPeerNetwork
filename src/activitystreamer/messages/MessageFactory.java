@@ -29,7 +29,6 @@ public class MessageFactory {
         if(message.getCommand() == null){
             return null;
         }
-        System.out.println("Message factory" +message.toData());
 
         try {
             // Process accordingly

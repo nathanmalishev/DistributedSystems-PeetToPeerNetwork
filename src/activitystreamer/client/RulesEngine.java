@@ -202,10 +202,8 @@ public class RulesEngine {
     	
 		String keyString = Helper.secretKeyToString(secretKey);
 		log.info("Encrypting Secret Key with Servers Public Key");
-        System.out.println(secretKey);
 
 		byte[] encrypted = Helper.asymmetricEncryption(publicKey, keyString);
-		System.out.println("Text Encrypted: " + new String(encrypted));
 
 		SecretKeyMessage msg = new SecretKeyMessage(encrypted);
 		

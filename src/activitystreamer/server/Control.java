@@ -128,9 +128,7 @@ public class Control extends Thread {
 	
 	@Override
 	public void run(){
-		System.out.println("run run");
 		while(!term){
-			System.out.println("running");
 			// do something with 5 second intervals in between
 			try {
 				Thread.sleep(Settings.getActivityInterval());
@@ -139,9 +137,7 @@ public class Control extends Thread {
 				break;
 			}
 			if(!term){
-				System.out.println("doing activity");
 				term=doActivity();
-				System.out.println("activity done");
 			}
 			
 		}

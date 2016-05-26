@@ -68,9 +68,7 @@ public class Connection extends Thread{
 		try {
 			String data;
 			while(!term && (data = inreader.readLine())!=null){
-				System.out.println("Received something and am processing");
 				term=keyStore.process(this,data);
-				System.out.println("Finished processing");
 			}
 			log.debug("connection closed to "+Settings.socketAddress(socket));
 			in.close();
