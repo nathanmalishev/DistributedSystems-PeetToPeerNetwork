@@ -68,17 +68,22 @@ public class Server {
 				help(options);
 			}
 		}
-		
+
 		if(cmd.hasOption("rh")){
 			Settings.setRemoteHostname(cmd.getOptionValue("rh"));
 		}
-		
+
 		if(cmd.hasOption("rp")){
 			try{
 				int port = Integer.parseInt(cmd.getOptionValue("rp"));
 				Settings.setRemotePort(port);
 			} catch (NumberFormatException e){
 				log.error("-rp requires a port number, parsed: "+cmd.getOptionValue("rp"));
+				help(options);
+			}
+
+			if (!cmd.hasOption("rh")) {
+				log.info("-rh requires a hostname ");
 				help(options);
 			}
 		}
