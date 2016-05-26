@@ -47,7 +47,6 @@ public class RulesEngine {
             return triggerInvalidMessage(con, InvalidMessage.invalidMessageTypeError);
         }
 
-        System.out.println(msg.toData());
         // Process accordingly
         switch(msg.getCommand()){
 
@@ -122,7 +121,7 @@ public class RulesEngine {
 
         // we have secure connection continue with proccess
 
-        System.out.println("Secret key success");
+        log.info("Secret key success");
 
         return false;
     }
@@ -131,7 +130,7 @@ public class RulesEngine {
 
         // we have secure connection continue with proccess
 
-        System.out.println("Secret key fail");
+        log.info("Secret key fail");
         //Delete secret key from hashmap
         ControlSolution.getInstance().getKeyMap().remove(con);
 
@@ -140,9 +139,7 @@ public class RulesEngine {
 
     //TODO: delete prints & tidy? Refactor
     public boolean triggerGetKeySuccess(GetKeySuccess msg, Connection con){
-        System.out.println("Get key success "+msg.getServerId());
-        System.out.println("The key we got back was "+msg.getServerKey());
-
+        log.info("Triggering get key success");
         try {
             // Establish a connection
             Connection c = new Connection(new Socket(Settings.getRemoteHostname(), Settings.getRemotePort()));
@@ -168,8 +165,6 @@ public class RulesEngine {
             KeyFactory keyFact = KeyFactory.getInstance("RSA");
             PublicKey pubKey2 = keyFact.generatePublic(x509KeySpec);
 
-            System.out.println("After unstringing "+pubKey2);
-
             //Use public key to create secret key
             KeyGenerator keyGenerator = KeyGenerator.getInstance("DES");
             SecretKey secretKey = keyGenerator.generateKey();
@@ -183,7 +178,6 @@ public class RulesEngine {
             byte secretKeyEncrypted[] = cipher.doFinal(secretKeyByte);
 
             /* SEND ENCRYPTED SECRET KEY TO other Connection */
-            System.out.println("SAVING SECRET KEY: "+secretKey);
             ControlSolution.getInstance().getKeyMap().put(c, secretKey);
             SecretKeyMessage secretKeyMessage = new SecretKeyMessage(secretKeyEncrypted);
             c.writeMsg(secretKeyMessage.toData());
@@ -197,7 +191,7 @@ public class RulesEngine {
     }
 
     public boolean triggerGetKeyFailed(GetKeyFailed msg, Connection con){
-        System.out.println("Get key failed");
+        log.info("Failed to retrieve key");
         return false;
     }
 
@@ -205,15 +199,9 @@ public class RulesEngine {
     	
     	ControlSolution server = ControlSolution.getInstance();
     	SecretKey key = server.getKeyMap().get(con);
-    	
-    	log.info("Receiving encrypted message at Server");
-    	log.info("Message Content: " + msg.getContent());
-    	
+
     	byte[] decrypted = Helper.symmetricDecryption(key, msg.getContent());
-    	log.info("Decrypting message at Server");
-    	log.info("Message Content: " + new String(decrypted));
-    	
-    	log.info("Processing decrypted message");
+
     	server.process(con, new String(decrypted));
     	
     	return false;

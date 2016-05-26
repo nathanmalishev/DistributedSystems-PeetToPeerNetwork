@@ -138,20 +138,16 @@ public class ControlSolution extends Control {
 
 		publicKeyWrite(Settings.getLocalHostname(), Settings.getLocalPort());
 
-		System.out.println("finished initiate connection");
 	}
 
 
 	public void publicKeyRead(String hostname, String port) {
 
 		try{
-			System.out.println("publicKeyRead");
 			String query = Helper.createUniqueServerIdentifier(hostname,port);
 			GetKey getKeyMsg = new GetKey(query);
-			System.out.println("GET KEY MESSAGE"+getKeyMsg);
 			KRCon.writeMsg(getKeyMsg.toData());
 		}catch( Exception e){
-			System.out.println("ERRROROROR");
 			System.out.println(e);
 		}
 
@@ -172,18 +168,16 @@ public class ControlSolution extends Control {
 
 
 	public void setKRSettings() {
-		System.out.println("Setting kr settings");
+		log.info("Setting key register settings");
 		if (Settings.getKeyRegisterHostname() == null) {
-			System.out.println("the settings were null");
 			Settings.setKeyRegisterHostname(Settings.defaultKRHostname());
 			Settings.setKeyRegisterPort(Settings.defaultKRPort());
 		}
 	}
 
 	public void setupKR() {
-		System.out.println("starting the KR");
+		log.info("Starting key register");
 		if (Settings.getKeyRegisterHostname() == null) {
-			System.out.println("The KR was null");
 			Settings.setKeyRegisterHostname(Settings.defaultKRHostname());
 			Settings.setKeyRegisterPort(Settings.defaultKRPort());
 			final RegisterSolution KeyRegistry = new RegisterSolution(Settings.getKeyRegisterPort());
@@ -191,7 +185,7 @@ public class ControlSolution extends Control {
 	}
 
 	public void setDBSettings() {
-
+		log.info("Setting DB Settings");
 		if (Settings.getShardAHostname() == null) {
 			Settings.setShardAPort(Settings.defaultShardAPort());
 			Settings.setShardAHostname(Settings.defaultShardHostname());
@@ -211,7 +205,7 @@ public class ControlSolution extends Control {
 	}
 
 	public void setupDB() {
-
+		log.info("Starting database shards");
 		if (Settings.getShardAHostname() == null) {
 			final DBShard db1 = new DBShard(0, Settings.defaultShardAPort());
 			Settings.setShardAPort(Settings.defaultShardAPort());
@@ -256,9 +250,8 @@ public class ControlSolution extends Control {
 	}
 
 	public void initialiseKRConnections() {
-		System.out.println("initialising KR");
+		log.info("Initialising connection to key registry");
 		try {
-			System.out.println("outgoing");
 			Connection c = outgoingConnection(new Socket(Settings.getKeyRegisterHostname(), Settings.getKeyRegisterPort()));
 			this.KRCon = c;
 		} catch (IOException e) {
@@ -366,9 +359,7 @@ public class ControlSolution extends Control {
 
 	public void run(){
 		initiateConnection();
-		System.out.println("run run");
 		while(!getTerm()){
-			System.out.println("running");
 			// do something with 5 second intervals in between
 			try {
 				Thread.sleep(Settings.getActivityInterval());
@@ -377,9 +368,7 @@ public class ControlSolution extends Control {
 				break;
 			}
 			if(!getTerm()){
-				System.out.println("doing activity");
 				setTerm(doActivity());
-				System.out.println("activity done");
 			}
 
 		}

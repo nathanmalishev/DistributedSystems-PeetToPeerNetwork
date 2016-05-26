@@ -9,7 +9,7 @@ import java.io.*;
 import java.net.Socket;
 
 /** Class contains information related to the Clients connection */
-public class Connection {
+public class Connection extends Thread {
 	
 	private static final Logger log = LogManager.getLogger();
 	private DataInputStream in;
@@ -27,6 +27,7 @@ public class Connection {
 	    outwriter = new PrintWriter(out, true);
 	    this.socket = socket;
 	    open = true;
+		start();
 	}
 	
 	/**
@@ -56,9 +57,10 @@ public class Connection {
 			log.error("received exception closing the connection "+Settings.socketAddress(socket)+": "+e);
 		}
 	}
-	
-	
-	public void listen(){
+
+
+	public void run() {
+
 		try {
 			String data;
 			while(!term && (data = inreader.readLine())!=null){
@@ -70,8 +72,10 @@ public class Connection {
 			log.error("connection "+Settings.socketAddress(socket)+" closed with exception: "+e);
 			closeCon();
 		}
+
+
 	}
-	
+
 	public Socket getSocket() {
 		return socket;
 	}
