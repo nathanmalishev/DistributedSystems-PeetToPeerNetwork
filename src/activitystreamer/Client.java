@@ -45,8 +45,11 @@ public class Client {
 	
 		if(cmd.hasOption("rh")){
 			Settings.setRemoteHostname(cmd.getOptionValue("rh"));
+		}else{
+			log.error("-rh requires host name: "+cmd.getOptionValue("rp"));
+			help(options);
 		}
-		
+
 		if(cmd.hasOption("rp")){
 			try{
 				int port = Integer.parseInt(cmd.getOptionValue("rp"));

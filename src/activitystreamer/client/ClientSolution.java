@@ -122,6 +122,7 @@ public class ClientSolution extends Thread {
 	public void connectToServer() {
 		
 		try {
+			System.out.println(Settings.getRemoteHostname());
 			s = new Socket(Settings.getRemoteHostname(), Settings.getRemotePort());
 			myConnection = new Connection(s);
 			
