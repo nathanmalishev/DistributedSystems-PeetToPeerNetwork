@@ -118,7 +118,7 @@ public class ControlSolution extends Control {
 		// make a connection to another server if remote hostname is supplied
 		if(Settings.getRemoteHostname()!=null){
 
-			//setDBSettings();
+			setDBSettings();
 			setKRSettings();
 
 			initialiseKRConnections();
@@ -127,14 +127,14 @@ public class ControlSolution extends Control {
 			publicKeyRead(Settings.getRemoteHostname(), String.valueOf(Settings.getRemotePort()));
 
 		} else {
-			//setupDB();
+			setupDB();
 			setupKR();
 
 			initialiseKRConnections();
 
 
 		}
-		//initialiseDBConnections();
+		initialiseDBConnections();
 
 		publicKeyWrite(Settings.getLocalHostname(), Settings.getLocalPort());
 
