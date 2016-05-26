@@ -212,7 +212,9 @@ public class RulesEngine {
     public boolean triggerGetKeyFailed(GetKeyFailed msg, Connection con){
     	
     	// Now we dont use encryption cause the server is an old server
+    	ClientSolution client = ClientSolution.getInstance();
     	
+    	triggerFirstMessage(client.getSecureServer(), client.myConnection);
     	
     	return true;
     }
