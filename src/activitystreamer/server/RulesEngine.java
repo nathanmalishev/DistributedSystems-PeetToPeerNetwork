@@ -5,7 +5,9 @@ import activitystreamer.util.Helper;
 import activitystreamer.util.Settings;
 
 import java.awt.*;
+import java.io.IOException;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.security.KeyFactory;
 import java.security.PublicKey;
 import java.security.spec.X509EncodedKeySpec;
@@ -15,6 +17,7 @@ import javax.crypto.SecretKey;
 
 import org.json.simple.JSONObject;
 import org.apache.logging.log4j.Logger;
+
 import sun.misc.BASE64Decoder;
 
 import javax.crypto.Cipher;
@@ -196,7 +199,26 @@ public class RulesEngine {
     }
 
     public boolean triggerGetKeyFailed(GetKeyFailed msg, Connection con){
+    	
         log.info("Failed to retrieve key");
+        Connection c;
+        
+		try {
+			
+			c = new Connection(new Socket(Settings.getRemoteHostname(), Settings.getRemotePort()));
+		
+			// Send JSON Authenticate message
+	        Authenticate authenticateMsg = new Authenticate(Settings.getSecret());
+	        log.info("Sending Authentication Request to: " + Settings.getRemoteHostname() + ", with Secret: " + authenticateMsg.getSecret());
+	        c.writeMsg(authenticateMsg.toData());
+	        
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+        
+        
         return false;
     }
 
@@ -263,7 +285,6 @@ public class RulesEngine {
     public boolean triggerKeyRegisterResponse(KeyRegisterResponse msg, Connection con){
     	
     	log.info("Response from KeyRegister: " + msg.getResult());
-    	
     	return false;
     }
 
@@ -284,7 +305,7 @@ public class RulesEngine {
         for(Connection c : server.getAuthServers()){
         	
         	// Don't send to the received connection
-        	if(!c.equals(con)) c.writeMsg(msg.toData());
+        	if(!c.equals(con)) c.writeMsg(msg, c, ControlSolution.getInstance().getKeyMap());
         }
         server.getServerLoads().put(con, msg);
         
