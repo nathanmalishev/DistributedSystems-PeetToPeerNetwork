@@ -15,7 +15,7 @@ import java.lang.reflect.*;
 public class MessageFactory {
 
     public JsonMessage buildMessage(String msg, Logger log) {
-        System.out.println(msg);
+
         JsonMessage message;
         /* GSON Parser transforms JSON objects into instance of a class */
         Gson parser = new Gson();
@@ -30,6 +30,8 @@ public class MessageFactory {
         if(message.getCommand() == null){
             return null;
         }
+
+        System.out.println("command received: " + message.getCommand());
 
         try {
             // Process accordingly

@@ -224,7 +224,7 @@ public class RulesEngine {
 
     public boolean triggerEncryptedMessage(Encrypted msg, Connection con){
     	
-    	log.info("Received Encrypted Message at Server: " + new String(msg.getContent()));
+    	log.info("Received Encrypted Message at Server" );
     	
     	ControlSolution server = ControlSolution.getInstance();
     	SecretKey key = server.getKeyMap().get(con);
