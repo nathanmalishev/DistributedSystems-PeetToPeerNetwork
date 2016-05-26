@@ -488,7 +488,14 @@ public class RulesEngine {
         ActivityBroadcast activityBroadcast = new ActivityBroadcast(activity);
         
         // Send to every connection, but the one you received from
-        for (Connection connection : server.getConnections()) {
+        for (Connection connection : server.getAuthClients()) {
+            if (!connection.equals(con)) {
+                connection.writeMsg(activityBroadcast.toData());
+            }
+        }
+
+        // Send to every connection, but the one you received from
+        for (Connection connection : server.getAuthServers()) {
             if (!connection.equals(con)) {
                 connection.writeMsg(activityBroadcast.toData());
             }
