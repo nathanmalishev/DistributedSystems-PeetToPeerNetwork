@@ -8,11 +8,17 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.HashMap;
 
+import activitystreamer.messages.Encrypted;
+import activitystreamer.messages.JsonMessage;
+import activitystreamer.util.Helper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import activitystreamer.util.Settings;
+
+import javax.crypto.SecretKey;
 
 /** Class contains information related to a Servers connection */
 public class Connection extends Thread {
@@ -43,7 +49,25 @@ public class Connection extends Thread {
 		if(open){
 			outwriter.println(msg);
 			outwriter.flush();
-			return true;	
+			return true;
+		}
+		return false;
+	}
+
+
+		/**
+		 * returns true if the message was written, otherwise false
+		 */
+	public boolean writeMsg(JsonMessage msg, Connection c, HashMap<Connection, SecretKey> secureConnections) {
+		if(open){
+			if (Helper.isSecure(c, secureConnections)){
+				byte[] encryptedBytes = Helper.symmetricEncryption(secureConnections.get(c),msg.toData());
+				Encrypted encryptedMessage = new Encrypted(encryptedBytes);
+				msg = (Encrypted)encryptedMessage;
+			}
+			outwriter.println(msg.toData());
+			outwriter.flush();
+			return true;
 		}
 		return false;
 	}

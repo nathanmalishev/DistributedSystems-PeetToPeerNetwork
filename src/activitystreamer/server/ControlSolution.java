@@ -358,16 +358,7 @@ public class ControlSolution extends Control {
 		Iterator itr = getAuthServers().iterator();
 		while(itr.hasNext()) {
 			Connection c = (Connection)itr.next();
-
-			if (Helper.isSecure(c, secureConnections)) {
-
-				byte[] encryptedBytes = Helper.symmetricEncryption(secureConnections.get(c),serverAnnounce.toData());
-				Encrypted encryptedMessage = new Encrypted(encryptedBytes);
-				c.writeMsg(encryptedMessage.toData());
-			}else{
-				c.writeMsg(serverAnnounce.toData());
-			}
-
+				c.writeMsg(serverAnnounce, c, secureConnections);
 		}
 
 		return false;

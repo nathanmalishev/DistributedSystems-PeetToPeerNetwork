@@ -4,6 +4,7 @@ import activitystreamer.messages.*;
 import activitystreamer.util.Helper;
 import activitystreamer.util.Settings;
 
+import java.awt.*;
 import java.net.Socket;
 import java.security.KeyFactory;
 import java.security.PublicKey;
@@ -242,7 +243,7 @@ public class RulesEngine {
     		
     		//TODO: Send Success message back to client
     		SecretKeySuccess response = new SecretKeySuccess();
-    		con.writeMsg(response.toData());
+    		con.writeMsg(response, con, server.getKeyMap());
     		log.info("Sending secretKey Success");
     	}
     	//TODO: Check if keyMap contains the same SecretKey already
@@ -250,13 +251,13 @@ public class RulesEngine {
     		
     		// We have a matching secret key
     		SecretKeySuccess response = new SecretKeySuccess();
-    		con.writeMsg(response.toData());
+            con.writeMsg(response, con, server.getKeyMap());
     		log.info("Sending secretKey Success");
     	}
     	else{
     		// We have another secret key for this connection
     		SecretKeyFailed response = new SecretKeyFailed();
-    		con.writeMsg(response.toData());
+            con.writeMsg(response, con, server.getKeyMap());
     		log.info("Sending secretKey Failed");
     	}
     	
